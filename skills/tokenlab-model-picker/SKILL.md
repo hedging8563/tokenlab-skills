@@ -55,7 +55,7 @@ Use this skill when a user asks which TokenLab model to use, how to compare mode
 - Do not recommend provider-prefixed or physical route names as public model IDs.
 - Do not invent prices or model counts.
 - Do not silently translate a native-only need into a generic chat completion.
-- Do not recommend Agnes or any unsupported public model.
+- Do not recommend a model that is absent from the current public catalog.
 
 ## Edge Cases
 

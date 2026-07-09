@@ -23,7 +23,7 @@ Use this skill when a user needs provider-native behavior, non-chat APIs, or mig
 - OpenAI-compatible chat: `POST https://api.tokenlab.sh/v1/chat/completions`
 - OpenAI Responses: `POST https://api.tokenlab.sh/v1/responses`
 - Anthropic Messages: `POST https://api.tokenlab.sh/v1/messages`
-- Gemini native generate content: use the Gemini route advertised by the model contract or `X-TokenLab-Native-Endpoint`
+- Gemini native generate content: `POST https://api.tokenlab.sh/v1beta/models/{model}:generateContent`
 - Model catalog: `GET https://api.tokenlab.sh/v1/models`
 - Task-specific model shortlist: `GET https://api.tokenlab.sh/v1/models?recommended_for=<scene>`
 - Model contract: `GET https://api.tokenlab.sh/v1/models/:model`
@@ -31,7 +31,7 @@ Use this skill when a user needs provider-native behavior, non-chat APIs, or mig
 ## Preferred approach
 
 1. Start with OpenAI-compatible chat unless the user needs a native contract, non-chat API, or provider-specific behavior.
-2. If a previous response includes `X-TokenLab-Hint` or `X-TokenLab-Native-Endpoint`, treat it as routing evidence and show the native alternative.
+2. If a previous response includes `X-TokenLab-Hint` or `X-TokenLab-Native-Endpoint`, treat it as routing evidence and prefer the exact native route in the header.
 3. For Anthropic-style requests, use `/v1/messages` and preserve Anthropic request semantics instead of converting blindly.
 4. For Gemini-style requests, preserve Gemini content parts, roles, tools, and generation config when the user explicitly needs Gemini-native behavior.
 5. For media/audio/embedding/rerank/translation requests, inspect `GET /v1/models/:model` before changing request parameters.
