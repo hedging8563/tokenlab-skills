@@ -1,5 +1,8 @@
 # TokenLab Skills
 
+[![Validate skills](https://github.com/hedging8563/tokenlab-skills/actions/workflows/validate.yml/badge.svg)](https://github.com/hedging8563/tokenlab-skills/actions/workflows/validate.yml)
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-111827)](https://agentskills.io/specification)
+
 This repository contains public agent skills released by TokenLab.
 
 ## Repository contents

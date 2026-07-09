@@ -1,0 +1,21 @@
+name: Validate skills
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+      - name: Validate Agent Skills specification
+        run: |
+          for skill in skills/*; do
+            uvx --from skills-ref agentskills validate "$skill"
+          done
