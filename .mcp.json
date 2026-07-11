@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "tokenlab-stdio": {
+      "command": "npx",
+      "args": ["-y", "@tokenlabai/mcp-server"],
+      "env": {
+        "TOKENLAB_API_BASE": "https://api.tokenlab.sh",
+        "TOKENLAB_MCP_TOOL_PROFILE": "catalog",
+        "TOKENLAB_API_KEY": "${TOKENLAB_API_KEY:-}"
+      }
+    },
+    "tokenlab-hosted-model-explorer": {
+      "type": "http",
+      "url": "https://tokenlab-model-explorer.vercel.app/mcp"
+    }
+  }
+}

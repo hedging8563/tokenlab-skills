@@ -1,0 +1,30 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "tokenlab-tools",
+  "owner": {
+    "name": "TokenLab",
+    "email": "cryptoninja2008@gmail.com"
+  },
+  "metadata": {
+    "description": "Maintained TokenLab skills and MCP integrations for Claude Code.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "tokenlab",
+      "source": "./",
+      "description": "TokenLab model, API, native endpoint, routing, migration, and MCP workflows.",
+      "version": "0.1.0",
+      "author": {
+        "name": "TokenLab",
+        "email": "cryptoninja2008@gmail.com"
+      },
+      "homepage": "https://tokenlab.sh",
+      "repository": "https://github.com/hedging8563/tokenlab-skills",
+      "license": "MIT",
+      "keywords": ["tokenlab", "ai-api", "mcp", "model-routing"],
+      "category": "development",
+      "tags": ["ai", "api", "mcp", "models", "claude-code"]
+    }
+  ]
+}

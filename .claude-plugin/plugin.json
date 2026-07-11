@@ -1,0 +1,23 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "tokenlab",
+  "version": "0.1.0",
+  "description": "TokenLab model selection, API integration, native endpoints, cost routing, and OpenAI-compatible migration skills with optional TokenLab MCP servers.",
+  "author": {
+    "name": "TokenLab",
+    "email": "cryptoninja2008@gmail.com"
+  },
+  "homepage": "https://tokenlab.sh",
+  "repository": "https://github.com/hedging8563/tokenlab-skills",
+  "license": "MIT",
+  "keywords": [
+    "tokenlab",
+    "ai-api",
+    "model-routing",
+    "mcp",
+    "native-endpoints",
+    "claude-code"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}
