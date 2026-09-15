@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "skills/tokenlab-api-integration/scripts/configure_codex.py"
+sys.path.insert(0, str(SCRIPT.parent))
 spec = importlib.util.spec_from_file_location("configure_codex", SCRIPT)
 setup = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = setup
@@ -190,6 +191,19 @@ class ConfigureCodexTests(unittest.TestCase):
         with self.assertRaises(setup.SetupError):
             self.plan()
         self.assertEqual(outside.read_bytes(), self.content)
+
+    def test_read_only_base_config_can_use_a_dotfiles_symlink(self):
+        outside = Path(self.temp.name) / "dotfiles-config.toml"
+        outside.write_bytes(self.base)
+        base = self.root / "config.toml"
+        base.unlink()
+        try:
+            base.symlink_to(outside)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlink creation is not available to this test user")
+        setup.apply(self.plan())
+        self.assertTrue(base.is_symlink())
+        self.assertEqual(outside.read_bytes(), self.base)
 
     def test_codex_detection_is_isolated_and_requires_profile_file_support(self):
         outputs = [subprocess.CompletedProcess([], 0, "codex-cli 0.149.0\n", ""),

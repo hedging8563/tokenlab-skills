@@ -45,6 +45,12 @@ python skills/tokenlab-api-integration/scripts/search_api.py --detail claude-son
 
 配置只引用 `TOKENLAB_API_KEY`，不接受密钥命令参数、不打印已有配置。配置成功、客户端实际加载和付费请求成功分别验证。恢复也先预览；遇到用户后续编辑时停止覆盖。MCP/Skills 安装不等同于主模型提供商接入。
 
+## Claude Code 客户端接入
+
+使用 [references/claude_setup.md](references/claude_setup.md) 中的 `scripts/configure_claude.py` 创建显式启动器。它需要 Python 3.11+、Claude Code 2.1.263+ 和用户明确选择的 Messages 模型；先预览，再在用户已要求执行配置时加 `--apply`。普通 `claude` 的账户、默认模型与权限配置保持原样。
+
+启动器通过子进程环境将 `TOKENLAB_API_KEY` 交给 Claude 的 Bearer 认证，按次传入不含密钥的 `--settings` 与指定 `--model`。不能把环境变量名当成 JSON 中会展开的密钥。发现已有 settings 中的 Bearer、模型映射或托管策略冲突时停止，不删用户配置或绕过组织策略。WSL 继承策略尚未验证，此首切片不自动接入。`--auth-status` 只检查本地认证来源，不代表 Key 有效或请求成功。
+
 ## Protocol selection
 
 模型列表适合筛选；最终 endpoint eligibility 以模型详情中的 `tokenlab.accepted_request_formats` 为准。

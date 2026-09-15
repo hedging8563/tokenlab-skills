@@ -20,4 +20,7 @@ Files:
 - `scripts/search_api.py`: standard-library, read-only live model discovery
 - `scripts/configure_codex.py`: Python 3.11+ Codex profile preview, incremental setup and restoration; no extra dependencies
 - `references/codex_setup.md`: configuration commands, credential boundaries and verified systems
+- `scripts/configure_claude.py`: explicit Claude Code session launcher setup and restoration; preserves saved accounts, defaults and permissions
+- `references/claude_setup.md`: session authentication, supported commands, conflicts and actual-client verification scope
+- `scripts/setup_files.py`: shared atomic file operations for the two configuration helpers
 - `agents/openai.yaml`: agent-facing display metadata
