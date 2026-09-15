@@ -18,4 +18,6 @@ Files:
 - `SKILL.md`: endpoint selection and implementation rules
 - `references/integration_examples.md`: runnable JavaScript, Python, Go, PHP, and cURL patterns
 - `scripts/search_api.py`: standard-library, read-only live model discovery
+- `scripts/configure_codex.py`: Python 3.11+ Codex profile preview, incremental setup and restoration; no extra dependencies
+- `references/codex_setup.md`: configuration commands, credential boundaries and verified systems
 - `agents/openai.yaml`: agent-facing display metadata

@@ -9,6 +9,19 @@ permissions:
   contents: read
 
 jobs:
+  codex-configuration:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Test configuration and recovery without installing Codex
+        run: python -m unittest discover -s tests -p 'test_configure_codex*.py'
+
   validate:
     runs-on: ubuntu-latest
     steps:

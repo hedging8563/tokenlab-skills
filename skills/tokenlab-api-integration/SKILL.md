@@ -37,6 +37,14 @@ python skills/tokenlab-api-integration/scripts/search_api.py --category video --
 python skills/tokenlab-api-integration/scripts/search_api.py --detail claude-sonnet-4-6
 ```
 
+## Codex 客户端接入
+
+用户需要把 Codex 的模型提供商设为 TokenLab 时，可使用本 Skill 的 `scripts/configure_codex.py`。它需要 Python 3.11+ 与支持独立 profile 文件的 Codex；不需要安装 Python 依赖，也不安装客户端。
+
+先阅读 [references/codex_setup.md](references/codex_setup.md)，确认实际 `CODEX_HOME` 和客户端版本。模型必须来自当前 Responses 契约。先预览，只有明确执行配置时才使用 `--apply`；本机测试指定临时 `--codex-home`。保留用户账户、默认模型和权限，不能覆盖同名的非本工具 profile，也不要迁移旧配置来规避冲突。
+
+配置只引用 `TOKENLAB_API_KEY`，不接受密钥命令参数、不打印已有配置。配置成功、客户端实际加载和付费请求成功分别验证。恢复也先预览；遇到用户后续编辑时停止覆盖。MCP/Skills 安装不等同于主模型提供商接入。
+
 ## Protocol selection
 
 模型列表适合筛选；最终 endpoint eligibility 以模型详情中的 `tokenlab.accepted_request_formats` 为准。
