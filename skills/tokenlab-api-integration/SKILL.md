@@ -51,6 +51,14 @@ python skills/tokenlab-api-integration/scripts/search_api.py --detail claude-son
 
 启动器通过子进程环境将 `TOKENLAB_API_KEY` 交给 Claude 的 Bearer 认证，按次传入不含密钥的 `--settings` 与指定 `--model`。不能把环境变量名当成 JSON 中会展开的密钥。发现已有 settings 中的 Bearer、模型映射或托管策略冲突时停止，不删用户配置或绕过组织策略。WSL 继承策略尚未验证，此首切片不自动接入。`--auth-status` 只检查本地认证来源，不代表 Key 有效或请求成功。
 
+## OpenCode 与 Pi 客户端接入
+
+用户明确需要配置客户端时，使用 [OpenCode 接入说明](references/opencode_setup.md) 的 `scripts/configure_opencode.py` 或 [Pi 接入说明](references/pi_setup.md) 的 `scripts/configure_pi.py`。两者要求 Python 3.11+；实际客户端验证固定为 OpenCode 1.18.31 与 Pi 0.85.1，不把这些结果泛化为所有版本或 WSL。模型须明确选择并声明 Chat Completions 契约。
+
+先预览；用户已要求执行配置时继续 `--apply`。OpenCode 生成按次通过 `OPENCODE_CONFIG` 加载的独立配置层，同时显式传入 `--model tokenlab/<model>`，避免改变普通启动的隐式默认提供商。Pi 把 provider 追加到现有条目之后，显式用 `--provider tokenlab --model <model>` 启动，保留原默认设置和账号。脚本只写环境变量引用，不能传真实 Key 参数，也不能为了通过冲突检查删除原提供商、账户或权限配置。
+
+两者保留原始字节备份，重复执行幂等，遇到后续编辑或同名冲突停止覆盖。按对应说明用 `--restore` 恢复；配置成功、真实客户端加载、实际付费请求分别验证。测试只用临时目录和虚构凭据。
+
 ## Protocol selection
 
 模型列表适合筛选；最终 endpoint eligibility 以模型详情中的 `tokenlab.accepted_request_formats` 为准。

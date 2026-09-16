@@ -52,7 +52,7 @@ jobs:
         with:
           node-version: '24'
       - name: Install the exact clients under test
-        run: npm install --global @openai/codex@0.149.0 @anthropic-ai/claude-code@2.1.263
+        run: npm install --global @openai/codex@0.149.0 @anthropic-ai/claude-code@2.1.263 opencode-ai@1.18.31 @earendil-works/pi-coding-agent@0.85.1
       - name: Load temporary profiles with actual clients without inference
         env:
           TOKENLAB_INSTALLED_CLIENT_TESTS: '1'
