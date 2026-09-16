@@ -13,6 +13,8 @@ npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-a
 
 The skill uses live public model discovery and `GET /v1/models/{id}` request-format contracts instead of model-name guesses. It includes runnable integration templates, sync-or-async media handling, bounded task polling, cancellation propagation, and structured error recovery.
 
+`search_api.py --detail MODEL_ID --json` includes the published `request_contract`, preserving operation endpoints, request shapes, task status modes, and parameter constraints. The `--client` option selects chat protocol compatibility; media API endpoints come from the operation contract.
+
 Files:
 
 - `SKILL.md`: endpoint selection and implementation rules

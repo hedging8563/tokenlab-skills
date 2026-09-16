@@ -27,7 +27,7 @@ metadata:
 4. 根据公开 detail contract 选择 endpoint；禁止按模型名 substring、供应商印象或物理渠道字段推断。
 5. 只发送所选 endpoint 声明的 request shape。不要把 Responses、Messages、Gemini 和 Chat payload 相互拍平或混用字段。
 6. 请求失败时保留原始语义；只根据结构化 error 或用户明确选择重试。不得为了得到 HTTP 200 删除历史、工具调用、思考签名或媒体输入。
-7. 异步创建后读取 `delivery.mode` / `id` / `task_id` / `poll_url`，以 `status` 判终态；不要用缺失的 progress 推断成功。
+7. 原始 HTTP 异步响应读取顶层 `id` / `task_id` / `poll_url` / `status`；MCP 工具结果才读取标准化 `delivery`。以 `status` 判终态，不用缺失的 progress 推断成功。
 8. 代码必须从环境变量读 key，传播超时与取消信号，并在结束时关闭流/reader。
 
 可先运行本 Skill 的只读发现脚本：
@@ -95,7 +95,7 @@ python skills/tokenlab-api-integration/scripts/search_api.py --detail claude-son
 
 ## Async contract
 
-视频、音乐、3D 一律按异步任务处理；图像可能同步也可能异步。创建响应若提供标准化 `delivery`：
+视频、音乐、3D 一律按异步任务处理；图像可能同步也可能异步。原始 HTTP 响应的任务标识、状态和查询地址位于顶层，不能因缺少 `delivery` 就判定为同步。MCP 工具会将原始响应放进 `response` 并添加标准化 `delivery`：
 
 ```json
 {
@@ -112,10 +112,10 @@ python skills/tokenlab-api-integration/scripts/search_api.py --detail claude-son
 
 实现必须：
 
-- `delivery.mode === "sync"` 时直接处理结果；`async` 时保留 task id 和 poll URL。
+- MCP 的 `delivery.mode === "complete"` 时直接处理结果；`async` 时保留 task id 和 poll URL。原始 HTTP 使用顶层任务字段，内联图像结果可直接消费。
 - 优先使用返回的 `poll_url`；通用 video/music/3D 可用 `/v1/tasks/{id}`。
 - `pending` / `processing` 是非终态；`completed` / `failed` 是通用终态。兼容 endpoint 还可能返回 `succeeded` / `cancelled` / `expired`，按对应 OpenAPI 处理。
-- 使用有上限的 polling interval、整体 timeout、AbortSignal/context cancellation 和少量暂态重试；401/403/404/大多数 4xx 不重试。
+- 使用有上限的 polling interval、整体 timeout 和 AbortSignal/context cancellation；如需重试 GET 查询，限制暂态重试次数，401/403/404/大多数 4xx 不重试。不要因等待失败自动重新提交生成请求。
 - 429/5xx 只有在响应允许时重试，尊重 `Retry-After` / `retry_after`，不改变原始请求。
 - timeout 返回最新状态，允许调用方继续 poll；不要谎报失败或成功。
 - `DELETE /v1/tasks/{id}` 是有副作用操作，只在用户意图明确、模型支持且任务仍可取消时调用。

@@ -49,4 +49,4 @@ Add and install it from Claude Code:
 
 The installed skill names are namespaced as `/tokenlab:tokenlab-api-integration`, `/tokenlab:tokenlab-cost-routing`, `/tokenlab:tokenlab-model-picker`, `/tokenlab:tokenlab-native-endpoints`, and `/tokenlab:tokenlab-openai-compatible-migration`.
 
-The hosted MCP entry is intentionally read-only and does not contain a TokenLab API key. The stdio entry defaults to the public `catalog` profile; set `TOKENLAB_MCP_TOOL_PROFILE=core` or `full` in the local environment when the client should expose credentialed tools.
+The hosted MCP entry is intentionally read-only and does not contain a TokenLab API key. The stdio entry defaults to the public `catalog` profile; set `TOKENLAB_MCP_TOOL_PROFILE=core` or `full` in the environment that launches Claude Code when the client should expose credentialed tools, then restart Claude Code. Set `TOKENLAB_API_KEY` separately for those calls; changing the profile does not change approvals or grant API permissions. The profile uses Claude Code's documented [environment-variable default syntax](https://code.claude.com/docs/en/mcp#environment-variable-expansion-in-mcpjson).

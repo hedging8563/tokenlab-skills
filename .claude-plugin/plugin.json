@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "tokenlab",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TokenLab model selection, API integration, native endpoints, cost routing, and OpenAI-compatible migration skills with optional TokenLab MCP servers.",
   "author": {
     "name": "TokenLab",

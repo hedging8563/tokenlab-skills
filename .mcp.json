@@ -5,7 +5,7 @@
       "args": ["-y", "@tokenlabai/mcp-server"],
       "env": {
         "TOKENLAB_API_BASE": "https://api.tokenlab.sh",
-        "TOKENLAB_MCP_TOOL_PROFILE": "catalog",
+        "TOKENLAB_MCP_TOOL_PROFILE": "${TOKENLAB_MCP_TOOL_PROFILE:-catalog}",
         "TOKENLAB_API_KEY": "${TOKENLAB_API_KEY:-}"
       }
     },

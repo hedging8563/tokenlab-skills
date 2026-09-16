@@ -11,40 +11,78 @@ export TOKENLAB_API_BASE='https://api.tokenlab.sh'
 
 Never paste the real key into source, browser code, logs, screenshots, or query strings unless an official SDK protocol specifically requires a query key and the request stays server-side.
 
-## Discover and inspect a model
+## Shared JavaScript client
 
-### JavaScript
+The JavaScript examples below reuse this client. Errors retain HTTP status, request ID and retry timing; callers decide whether a read can be retried. A failed or timed-out create must not be submitted again automatically.
 
 ```javascript
 const apiBase = process.env.TOKENLAB_API_BASE ?? 'https://api.tokenlab.sh';
 const apiKey = process.env.TOKENLAB_API_KEY;
+const controller = new AbortController();
 
-async function tokenlabGet(path, signal) {
-  const response = await fetch(`${apiBase}${path}`, {
+function retryAfterSeconds(value) {
+  if (typeof value !== 'number' && typeof value !== 'string') return undefined;
+  if (typeof value === 'string' && value.trim() === '') return undefined;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) return seconds;
+  if (typeof value !== 'string' || /^-?\d/.test(value)) return undefined;
+  const date = Date.parse(value);
+  return Number.isFinite(date) ? Math.max(0, Math.ceil((date - Date.now()) / 1000)) : undefined;
+}
+
+async function tokenlabRequest(path, init = {}, signal) {
+  const url = new URL(path, `${apiBase}/`);
+  if (url.origin !== new URL(apiBase).origin || url.username || url.password) {
+    throw new Error('TokenLab requests and poll URLs must stay on the configured API origin');
+  }
+  const response = await fetch(url, {
+    ...init,
     headers: {
       Accept: 'application/json',
       ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+      ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+      ...init.headers,
     },
     signal,
   });
-  const body = await response.json();
-  if (!response.ok) {
-    const error = new Error(body?.error?.message ?? `TokenLab HTTP ${response.status}`);
+  const text = await response.text();
+  let body;
+  let parseError;
+  try {
+    body = text ? JSON.parse(text) : null;
+  } catch (cause) {
+    parseError = cause;
+  }
+  if (!response.ok || parseError) {
+    const error = new Error(body?.error?.message ?? `TokenLab HTTP ${response.status}${parseError ? ' (non-JSON response)' : ''}`, { cause: parseError });
     error.status = response.status;
     error.code = body?.error?.code;
-    error.requestId = response.headers.get('x-request-id');
-    error.details = body;
+    error.retryable = body?.error?.retryable ?? body?.retryable ??
+      ([408, 425, 429].includes(response.status) || response.status >= 500);
+    error.retryAfterHeader = response.headers.get('retry-after');
+    error.retryAfter = retryAfterSeconds(error.retryAfterHeader) ??
+      retryAfterSeconds(body?.error?.retry_after ?? body?.retry_after);
+    error.requestId = response.headers.get('x-request-id') ?? body?.error?.request_id ?? body?.request_id;
+    error.details = body ?? text.slice(0, 4000);
     throw error;
   }
   return body;
 }
+```
 
-const controller = new AbortController();
-const listing = await tokenlabGet('/v1/models?category=video', controller.signal);
+## Discover and inspect a model
+
+### JavaScript
+
+Use the shared client above. Media operation details are separate from chat protocol eligibility.
+
+```javascript
+const listing = await tokenlabRequest('/v1/models?category=video', {}, controller.signal);
 const selected = listing.data[0];
 if (!selected) throw new Error('No public video model is currently available');
-const detail = await tokenlabGet(`/v1/models/${encodeURIComponent(selected.id)}`, controller.signal);
-console.log(detail.id, detail.tokenlab?.accepted_request_formats, detail.tokenlab?.capabilities);
+const detail = await tokenlabRequest(`/v1/models/${encodeURIComponent(selected.id)}`, {}, controller.signal);
+console.log(detail.id, detail.tokenlab?.accepted_request_formats,
+  detail.tokenlab?.request_format_details ?? detail.tokenlab?.public_contract);
 ```
 
 ### Python
@@ -77,7 +115,8 @@ detail = requests.get(
     timeout=30,
 )
 detail.raise_for_status()
-print(detail.json()["tokenlab"].get("accepted_request_formats", []))
+extension = detail.json()["tokenlab"]
+print(extension.get("request_format_details") or extension.get("public_contract"))
 ```
 
 ## Native protocol examples
@@ -168,65 +207,12 @@ const completion = await client.chat.completions.create({
 console.log(completion.choices[0]?.message?.content);
 ```
 
-## Multimedia: handle sync and async image delivery
+## Poll raw HTTP tasks
+
+Reuse the shared client above. Pass the raw create response so its returned `poll_url` is preserved; a task ID alone also works for the generic task endpoint. A terminal `failed` response is a finished failure, and a wait timeout retains the latest state for another poll.
 
 ```javascript
-async function tokenlabRequest(path, init, signal) {
-  const response = await fetch(`${apiBase}${path}`, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      ...init.headers,
-    },
-    signal,
-  });
-  const text = await response.text();
-  let body;
-  try {
-    body = text ? JSON.parse(text) : null;
-  } catch (cause) {
-    throw new Error(`TokenLab returned non-JSON HTTP ${response.status}`, { cause });
-  }
-  if (!response.ok) {
-    const error = new Error(body?.error?.message ?? `TokenLab HTTP ${response.status}`);
-    error.status = response.status;
-    error.code = body?.error?.code;
-    error.retryable = body?.error?.retryable ?? body?.retryable ?? false;
-    error.retryAfter = body?.error?.retry_after ?? body?.retry_after;
-    error.requestId = response.headers.get('x-request-id');
-    error.details = body;
-    throw error;
-  }
-  return body;
-}
-
-const created = await tokenlabRequest('/v1/images/generations', {
-  method: 'POST',
-  body: JSON.stringify({
-    model: '<live-image-model-id>',
-    prompt: 'A paper-cut mountain landscape at dawn',
-  }),
-}, controller.signal);
-
-const delivery = created.delivery;
-if (delivery?.mode === 'async') {
-  const terminal = await waitForTokenLabTask(delivery.task_id, {
-    signal: controller.signal,
-    timeoutMs: 15 * 60_000,
-  });
-  console.log(terminal);
-} else {
-  console.log(created);
-}
-```
-
-## Async submit and wait
-
-Video, music, and 3D create endpoints are asynchronous. Replace only the endpoint and request fields defined by the chosen model detail/OpenAPI.
-
-```javascript
-const TERMINAL = new Set(['completed', 'failed', 'succeeded', 'cancelled', 'expired']);
+const TERMINAL = new Set(['completed', 'failed', 'succeeded', 'cancelled', 'canceled', 'expired']);
 
 function abortableDelay(ms, signal) {
   return new Promise((resolve, reject) => {
@@ -245,20 +231,24 @@ function abortableDelay(ms, signal) {
   });
 }
 
-async function waitForTokenLabTask(id, {
+async function waitForTokenLabTask(task, {
   signal,
   timeoutMs = 15 * 60_000,
   pollIntervalMs = 5_000,
 } = {}) {
+  const submitted = typeof task === 'string' ? { id: task } : task;
+  const id = submitted?.task_id ?? submitted?.id;
+  const pollUrl = submitted?.poll_url ??
+    (typeof id === 'string' && id ? `/v1/tasks/${encodeURIComponent(id)}` : undefined);
   const timeout = AbortSignal.timeout(timeoutMs);
   const combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
-  let latest = null;
+  let latest = submitted;
   try {
+    combined.throwIfAborted();
+    if (TERMINAL.has(String(latest?.status ?? '').toLowerCase())) return latest;
+    if (typeof pollUrl !== 'string' || !pollUrl) throw new Error('Async response has no poll URL or task id');
     while (true) {
-      latest = await tokenlabRequest(`/v1/tasks/${encodeURIComponent(id)}`, {
-        method: 'GET',
-        headers: {},
-      }, combined);
+      latest = await tokenlabRequest(pollUrl, { method: 'GET' }, combined);
       const status = String(latest.status ?? '').toLowerCase();
       if (!status) throw new Error('Task response has no status');
       if (TERMINAL.has(status)) return latest;
@@ -271,7 +261,34 @@ async function waitForTokenLabTask(id, {
     throw error;
   }
 }
+```
 
+## Multimedia: handle sync and async image delivery
+
+Raw HTTP image results have top-level task fields when asynchronous. The `delivery` object belongs to MCP tool results, not the raw HTTP response. Use the client and polling helper above together with this example.
+
+```javascript
+const created = await tokenlabRequest('/v1/images/generations', {
+  method: 'POST',
+  body: JSON.stringify({
+    model: '<live-image-model-id>',
+    prompt: 'A paper-cut mountain landscape at dawn',
+  }),
+}, controller.signal);
+
+if (created.task_id || created.poll_url || created.status) {
+  const result = await waitForTokenLabTask(created, { signal: controller.signal });
+  console.log(result);
+} else {
+  console.log(created);
+}
+```
+
+## Async submit and wait
+
+Video, music, and 3D create endpoints are asynchronous. Replace only the endpoint and request fields defined by the chosen model detail/OpenAPI. Keep the returned poll URL when passing the response to the helper.
+
+```javascript
 const submitted = await tokenlabRequest('/v1/videos/generations', {
   method: 'POST',
   body: JSON.stringify({
@@ -280,9 +297,7 @@ const submitted = await tokenlabRequest('/v1/videos/generations', {
   }),
 }, controller.signal);
 
-const taskId = submitted.delivery?.task_id ?? submitted.task_id ?? submitted.id;
-if (!taskId) throw new Error('Async create response did not include a task id');
-const result = await waitForTokenLabTask(taskId, { signal: controller.signal });
+const result = await waitForTokenLabTask(submitted, { signal: controller.signal });
 console.log(result);
 ```
 
@@ -292,23 +307,39 @@ Python polling with an overall deadline:
 import os
 import time
 import requests
+from urllib.parse import quote, urljoin, urlsplit
 
 API_BASE = os.getenv("TOKENLAB_API_BASE", "https://api.tokenlab.sh")
 HEADERS = {
     "Authorization": f"Bearer {os.environ['TOKENLAB_API_KEY']}",
     "Content-Type": "application/json",
 }
-TERMINAL = {"completed", "failed", "succeeded", "cancelled", "expired"}
+TERMINAL = {"completed", "failed", "succeeded", "cancelled", "canceled", "expired"}
 
-def wait_for_task(task_id: str, timeout_seconds: float = 900, interval_seconds: float = 5):
+def wait_for_task(task: dict | str, timeout_seconds: float = 900, interval_seconds: float = 5):
+    submitted = {"id": task} if isinstance(task, str) else task
+    latest = submitted
+    if str(latest.get("status", "")).lower() in TERMINAL:
+        return latest
+    task_id = submitted.get("task_id") or submitted.get("id")
+    poll_url = submitted.get("poll_url") or (
+        f"/v1/tasks/{quote(task_id, safe='')}" if isinstance(task_id, str) and task_id else None
+    )
+    if not poll_url:
+        raise ValueError("Async response has no poll URL or task id")
+    url = urljoin(f"{API_BASE}/", poll_url)
+    base, target = urlsplit(API_BASE), urlsplit(url)
+    base_port = base.port or (443 if base.scheme == "https" else 80)
+    target_port = target.port or (443 if target.scheme == "https" else 80)
+    if (target.scheme, target.hostname, target_port) != (base.scheme, base.hostname, base_port) or target.username or target.password:
+        raise ValueError("Poll URL must stay on the configured API origin")
     deadline = time.monotonic() + timeout_seconds
-    latest = None
     while True:
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             return {"timed_out": True, "terminal": False, "latest": latest}
         response = requests.get(
-            f"{API_BASE}/v1/tasks/{task_id}",
+            url,
             headers=HEADERS,
             timeout=min(30, remaining),
         )

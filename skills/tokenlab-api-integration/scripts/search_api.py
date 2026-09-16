@@ -70,6 +70,16 @@ def string_list(value: Any) -> list[str]:
     return [item for item in value if isinstance(item, str)]
 
 
+def request_contract(model: dict[str, Any]) -> dict[str, Any]:
+    """Keep the published operation contract, preferring full detail over summaries."""
+    extension = tokenlab_extension(model)
+    for name in ("request_format_details", "public_contract", "request_format_summary", "public_contract_summary"):
+        value = extension.get(name)
+        if isinstance(value, dict) and value:
+            return value
+    return {}
+
+
 def model_search_text(model: dict[str, Any]) -> str:
     extension = tokenlab_extension(model)
     fields = [
@@ -106,10 +116,15 @@ def preferred_endpoint(model: dict[str, Any], client: str) -> tuple[str | None, 
             return FORMAT_ENDPOINT[candidate].format(model=model.get("id", "{model}")), "declared-fallback"
     if client == "harness" and "gemini_generate_content" in formats:
         return None, "Gemini native is declared but current DeepSeek Harness cannot configure it"
+    if not formats:
+        endpoint = request_contract(model).get("request_endpoint")
+        if isinstance(endpoint, str) and endpoint:
+            return endpoint, "public-operation-contract (API/MCP, not a chat-provider route)"
+        return None, "inspect --detail MODEL_ID for operation endpoints and request constraints"
     return None, "no declared format supported by this client"
 
 
-def summarize(model: dict[str, Any], client: str) -> dict[str, Any]:
+def summarize(model: dict[str, Any], client: str, *, include_contract: bool = False) -> dict[str, Any]:
     extension = tokenlab_extension(model)
     endpoint, endpoint_reason = preferred_endpoint(model, client)
     pricing = extension.get("pricing") if isinstance(extension.get("pricing"), dict) else {}
@@ -125,10 +140,11 @@ def summarize(model: dict[str, Any], client: str) -> dict[str, Any]:
         "max_output_tokens": extension.get("max_output_tokens"),
         "pricing": pricing,
         "lifecycle": extension.get("lifecycle"),
+        **({"request_contract": request_contract(model)} if include_contract else {}),
     }
 
 
-def print_human(models: list[dict[str, Any]], client: str) -> None:
+def print_human(models: list[dict[str, Any]], client: str, *, include_contract: bool = False) -> None:
     for index, model in enumerate(models, start=1):
         summary = summarize(model, client)
         print(f"{index}. {summary['id']} ({summary['owned_by']})")
@@ -138,7 +154,9 @@ def print_human(models: list[dict[str, Any]], client: str) -> None:
             print(f"   capabilities: {', '.join(summary['capabilities'])}")
         if summary["accepted_request_formats"]:
             print(f"   request formats: {', '.join(summary['accepted_request_formats'])}")
-            print(f"   preferred endpoint: {summary['preferred_endpoint'] or 'none'} ({summary['endpoint_reason']})")
+        print(f"   preferred endpoint: {summary['preferred_endpoint'] or 'inspect detail'} ({summary['endpoint_reason']})")
+        if include_contract and request_contract(model):
+            print("   request contract: " + json.dumps(request_contract(model), ensure_ascii=False, indent=2))
         pricing = summary["pricing"]
         if pricing:
             print(
@@ -155,8 +173,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("keyword", nargs="?", help="case-insensitive text in id, owner, category, or capability")
     parser.add_argument("--category", help="public model category, for example chat, image, video, music, 3d, audio")
     parser.add_argument("--tag", help="public capability/tag filter sent to TokenLab")
-    parser.add_argument("--detail", metavar="MODEL_ID", help="fetch one model detail including accepted request formats")
-    parser.add_argument("--client", choices=("general", "harness", "chat"), default="general")
+    parser.add_argument("--detail", metavar="MODEL_ID", help="fetch chat formats and the complete published media operation contract")
+    parser.add_argument("--client", choices=("general", "harness", "chat"), default="general",
+                        help="preferred chat protocol; media API endpoints always follow the published operation contract")
     parser.add_argument("--limit", type=int, default=50, help="maximum displayed models (1-500, default 50)")
     parser.add_argument("--json", action="store_true", help="emit machine-readable JSON")
     return parser.parse_args()
@@ -169,11 +188,11 @@ def main() -> int:
 
     if args.detail:
         detail = request_json(f"/v1/models/{quote(args.detail, safe='')}")
-        output = summarize(detail, args.client)
+        output = summarize(detail, args.client, include_contract=True)
         if args.json:
             print(json.dumps(output, ensure_ascii=False, indent=2))
         else:
-            print_human([detail], args.client)
+            print_human([detail], args.client, include_contract=True)
         return 0
 
     query = {}
