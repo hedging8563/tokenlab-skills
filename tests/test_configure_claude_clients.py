@@ -17,6 +17,161 @@ from urllib.parse import urlsplit
 from test_configure_claude import setup
 
 
+def run_in_windows_job(command, *, cwd, env, timeout):
+    """Reap this command's descendants even after its launcher exits normally."""
+    import ctypes
+    from ctypes import wintypes
+    import time
+
+    class BasicLimits(ctypes.Structure):
+        _fields_ = [("PerProcessUserTimeLimit", ctypes.c_int64), ("PerJobUserTimeLimit", ctypes.c_int64),
+                    ("LimitFlags", wintypes.DWORD), ("MinimumWorkingSetSize", ctypes.c_size_t),
+                    ("MaximumWorkingSetSize", ctypes.c_size_t), ("ActiveProcessLimit", wintypes.DWORD),
+                    ("Affinity", ctypes.c_size_t), ("PriorityClass", wintypes.DWORD),
+                    ("SchedulingClass", wintypes.DWORD)]
+
+    class IoCounters(ctypes.Structure):
+        _fields_ = [(name, ctypes.c_uint64) for name in
+                    ("ReadOperationCount", "WriteOperationCount", "OtherOperationCount",
+                     "ReadTransferCount", "WriteTransferCount", "OtherTransferCount")]
+
+    class ExtendedLimits(ctypes.Structure):
+        _fields_ = [("BasicLimitInformation", BasicLimits), ("IoInfo", IoCounters),
+                    ("ProcessMemoryLimit", ctypes.c_size_t), ("JobMemoryLimit", ctypes.c_size_t),
+                    ("PeakProcessMemoryUsed", ctypes.c_size_t), ("PeakJobMemoryUsed", ctypes.c_size_t)]
+
+    class Accounting(ctypes.Structure):
+        _fields_ = [("TotalUserTime", ctypes.c_int64), ("TotalKernelTime", ctypes.c_int64),
+                    ("ThisPeriodTotalUserTime", ctypes.c_int64), ("ThisPeriodTotalKernelTime", ctypes.c_int64),
+                    ("TotalPageFaultCount", wintypes.DWORD), ("TotalProcesses", wintypes.DWORD),
+                    ("ActiveProcesses", wintypes.DWORD), ("TotalTerminatedProcesses", wintypes.DWORD)]
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    for name, arguments, result in [
+        ("CreateJobObjectW", [wintypes.LPVOID, wintypes.LPCWSTR], wintypes.HANDLE),
+        ("SetInformationJobObject", [wintypes.HANDLE, ctypes.c_int, wintypes.LPVOID, wintypes.DWORD], wintypes.BOOL),
+        ("OpenProcess", [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD], wintypes.HANDLE),
+        ("AssignProcessToJobObject", [wintypes.HANDLE, wintypes.HANDLE], wintypes.BOOL),
+        ("TerminateJobObject", [wintypes.HANDLE, wintypes.UINT], wintypes.BOOL),
+        ("QueryInformationJobObject", [wintypes.HANDLE, ctypes.c_int, wintypes.LPVOID,
+                                       wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)], wintypes.BOOL),
+        ("CloseHandle", [wintypes.HANDLE], wintypes.BOOL),
+    ]:
+        function = getattr(kernel32, name)
+        function.argtypes = arguments
+        function.restype = result
+
+    def checked(result):
+        if not result:
+            raise ctypes.WinError(ctypes.get_last_error())
+        return result
+
+    # NULL security attributes/name give this test a private, non-inherited handle.
+    # Windows 8+ nests this empty job under an existing CI runner job. No UI limits
+    # or breakaway flags are set: descendants remain in this owned process tree.
+    # https://learn.microsoft.com/en-us/windows/win32/procthread/nested-jobs
+    job = checked(kernel32.CreateJobObjectW(None, None))
+    process = None
+    assigned = False
+    try:
+        limits = ExtendedLimits()
+        limits.BasicLimitInformation.LimitFlags = 0x00002000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        checked(kernel32.SetInformationJobObject(job, 9, ctypes.byref(limits), ctypes.sizeof(limits)))
+        # This isolated wrapper cannot spawn the actual command before assignment.
+        # A gate avoids the race in spawning Claude and then assigning its PID.
+        gate = ("import sys\n"
+                "if sys.stdin.readline() != 'run\\n': raise SystemExit(1)\n"
+                "import json, subprocess\n"
+                "raise SystemExit(subprocess.call(json.loads(sys.argv[1]), stdin=subprocess.DEVNULL))\n")
+        process = subprocess.Popen([sys.executable, "-I", "-S", "-c", gate, json.dumps(command)],
+                                   cwd=cwd, env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace",
+                                   creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+        process_handle = checked(kernel32.OpenProcess(0x0101, False, process.pid))  # SET_QUOTA | TERMINATE
+        try:
+            checked(kernel32.AssignProcessToJobObject(job, process_handle))
+            assigned = True
+        finally:
+            checked(kernel32.CloseHandle(process_handle))
+        output, errors = process.communicate(input="run\n", timeout=timeout)
+        # Capture the real command status before terminating any leftover helpers.
+        return subprocess.CompletedProcess(command, process.returncode, output, errors)
+    finally:
+        try:
+            if process is not None and not assigned:
+                process.kill()  # Assignment failed; the owned wrapper is still gated.
+            checked(kernel32.TerminateJobObject(job, 1))
+            if process is not None:
+                process.communicate(timeout=10)
+            deadline = time.monotonic() + 10
+            while True:
+                accounting = Accounting()
+                checked(kernel32.QueryInformationJobObject(job, 1, ctypes.byref(accounting),
+                                                            ctypes.sizeof(accounting), None))
+                if accounting.ActiveProcesses == 0:
+                    break
+                if time.monotonic() >= deadline:
+                    raise TimeoutError("The test-owned Windows job still has active processes")
+                time.sleep(0.02)
+        finally:
+            try:
+                # KILL_ON_JOB_CLOSE also applies if termination/accounting failed.
+                checked(kernel32.CloseHandle(job))
+            finally:
+                if process is not None:
+                    if process.poll() is None:
+                        process.kill()
+                    process.communicate(timeout=10)
+
+
+@unittest.skipUnless(os.name == "nt", "Windows job objects require native Windows")
+class WindowsJobLifecycleTests(unittest.TestCase):
+    def test_normal_exit_preserves_status_and_reaps_a_descendant_holding_cwd(self):
+        self.check_descendant_cleanup(times_out=False)
+
+    def test_timeout_reaps_a_descendant_holding_cwd(self):
+        self.check_descendant_cleanup(times_out=True)
+
+    def check_descendant_cleanup(self, *, times_out):
+        with tempfile.TemporaryDirectory(prefix="tokenlab-windows-job-") as directory:
+            root = Path(directory)
+            workspace = root / "project"
+            workspace.mkdir()
+            ready = root / "descendant-ready"
+            descendant = ("from pathlib import Path\nimport sys, time\n"
+                          "Path(sys.argv[1]).write_text('ready', encoding='utf-8')\n"
+                          "time.sleep(30)\n")
+            # The launcher waits for its descendant to initialize in this cwd.
+            # DEVNULL lets the launcher exit while the descendant still lives.
+            launcher = ("from pathlib import Path\nimport subprocess, sys, time\n"
+                        f"subprocess.Popen([sys.executable, '-I', '-S', '-c', {descendant!r}, sys.argv[1]], "
+                        "stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, "
+                        "creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)\n"
+                        "deadline = time.monotonic() + 8\n"
+                        "while not Path(sys.argv[1]).is_file():\n"
+                        "    if time.monotonic() >= deadline: raise SystemExit('Descendant did not become ready')\n"
+                        "    time.sleep(0.02)\n"
+                        "print('owned descendant ready', flush=True)\n"
+                        + ("time.sleep(30)\n" if times_out else "")
+                        + "raise SystemExit(7)\n")
+            environment = {key: os.environ[key] for key in
+                           ("PATH", "SYSTEMROOT", "SystemRoot", "WINDIR", "COMSPEC", "PATHEXT") if key in os.environ}
+            environment.update(HOME=directory, USERPROFILE=directory, APPDATA=directory, LOCALAPPDATA=directory,
+                               TMPDIR=directory, TMP=directory, TEMP=directory, PYTHONDONTWRITEBYTECODE="1")
+            command = [sys.executable, "-I", "-S", "-c", launcher, str(ready)]
+            if times_out:
+                with self.assertRaises(subprocess.TimeoutExpired):
+                    run_in_windows_job(command, cwd=workspace, env=environment, timeout=10)
+            else:
+                completed = run_in_windows_job(command, cwd=workspace, env=environment, timeout=15)
+                self.assertEqual(completed.returncode, 7)
+                self.assertEqual(completed.stdout, "owned descendant ready\n")
+                self.assertEqual(completed.stderr, "")
+            self.assertEqual(ready.read_text(encoding="utf-8"), "ready")
+            workspace.rmdir()  # Windows refuses this while a descendant still holds cwd.
+        self.assertFalse(root.exists())
+
+
 @unittest.skipUnless(os.environ.get("TOKENLAB_INSTALLED_CLIENT_TESTS") == "1",
                      "Set TOKENLAB_INSTALLED_CLIENT_TESTS=1 for the pinned installed-client check")
 class InstalledClaudeAuthenticationTests(unittest.TestCase):
@@ -173,24 +328,24 @@ class InstalledClaudeAuthenticationTests(unittest.TestCase):
                        if sys.platform == "darwin" else [])
 
             def run(command):
+                if os.name == "nt":
+                    result = run_in_windows_job(command, cwd=workspace, env=environment, timeout=45)
+                    self.assertFalse(fixture_key in result.stdout + result.stderr,
+                                     "Fixture credential leaked to client output")
+                    return result
                 # The launcher owns a child CLI. Kill the whole process group/tree
                 # on timeout so a failing request cannot leave that child running.
                 process = subprocess.Popen([*sandbox, *command], cwd=workspace, env=environment,
                                            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                            text=True, encoding="utf-8", errors="replace",
-                                           start_new_session=os.name != "nt",
-                                           creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0)
+                                           start_new_session=True)
                 try:
                     output, errors = process.communicate(timeout=45)
                 except BaseException:
-                    if os.name == "nt":
-                        subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)],
-                                       capture_output=True, timeout=10)
-                    else:
-                        try:
-                            os.killpg(process.pid, signal.SIGKILL)
-                        except ProcessLookupError:
-                            pass
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
                     process.communicate(timeout=10)
                     raise
                 self.assertFalse(fixture_key in output + errors, "Fixture credential leaked to client output")
