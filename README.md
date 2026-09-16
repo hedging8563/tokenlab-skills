@@ -50,3 +50,45 @@ Add and install it from Claude Code:
 The installed skill names are namespaced as `/tokenlab:tokenlab-api-integration`, `/tokenlab:tokenlab-cost-routing`, `/tokenlab:tokenlab-model-picker`, `/tokenlab:tokenlab-native-endpoints`, and `/tokenlab:tokenlab-openai-compatible-migration`.
 
 The hosted MCP entry is intentionally read-only and does not contain a TokenLab API key. The stdio entry defaults to the public `catalog` profile; set `TOKENLAB_MCP_TOOL_PROFILE=core` or `full` in the environment that launches Claude Code when the client should expose credentialed tools, then restart Claude Code. Set `TOKENLAB_API_KEY` separately for those calls; changing the profile does not change approvals or grant API permissions. The profile uses Claude Code's documented [environment-variable default syntax](https://code.claude.com/docs/en/mcp#environment-variable-expansion-in-mcpjson).
+
+## Codex plugin installation
+
+Codex CLI 0.149.0 can consume this marketplace:
+
+```bash
+codex plugin marketplace add hedging8563/tokenlab-skills
+codex plugin add tokenlab@tokenlab-tools
+```
+
+The plugin and the standalone Skills installation above are alternative ways to load the same skills. Neither changes the client's default model provider. See the API integration skill's [Codex](skills/tokenlab-api-integration/references/codex_setup.md), [Claude Code](skills/tokenlab-api-integration/references/claude_setup.md), [OpenCode](skills/tokenlab-api-integration/references/opencode_setup.md), and [Pi](skills/tokenlab-api-integration/references/pi_setup.md) setup references when you explicitly want TokenLab as a model provider.
+
+## Update an existing installation
+
+Plugin release **0.1.2** includes the reversible OpenCode and Pi setup helpers. `.claude-plugin/plugin.json` owns the plugin version. The marketplace's metadata version describes the marketplace manifest, not the installed plugin release. A Git push alone does not refresh a cached Claude plugin whose version remains unchanged; see [Claude's version rules](https://code.claude.com/docs/en/plugins-reference#version-management).
+
+For a Claude Code plugin installation:
+
+```text
+/plugin marketplace update tokenlab-tools
+/plugin update tokenlab@tokenlab-tools
+```
+
+Restart Claude Code after updating. For a Codex plugin installation, refresh the marketplace snapshot and install the updated version:
+
+```bash
+codex plugin marketplace upgrade tokenlab-tools
+codex plugin add tokenlab@tokenlab-tools
+codex plugin list --json
+```
+
+For skills installed through `npx skills`, update that skill in its original scope. The Skills CLI tracks source content independently of the plugin version:
+
+```bash
+# Run in the project where you installed the skill:
+npx skills update tokenlab-api-integration --project
+
+# Or, if it was installed globally:
+npx skills update tokenlab-api-integration --global
+```
+
+Check that the installed API integration skill includes `scripts/configure_opencode.py` and `scripts/configure_pi.py` before following their setup references. Other skill names can be updated individually using the same command.

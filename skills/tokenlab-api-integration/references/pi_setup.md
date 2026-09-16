@@ -48,3 +48,5 @@ User edits, linked files, malformed configuration, same-name providers/accounts,
 ## Verification scope
 
 Unit coverage includes original-byte restoration, comments/trailing commas, provider order, default/account preservation, preview, repeated runs, interrupted writes, and conflict rejection. The installed-client suite pins Pi 0.85.1 on Ubuntu, macOS, and Windows in CI. It uses disposable homes and fixture credentials, local model discovery, and offline RPC state reads to check ordinary versus explicitly selected models without sending a prompt. macOS also denies networking at the OS level. No paid request is part of this suite; CI setup alone is not a passed CI result.
+
+A separate first-request test changes only the endpoint in a disposable generated file to a local receiver. The pinned client sends Chat Completions without `temperature`, with `max_completion_tokens: 16384` and `store: false`, then delivers the fixture streamed reply. This verifies real request serialization, not current upstream acceptance, actual model output, or billing. Those require current public parameter constraints and a separately authorized live test.

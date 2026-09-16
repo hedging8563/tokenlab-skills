@@ -14,7 +14,6 @@
       "name": "tokenlab",
       "source": "./",
       "description": "TokenLab model, API, native endpoint, routing, migration, and MCP workflows.",
-      "version": "0.1.1",
       "author": {
         "name": "TokenLab",
         "email": "cryptoninja2008@gmail.com"
