@@ -142,23 +142,23 @@ def _digest(content: bytes) -> str:
     return hashlib.sha256(content).hexdigest()
 
 
-def _managed(content: bytes, client: str, name: str) -> bytes:
+def _managed(content: bytes, client: str, name: str, comment: str = "//") -> bytes:
     # OpenCode normalizes a BOM by rewriting its config at load time. Emit its
     # managed layer without a BOM so ownership survives loading; backup is exact.
     if client == "OpenCode":
         content = content.removeprefix(b"\xef\xbb\xbf")
     bom = b"\xef\xbb\xbf" if content.startswith(b"\xef\xbb\xbf") else b""
     body = content[len(bom):]
-    return bom + f"// TokenLab {client} setup v1; provider={name}; sha256={_digest(content)}\n".encode() + body
+    return bom + f"{comment} TokenLab {client} setup v1; provider={name}; sha256={_digest(content)}\n".encode() + body
 
 
-def _require_managed(content: bytes | None, client: str, name: str) -> None:
+def _require_managed(content: bytes | None, client: str, name: str, comment: str = "//") -> None:
     if content is None:
         raise SetupError("Configured file is missing; inspect the retained original backup before restoring.")
     raw = content.removeprefix(b"\xef\xbb\xbf")
     header, separator, body = raw.partition(b"\n")
     bom = b"\xef\xbb\xbf" if content.startswith(b"\xef\xbb\xbf") else b""
-    expected = f"// TokenLab {client} setup v1; provider={name}; sha256={_digest(bom + body)}".encode()
+    expected = f"{comment} TokenLab {client} setup v1; provider={name}; sha256={_digest(bom + body)}".encode()
     if not separator or header != expected:
         raise SetupError("Configuration was edited after setup or belongs to another setup; it will not be overwritten.")
 
@@ -188,7 +188,9 @@ def inspect_client(name: str, executable: str | None, minimum: tuple[int, int, i
                                     env=environment, capture_output=True, text=True, timeout=15, check=True)
         except (OSError, subprocess.SubprocessError):
             raise SetupError(f"Could not inspect {name}; no client output or credentials were printed.") from None
-    match = re.search(r"\b(\d+)\.(\d+)\.(\d+)\b", result.stdout)
+    pattern = (r"\bHermes Agent v(\d+)\.(\d+)\.(\d+)\b" if name == "hermes" else
+               r"\b(\d+)\.(\d+)\.(\d+)\b")
+    match = re.search(pattern, result.stdout)
     if not match or tuple(map(int, match.groups())) < minimum:
         raise SetupError(f"This helper requires {name} {'.'.join(map(str, minimum))} or newer.")
     return ".".join(match.groups())
@@ -214,7 +216,7 @@ class Plan:
 
 def prepare(target: Path, client: str, container: str, name: str, provider: dict | None,
             *, restore: bool = False, trailing_commas: bool = False, block_comments: bool = True,
-            guards: dict[Path, bytes | None] | None = None) -> Plan:
+            guards: dict[Path, bytes | None] | None = None, insert=None, comment: str = "//") -> Plan:
     check_provider(name)
     backup_path = target.with_name(f".{target.name}.{name}.tokenlab-backup")
     before, backup = read_file(target), read_file(backup_path)
@@ -228,8 +230,8 @@ def prepare(target: Path, client: str, container: str, name: str, provider: dict
             raise SetupError("Original backup is invalid; no configuration was changed.")
         # Also recovers a write interrupted after backup creation or after restoration.
         if before != original:
-            _require_managed(before, client, name)
-    elif before is not None and before.removeprefix(b"\xef\xbb\xbf").startswith(b"// TokenLab "):
+            _require_managed(before, client, name, comment)
+    elif before is not None and before.removeprefix(b"\xef\xbb\xbf").startswith(f"{comment} TokenLab ".encode()):
         raise SetupError("A managed configuration has no matching original backup; inspect it before proceeding.")
     if restore:
         after = original
@@ -237,8 +239,10 @@ def prepare(target: Path, client: str, container: str, name: str, provider: dict
     else:
         if provider is None:
             raise SetupError("--model is required when configuring a provider.")
-        after = _managed(insert_provider(original, container, name, provider, trailing_commas=trailing_commas,
-                                         block_comments=block_comments), client, name)
+        inserted = (insert(original, container, name, provider) if insert is not None else
+                    insert_provider(original, container, name, provider, trailing_commas=trailing_commas,
+                                    block_comments=block_comments))
+        after = _managed(inserted, client, name, comment)
         body = original if original is not None else b""
         next_backup = (f"TokenLab {client} original v1; provider={name}; missing={int(original is None)}; sha256={_digest(body)}\n".encode() + body)
         if max(len(after), len(next_backup)) > MAX_CONFIG_BYTES:

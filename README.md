@@ -60,11 +60,11 @@ codex plugin marketplace add hedging8563/tokenlab-skills
 codex plugin add tokenlab@tokenlab-tools
 ```
 
-The plugin and the standalone Skills installation above are alternative ways to load the same skills. Neither changes the client's default model provider. See the API integration skill's [Codex](skills/tokenlab-api-integration/references/codex_setup.md), [Claude Code](skills/tokenlab-api-integration/references/claude_setup.md), [OpenCode](skills/tokenlab-api-integration/references/opencode_setup.md), and [Pi](skills/tokenlab-api-integration/references/pi_setup.md) setup references when you explicitly want TokenLab as a model provider.
+The plugin and the standalone Skills installation above are alternative ways to load the same skills. Neither changes the client's default model provider. See the API integration skill's [Codex](skills/tokenlab-api-integration/references/codex_setup.md), [Claude Code](skills/tokenlab-api-integration/references/claude_setup.md), [OpenCode](skills/tokenlab-api-integration/references/opencode_setup.md), [Pi](skills/tokenlab-api-integration/references/pi_setup.md), and [Hermes](skills/tokenlab-api-integration/references/hermes_setup.md) setup references when you explicitly want TokenLab as a model provider.
 
 ## Update an existing installation
 
-Plugin release **0.1.2** includes the reversible OpenCode and Pi setup helpers. `.claude-plugin/plugin.json` owns the plugin version. The marketplace's metadata version describes the marketplace manifest, not the installed plugin release. A Git push alone does not refresh a cached Claude plugin whose version remains unchanged; see [Claude's version rules](https://code.claude.com/docs/en/plugins-reference#version-management).
+Plugin release **0.1.3** adds the reversible Hermes setup helper alongside Codex, Claude Code, OpenCode and Pi. `.claude-plugin/plugin.json` owns the plugin version. The marketplace's metadata version describes the marketplace manifest, not the installed plugin release. A Git push alone does not refresh a cached Claude plugin whose version remains unchanged; see [Claude's version rules](https://code.claude.com/docs/en/plugins-reference#version-management).
 
 For a Claude Code plugin installation:
 
@@ -91,4 +91,4 @@ npx skills update tokenlab-api-integration --project
 npx skills update tokenlab-api-integration --global
 ```
 
-Check that the installed API integration skill includes `scripts/configure_opencode.py` and `scripts/configure_pi.py` before following their setup references. Other skill names can be updated individually using the same command.
+Check that the installed API integration skill includes the required helper, including `scripts/configure_hermes.py` for Hermes, before following its setup reference. Other skill names can be updated individually using the same command.

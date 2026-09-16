@@ -23,7 +23,10 @@ jobs:
         with:
           node-version: '24'
       - name: Test configuration, discovery, and task examples without real clients
-        run: python -m unittest discover -s tests -p 'test_*.py'
+        # Hermes ships this parser; CI's otherwise empty Python also needs it.
+        run: |
+          python -m pip install PyYAML==6.0.3
+          python -m unittest discover -s tests -p 'test_*.py'
 
   validate:
     runs-on: ubuntu-latest
@@ -53,9 +56,51 @@ jobs:
           node-version: '24'
       - name: Install the exact clients under test
         run: npm install --global @openai/codex@0.149.0 @anthropic-ai/claude-code@2.1.263 opencode-ai@1.18.31 @earendil-works/pi-coding-agent@0.85.1
+      - name: Install the pinned YAML parser for configuration tests
+        run: python -m pip install PyYAML==6.0.3
       - name: Load temporary profiles and complete loopback-only client requests
         env:
           TOKENLAB_INSTALLED_CLIENT_TESTS: '1'
           DISABLE_AUTOUPDATER: '1'
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
         run: python -m unittest discover -s tests -p 'test_configure_*.py'
+
+  installed-hermes:
+    name: Hermes 0.21.3 (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Install the fixed official Hermes release in an isolated environment
+        shell: python
+        run: |
+          import os, pathlib, subprocess, sys, venv
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'tokenlab-hermes-official'
+          root.mkdir()
+          source = root / 'source'
+          subprocess.run(['git', '-c', 'core.longpaths=true', 'clone', '--depth', '1', '--branch',
+                          'v2026.9.14', 'https://github.com/NousResearch/hermes-agent.git', str(source)], check=True)
+          revision = subprocess.check_output(['git', '-C', str(source), 'rev-parse', 'HEAD'], text=True).strip()
+          assert revision == '345cd2b057a452236de401d3534b8502a7465e8d', revision
+          runtime = root / 'venv'
+          venv.EnvBuilder(with_pip=True).create(runtime)
+          binary_dir = runtime / ('Scripts' if os.name == 'nt' else 'bin')
+          python = binary_dir / ('python.exe' if os.name == 'nt' else 'python')
+          hermes = binary_dir / ('hermes.exe' if os.name == 'nt' else 'hermes')
+          subprocess.run([str(python), '-m', 'pip', 'install', '-e', str(source)], check=True)
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as output:
+              output.write(f'TOKENLAB_HERMES_PYTHON={python}\nTOKENLAB_HERMES_BIN={hermes}\n')
+      - name: Preserve existing configuration and complete a loopback-only Hermes task
+        shell: python
+        env:
+          TOKENLAB_HERMES_CLIENT_TESTS: '1'
+        run: |
+          import os, subprocess
+          subprocess.run([os.environ['TOKENLAB_HERMES_PYTHON'], '-m', 'unittest', 'discover',
+                          '-s', 'tests', '-p', 'test_configure_hermes*.py', '-v'], check=True)
