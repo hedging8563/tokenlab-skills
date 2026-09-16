@@ -69,11 +69,15 @@ The helper checks ownership and content hashes. If you edit the profile or backu
 
 - Local verification: macOS, Python 3.13, installed Codex 0.149.0. A temporary home and an OS rule denying all networking demonstrated selection of the profile's model/provider/effort. Execution then stopped at the deliberately missing environment key. No authenticated model request was made.
 - Unit tests cover creation, unchanged repeat runs, updates, backup/restoration, ownership conflicts, linked files, concurrent changes, atomic-write failure and credential-free CLI detection.
-- Linux, Windows native and WSL have not been run locally. Cross-platform unit CI is configured; that does not prove installed-client loading on those systems.
+- An isolated Linux ARM64 container also loaded installed Codex 0.149.0 with both the original default and TokenLab profile, then stopped at the missing environment key. Networking was disabled; preview, repeated apply and restoration preserved the original configuration bytes.
+- Installed-client CI now covers macOS, Linux and native Windows with the exact versions under test. A configured workflow is not a passing run; Windows and WSL are not yet locally verified. Linux container results do not establish Windows or WSL behavior.
 
 ```bash
 python3 -m unittest discover -s tests -p 'test_configure_codex*.py'
 
 # macOS only; installed Codex 0.149.0, temporary home, denied networking:
 TOKENLAB_CODEX_OFFLINE_TEST=1 python3 -m unittest discover -s tests -p 'test_configure_codex*.py'
+
+# Any supported OS with the exact installed clients; temporary homes, no inference:
+TOKENLAB_INSTALLED_CLIENT_TESTS=1 python3 -m unittest discover -s tests -p 'test_configure_*.py'
 ```

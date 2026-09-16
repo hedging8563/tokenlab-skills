@@ -1,4 +1,4 @@
-"""Opt-in actual Codex loading test. No credentials; macOS denies all network access."""
+"""Opt-in actual Codex loading test. No credentials; stops before model dispatch."""
 
 import os
 from pathlib import Path
@@ -11,8 +11,9 @@ import unittest
 from test_configure_codex import setup
 
 
-@unittest.skipUnless(sys.platform == "darwin" and os.environ.get("TOKENLAB_CODEX_OFFLINE_TEST") == "1",
-                     "Set TOKENLAB_CODEX_OFFLINE_TEST=1 on macOS for the installed-CLI offline check")
+@unittest.skipUnless(os.environ.get("TOKENLAB_INSTALLED_CLIENT_TESTS") == "1"
+                     or (sys.platform == "darwin" and os.environ.get("TOKENLAB_CODEX_OFFLINE_TEST") == "1"),
+                     "Set TOKENLAB_INSTALLED_CLIENT_TESTS=1 for the pinned installed-client check")
 class InstalledCodexTests(unittest.TestCase):
     def test_real_cli_selects_profile_and_stops_at_missing_environment_key(self):
         executable = shutil.which("codex")
@@ -27,10 +28,13 @@ class InstalledCodexTests(unittest.TestCase):
             workspace.mkdir()
             original = b'''model = "existing-model"\nmodel_provider = "existing"\napproval_policy = "on-request"\nsandbox_mode = "read-only"\n[model_providers.existing]\nname = "Existing"\nbase_url = "https://example.invalid/v1"\nwire_api = "responses"\nenv_key = "TOKENLAB_OFFLINE_BASE_KEY"\n'''
             (config_root / "config.toml").write_bytes(original)
-            environment = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"),
-                           "HOME": directory, "USERPROFILE": directory,
-                           "CODEX_HOME": str(config_root), "TMPDIR": directory}
-            deny_network = ["/usr/bin/sandbox-exec", "-p", "(version 1)(allow default)(deny network*)"]
+            environment = {key: os.environ[key] for key in
+                           ("PATH", "SYSTEMROOT", "SystemRoot", "WINDIR", "COMSPEC", "PATHEXT") if key in os.environ}
+            environment.update(HOME=directory, USERPROFILE=directory, CODEX_HOME=str(config_root),
+                               APPDATA=directory, LOCALAPPDATA=directory, TMPDIR=directory,
+                               TMP=directory, TEMP=directory)
+            deny_network = (["/usr/bin/sandbox-exec", "-p", "(version 1)(allow default)(deny network*)"]
+                            if sys.platform == "darwin" else [])
             helper = [*deny_network, sys.executable, setup.__file__,
                       "--codex-bin", executable, "--codex-home", str(config_root)]
             configuration = ["--model", "gpt-5.6-sol", "--reasoning-effort", "xhigh"]

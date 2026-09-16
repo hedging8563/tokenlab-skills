@@ -83,7 +83,8 @@ Restoration reverts the last update and consumes that backup. With no update bac
 
 - macOS, Python 3.13 and installed Claude Code 2.1.263: the actual helper and generated launcher were run with a temporary home, a dummy token and OS-denied networking. Claude's initial event showed the selected model, the existing `plan` permission mode and no existing API-key source. The old credential helper did not run; existing account storage was unchanged. The model call could not succeed under the network denial.
 - Tests cover preview, apply, unchanged repeats, updates, restoration, concurrent edits, file ownership, linked settings, credential-free discovery and rejection of conflicting authentication sources. The Codex helper's tests, including its actual macOS CLI check, also passed after sharing the file operations.
-- Linux and native Windows commands are provided but their installed-client loading has not been run locally. The three-OS unit CI has not been run for this local commit. WSL and managed configurations are outside this automatic slice.
+- Claude Code 2.1.263 also passed actual local authentication inspection on macOS and in an isolated Linux ARM64 container. The generated launcher selected its session Bearer source, left the original account/settings bytes intact and did not store or print the fixture key. Linux networking was disabled; no inference was requested.
+- Installed-client CI now covers macOS, Linux and native Windows with exact versions. Windows results require a successful run of that job and are not claimed from the Linux container. WSL and managed configurations remain outside this automatic slice.
 
 ```bash
 python3 -m unittest discover -s tests -p 'test_configure_*.py'
@@ -91,4 +92,7 @@ python3 -m unittest discover -s tests -p 'test_configure_*.py'
 # macOS only: both installed clients, disposable homes, no authenticated API requests
 TOKENLAB_CODEX_OFFLINE_TEST=1 TOKENLAB_CLAUDE_OFFLINE_TEST=1 \
   python3 -m unittest discover -s tests -p 'test_configure_*.py'
+
+# Any supported OS with the exact installed clients; temporary homes, no inference:
+TOKENLAB_INSTALLED_CLIENT_TESTS=1 python3 -m unittest discover -s tests -p 'test_configure_*.py'
 ```
