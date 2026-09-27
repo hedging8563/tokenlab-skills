@@ -426,3 +426,31 @@ model_not_found  -> use explicit did_you_mean/suggestions or rediscover
 ```
 
 Success means the requested semantic result was delivered: text/tool calls preserved for LLM endpoints, a valid media result or terminal task for generation, an embedding vector with the expected dimension, or a transcript for STT. HTTP 200 alone is not sufficient when the client silently changed the request or returned a nonterminal task.
+
+## System One decisions
+
+Discover `/v1/models?category=decision` and inspect the selected model first. This example uses `jev-1.13` only when its current contract declares `/v1/systemone`. Reuse the shared JavaScript client above.
+
+```javascript
+const decision = await tokenlabRequest('/v1/systemone', {
+  method: 'POST',
+  body: JSON.stringify({
+    model: 'jev-1.13',
+    state: { ticket: 'I was charged twice. Please refund the duplicate payment.' },
+    questions: {
+      refund_requested: { type: 'noul', instructions: 'Is a refund explicitly requested?' },
+      department: {
+        type: 'choice', instructions: 'Which team should handle the ticket?',
+        criteria: { billing: 'Charges and refunds', technical: 'Software issues', other: 'Neither category fits' },
+      },
+      urgency: {
+        type: 'score', instructions: 'How urgent is the ticket?',
+        criteria: ['Routine enquiry', 'Money affected', 'Immediate safety emergency'],
+      },
+    },
+  }),
+}, controller.signal);
+console.log(decision.answers, decision.usage);
+```
+
+The result is synchronous JSON. Noul is a probability; Choice is a category; Score is a position on ordered levels and may be fractional. Read any returned probabilities and confidence alongside the result. Missing confidence does not mean certainty. A refund request is not refund eligibility or authorization; keep action permissions, exact arithmetic, thresholds, and escalation in application code. No Chat, streaming, or Batch fields belong in this request.

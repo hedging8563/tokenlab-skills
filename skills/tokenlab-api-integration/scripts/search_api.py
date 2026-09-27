@@ -20,6 +20,7 @@ OWNER_NATIVE_FORMAT = {
     "openai": "openai_responses",
 }
 FORMAT_ENDPOINT = {
+    "systemone": "/v1/systemone",
     "anthropic_messages": "/v1/messages",
     "gemini_generate_content": "/v1beta/models/{model}:generateContent",
     "openai_responses": "/v1/responses",
@@ -111,6 +112,7 @@ def preferred_endpoint(model: dict[str, Any], client: str) -> tuple[str | None, 
         "openai_responses",
         "anthropic_messages",
         "gemini_generate_content",
+        "systemone",
     ):
         if candidate in allowed:
             return FORMAT_ENDPOINT[candidate].format(model=model.get("id", "{model}")), "declared-fallback"
@@ -171,7 +173,7 @@ def parse_args() -> argparse.Namespace:
         description="Search TokenLab's live public model catalog without guessing categories from model names."
     )
     parser.add_argument("keyword", nargs="?", help="case-insensitive text in id, owner, category, or capability")
-    parser.add_argument("--category", help="public model category, for example chat, image, video, music, 3d, audio")
+    parser.add_argument("--category", help="public model category, for example chat, image, video, music, 3d, audio, decision")
     parser.add_argument("--tag", help="public capability/tag filter sent to TokenLab")
     parser.add_argument("--detail", metavar="MODEL_ID", help="fetch chat formats and the complete published media operation contract")
     parser.add_argument("--client", choices=("general", "harness", "chat"), default="general",

@@ -1,6 +1,6 @@
 ---
 name: tokenlab-api-integration
-description: "集成 TokenLab（历史名 LemonData）AI API：Chat、Responses、Anthropic Messages、Gemini、图像/视频/音乐/3D、TTS/STT、files、embeddings、rerank 与异步任务。按公开模型契约选择原生端点并生成 Python/JavaScript/Go/PHP/cURL 代码。触发词：tokenlab、lemondata、API集成、接入模型、多媒体API、异步任务"
+description: "集成 TokenLab（历史名 LemonData）AI API：Chat、Responses、Anthropic Messages、Gemini、图像/视频/音乐/3D、TTS/STT、files、embeddings、rerank、System One 决策与异步任务。按公开模型契约选择原生端点并生成 Python/JavaScript/Go/PHP/cURL 代码。触发词：tokenlab、lemondata、API集成、接入模型、多媒体API、异步任务"
 license: MIT
 metadata:
   category: coding
@@ -74,6 +74,7 @@ python skills/tokenlab-api-integration/scripts/search_api.py --detail claude-son
 | `anthropic_messages` | `POST /v1/messages` | Anthropic base `https://api.tokenlab.sh` | Anthropic-owned model且客户端支持 Messages 时优先 |
 | `gemini_generate_content` | `POST /v1beta/models/{model}:generateContent` | Gemini root `https://api.tokenlab.sh` | Google-owned model且客户端支持 Gemini native 时优先 |
 | `openai_responses` | `POST /v1/responses` | OpenAI base `https://api.tokenlab.sh/v1` | OpenAI-owned model且调用方需要/支持 Responses 语义时优先 |
+| `systemone` | `POST /v1/systemone` | HTTP JSON / MCP | 模型明确声明 System One 决策契约时使用；不能配置为聊天主模型 |
 | `openai_chat_completions` | `POST /v1/chat/completions` | OpenAI-compatible base | 固定 OpenAI-chat 的框架，或没有适用原生协议时使用 |
 
 规则：
@@ -103,9 +104,21 @@ python skills/tokenlab-api-integration/scripts/search_api.py --detail claude-son
 | Embeddings | `POST /v1/embeddings` | sync JSON |
 | Multimodal embeddings | `POST /v1/embeddings/multimodal` | sync JSON |
 | Rerank | `POST /v1/rerank` | sync JSON |
+| Decisions | `POST /v1/systemone` | synchronous JSON |
 | Text translation | `POST /v1/translations` | sync JSON |
 
 不要从这张表猜具体模型参数。非 chat endpoint 先读取当前模型 detail/OpenAPI；图像尺寸、视频 duration、reference media、音色、格式等限制由所选模型公开 contract 决定。
+
+## System One decisions
+
+先读取 `/v1/models?category=decision` 和模型详情，确认 `systemone` 与 `/v1/systemone`。Jev 1.13 的公开模型 ID 为 `jev-1.13`，示例仍须核对实时目录。
+
+- 请求只有 `model`、`state`、`questions`；state 与 instructions 可为字符串、JSON 对象或数组。
+- `noul` 返回 yes 概率；`choice` 从具名选项中选择；`score` 对 2–10 个有序描述等级评分，可为小数。不要把 score 当成精确金额或日期计算。
+- 保留 `answers` 下的题名、概率分布、confidence 和 usage。缺少 confidence 时不要补成 1；confidence 不是正确率保证。输出免费也须保留非零 output tokens。
+- 原生同步决策接口没有 messages、input、stream、tools 或 Batch 字段；不要改走 Chat/Responses/Messages/Gemini。
+- 判定结果不执行动作，也不授予退款、转账等权限。阈值、校验、授权及副作用由业务代码控制。
+- MCP 使用已发行版本声明的 `evaluate_decisions`；若工具不存在，升级 MCP 或按原生 HTTP 契约调用，不冒充其他工具。
 
 ## Async contract
 

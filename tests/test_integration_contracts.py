@@ -66,6 +66,14 @@ class DiscoveryContractTests(unittest.TestCase):
                 self.assertIn('/v1/images/edits', out.getvalue())
                 self.assertIn('inline_or_task', out.getvalue())
 
+    def test_systemone_is_native_and_not_a_chat_client_route(self):
+        model = {'id': 'arbitrary-decision-id', 'owned_by': 'arbitrary-owner', 'tokenlab': {
+            'accepted_request_formats': ['systemone'],
+            'public_contract': {'request_endpoint': '/v1/systemone'}}}
+        self.assertEqual(search_api.preferred_endpoint(model, 'general')[0], '/v1/systemone')
+        self.assertIsNone(search_api.preferred_endpoint(model, 'chat')[0])
+        self.assertIsNone(search_api.preferred_endpoint(model, 'harness')[0])
+
     def test_unknown_list_detail_is_not_declared_unsupported(self):
         model = {'id': 'gpt-image-named-but-unknown', 'owned_by': 'openai', 'tokenlab': {}}
         value = search_api.summarize(model, 'general')
@@ -83,6 +91,22 @@ class DiscoveryContractTests(unittest.TestCase):
 
 
 class JavaScriptExampleTests(unittest.TestCase):
+    def test_exact_decision_example_uses_systemone_and_preserves_typed_questions(self):
+        run_js("""
+let calls = [];
+globalThis.console = {log: () => {}};
+globalThis.fetch = async (url, init) => {
+  calls.push({url: String(url), body: JSON.parse(init.body)});
+  return Response.json({model: 'jev-1.13', answers: {refund_requested: {type: 'noul', noul: 0.9}}, usage: {input_tokens: 100, output_tokens: 8}});
+};
+""", """
+assert.equal(calls.length, 1);
+assert.equal(calls[0].url, 'https://api.example.test/v1/systemone');
+assert.equal(typeof calls[0].body.state, 'object');
+assert.deepEqual(Object.values(calls[0].body.questions).map(q => q.type), ['noul', 'choice', 'score']);
+assert.equal(calls[0].body.stream, undefined);
+""", javascript('System One decisions'))
+
     def test_exact_raw_image_example_polls_returned_url(self):
         run_js('''
 let calls = [];
