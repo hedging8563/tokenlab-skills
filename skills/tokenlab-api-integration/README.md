@@ -3,7 +3,7 @@
 - Category: `coding`
 - License: MIT
 
-Canonical coding skill for TokenLab Chat, Responses, Anthropic Messages, Gemini, image, video, music, 3D, audio, files, embeddings, rerank, translation, and asynchronous tasks.
+Canonical coding skill for TokenLab Chat, Responses, Anthropic Messages, Gemini, System One decisions (including Jev), image, video, music, 3D, audio, files, embeddings, rerank, translation, and asynchronous tasks.
 
 Install non-interactively:
 

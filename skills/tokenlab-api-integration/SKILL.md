@@ -67,7 +67,7 @@ python skills/tokenlab-api-integration/scripts/search_api.py --detail claude-son
 
 ## Protocol selection
 
-模型列表适合筛选；最终 endpoint eligibility 以模型详情中的 `tokenlab.accepted_request_formats` 为准。
+模型列表适合筛选。聊天协议 eligibility 以模型详情中的 `tokenlab.accepted_request_formats` 为准；决策与其他非 chat 操作以 `tokenlab.public_contract.public_operations`、`request_endpoint` / `request_endpoint_by_operation` 为准。决策模型可以没有聊天格式，不能因空 `accepted_request_formats` 拒绝其已声明的 System One 操作。
 
 | Contract value | Endpoint | Base URL / client | Selection rule |
 | --- | --- | --- | --- |
@@ -83,7 +83,11 @@ python skills/tokenlab-api-integration/scripts/search_api.py --detail claude-son
 - Claude/Gemini 的原生字段必须留在 Messages/Gemini endpoint。
 - Responses 不是 Chat 的同义词；只有 detail contract 声明支持且客户端真的实现 Responses 时才使用。
 - 当前 DeepSeek Harness custom provider 支持 `openai-responses`、`anthropic-messages`、`openai-completions`，不支持配置 Gemini native；因此 Gemini 在 Harness 中只能走其公开声明的 Chat fallback。
-- 若 `accepted_request_formats` 缺失或不包含调用方协议，fail closed：换模型或换客户端，不要凭名称强行请求。
+- 聊天接入若 `accepted_request_formats` 缺失或不包含调用方协议，fail closed：换模型或换客户端。非 chat 接入若没有所需公开 operation/endpoint，同样拒绝猜测请求。
+
+## DeepSeek Harness bundle
+
+使用公开 `@tokenlabai/dsh-provider` bundle 时先核对 npm 版本、固定 MCP 版本与 Harness peers。保持 Responses、Messages、Chat 三条互斥聊天路由。Jev 等决策模型通过 MCP `evaluate_decisions` 调用原生 System One，不进入聊天模型列表，也不交给异步 waiter。Webhook 管理工具使用 `full` profile 与单独的 `TOKENLAB_MANAGEMENT_TOKEN`；Harness 会过滤继承的凭据环境变量，bundle 必须显式传给 MCP 子进程。管理 token 与推理 key 不可互相替代。
 
 ## Endpoint map
 

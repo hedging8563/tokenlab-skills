@@ -21,7 +21,7 @@ Use this skill when a user asks how to reduce TokenLab cost, compare model price
 ## Preferred approach
 
 1. Identify the workload and constraints:
-   - chat, coding, agent loop, image, video, audio, embedding, rerank, translation, or multimodal
+   - chat, coding, agent loop, image, video, audio, embedding, rerank, translation, decisions, or multimodal
    - quality floor
    - latency target
    - budget or cost ceiling
@@ -38,6 +38,7 @@ Use this skill when a user asks how to reduce TokenLab cost, compare model price
    - budget fallback
 4. If the user asks for exact cost, compute from live pricing and their estimated token/media volume. State units and assumptions.
 5. For non-chat requests, inspect model details before changing parameters or endpoint family.
+6. For bounded semantic decisions, discover `category=decision` and the System One operation. Compare live pricing and measured task errors; a zero output price does not imply zero output tokens. Never insert a decision model into a chat fallback chain or replace typed answers with free text silently. Escalation and action authorization remain application decisions.
 
 ## Output format
 
