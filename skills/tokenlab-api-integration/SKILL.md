@@ -13,10 +13,10 @@ metadata:
 - API root: `https://api.tokenlab.sh`
 - OpenAI-compatible base URL: `https://api.tokenlab.sh/v1`
 - Anthropic SDK base URL: `https://api.tokenlab.sh`（不要自行追加 `/v1`）
-- Docs: `https://docs.tokenlab.sh`
+- Docs: `https://tokenlab.sh/docs`
 - Model catalog: `GET https://api.tokenlab.sh/v1/models`
 - Model detail: `GET https://api.tokenlab.sh/v1/models/{id}`
-- OpenAPI: `https://docs.tokenlab.sh/openapi.json`
+- OpenAPI: `https://tokenlab.sh/docs/openapi.json`
 - Auth: `Authorization: Bearer $TOKENLAB_API_KEY`，或由原生 SDK 按其协议发送 key
 
 ## Required workflow
