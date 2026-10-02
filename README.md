@@ -64,7 +64,7 @@ The plugin and the standalone Skills installation above are alternative ways to 
 
 ## Update an existing installation
 
-Plugin release **0.1.5** refreshes API documentation links for the self-hosted `/docs` route. It retains the Jev / native System One decision discovery, integration and cost-routing guidance, plus the distinction between chat formats and non-chat operation contracts and reversible setup helpers for Hermes, Codex, Claude Code, OpenCode and Pi. `.claude-plugin/plugin.json` owns the plugin version. The marketplace's metadata version describes the marketplace manifest, not the installed plugin release. A Git push alone does not refresh a cached Claude plugin whose version remains unchanged; see [Claude's version rules](https://code.claude.com/docs/en/plugins-reference#version-management).
+Plugin release **0.1.6** corrects the hosted Model Explorer MCP connection to `https://exposure-tokenlab-openai-apps-model.vercel.app/mcp`. It retains the self-hosted `/docs` links and the Jev / native System One decision discovery, integration and cost-routing guidance, plus the distinction between chat formats and non-chat operation contracts and reversible setup helpers for Hermes, Codex, Claude Code, OpenCode and Pi. `.claude-plugin/plugin.json` owns the plugin version. The marketplace's metadata version describes the marketplace manifest, not the installed plugin release. A Git push alone does not refresh a cached Claude plugin whose version remains unchanged; see [Claude's version rules](https://code.claude.com/docs/en/plugins-reference#version-management).
 
 For a Claude Code plugin installation:
 

@@ -11,7 +11,7 @@
     },
     "tokenlab-hosted-model-explorer": {
       "type": "http",
-      "url": "https://tokenlab-model-explorer.vercel.app/mcp"
+      "url": "https://exposure-tokenlab-openai-apps-model.vercel.app/mcp"
     }
   }
 }
