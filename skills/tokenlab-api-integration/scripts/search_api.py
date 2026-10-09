@@ -130,6 +130,9 @@ def summarize(model: dict[str, Any], client: str, *, include_contract: bool = Fa
     extension = tokenlab_extension(model)
     endpoint, endpoint_reason = preferred_endpoint(model, client)
     pricing = extension.get("pricing") if isinstance(extension.get("pricing"), dict) else {}
+    official_pricing = (
+        extension.get("official_pricing") if isinstance(extension.get("official_pricing"), dict) else {}
+    )
     return {
         "id": model.get("id"),
         "owned_by": model.get("owned_by"),
@@ -141,6 +144,7 @@ def summarize(model: dict[str, Any], client: str, *, include_contract: bool = Fa
         "max_input_tokens": extension.get("max_input_tokens"),
         "max_output_tokens": extension.get("max_output_tokens"),
         "pricing": pricing,
+        "official_pricing": official_pricing,
         "lifecycle": extension.get("lifecycle"),
         **({"request_contract": request_contract(model)} if include_contract else {}),
     }
@@ -159,10 +163,13 @@ def print_human(models: list[dict[str, Any]], client: str, *, include_contract: 
         print(f"   preferred endpoint: {summary['preferred_endpoint'] or 'inspect detail'} ({summary['endpoint_reason']})")
         if include_contract and request_contract(model):
             print("   request contract: " + json.dumps(request_contract(model), ensure_ascii=False, indent=2))
-        pricing = summary["pricing"]
-        if pricing:
+        # pricing is the Verified price; its fields are null when the model has
+        # no Verified supply, and such a request is billed at the Official price.
+        for label, pricing in (("Verified price", summary["pricing"]), ("Official price", summary["official_pricing"])):
+            if not any(pricing.get(key) is not None for key in ("input_per_1m", "output_per_1m", "per_request")):
+                continue
             print(
-                "   pricing: "
+                f"   {label}: "
                 f"input={pricing.get('input_per_1m')} output={pricing.get('output_per_1m')} "
                 f"per_request={pricing.get('per_request')} {pricing.get('currency', 'USD')}"
             )

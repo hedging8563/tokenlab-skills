@@ -81,6 +81,19 @@ class DiscoveryContractTests(unittest.TestCase):
         self.assertIn('inspect --detail', value['endpoint_reason'])
         self.assertNotIn('request_contract', value)
 
+    def test_prints_the_official_price_when_no_verified_price_is_listed(self):
+        model = {'id': 'official-only', 'owned_by': 'xai', 'tokenlab': {
+            'deliveryAvailability': {'verified': False, 'official': True},
+            'pricing': {'input_per_1m': None, 'output_per_1m': None, 'per_request': None, 'currency': 'USD'},
+            'official_pricing': {'input_per_1m': '1.25', 'output_per_1m': '2.5', 'per_request': None, 'currency': 'USD'},
+        }}
+        self.assertEqual(search_api.summarize(model, 'general')['official_pricing']['input_per_1m'], '1.25')
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            search_api.print_human([model], 'general')
+        self.assertIn('Official price: input=1.25 output=2.5', out.getvalue())
+        self.assertNotIn('Verified price', out.getvalue())
+
     def test_chat_protocol_selection_still_follows_declared_formats(self):
         model = {'id': 'fixture', 'owned_by': 'openai', 'tokenlab': {
             'accepted_request_formats': ['openai_chat_completions', 'openai_responses']}}
