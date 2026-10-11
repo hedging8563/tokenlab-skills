@@ -1,12 +1,12 @@
 # Add TokenLab to Hermes without changing the existing default
 
-This helper targets official Hermes **0.21.3** (`v2026.9.14`, source `345cd2b057a452236de401d3534b8502a7465e8d`). It adds one named provider to the active `config.yaml`. It preserves other settings and their comments, saved accounts, the active account and the default model. It never asks for, prints or stores a new TokenLab key. Existing credential files stay unchanged, and the helper never requests inference.
+This helper targets the tested official Hermes releases **0.21.3** (`v2026.9.14`, source `345cd2b057a452236de401d3534b8502a7465e8d`) and **0.21.6** (`v0.21.6`, source `818c13be1dc4fd28987e1e881a9408224afd4535`); other versions are refused. It adds one named provider to the active `config.yaml`. It preserves other settings and their comments, saved accounts, the active account and the default model. It never asks for, prints or stores a new TokenLab key. Existing credential files stay unchanged, and the helper never requests inference.
 
 Use the existing Hermes installation. The helper does not install or upgrade Hermes, change permissions, or run `hermes model`: that wizard changes the default model and active account. Native `hermes config set` rewrites YAML without preserving comments, so it is not used for this change. See the official [named provider contract](https://hermes-agent.nousresearch.com/docs/integrations/providers#named-custom-providers).
 
 ## Select the existing Python runtime and configuration
 
-Run `hermes --version` to find the installed version and **Install directory**. For the official source installer, its Python is `<Install directory>/venv/bin/python` on macOS/Linux or `<Install directory>\venv\Scripts\python.exe` on Windows. Other distribution layouts must use their actual installed runtime. The helper uses the PyYAML **6.0.3** already included in Hermes 0.21.3. It does not run pip or guess another Python installation.
+Run `hermes --version` to find the installed version and **Install directory**. For the official source installer, its Python is `<Install directory>/venv/bin/python` on macOS/Linux or `<Install directory>\venv\Scripts\python.exe` on Windows. Other distribution layouts must use their actual installed runtime. The helper uses the YAML parser already included in that release: PyYAML **6.0.3** in Hermes 0.21.3, or ruamel.yaml **0.18.16** in Hermes 0.21.6. It does not run pip or guess another Python installation.
 
 Run the helper directly with that Python, or pass its exact path with `--hermes-python` from Python 3.11+. A missing or different parser stops setup. Restoration only needs Python 3.11+, even after Hermes is removed.
 
@@ -56,4 +56,4 @@ Use process-scoped environment changes and restore their prior values afterward.
 
 ## Verification scope
 
-The tests exercise real fixed Hermes 0.21.3 with fake credentials, isolated configuration and loopback responses, alongside preview, idempotency, ownership conflicts and exact-byte restoration. The installed-client CI has separate macOS, Linux and native Windows jobs; a configured job is not a successful run. WSL, managed deployments, arbitrary future versions, production routing and billing are not implied by local or CI fixture results.
+The tests exercise real fixed Hermes 0.21.3 and 0.21.6 with fake credentials, isolated configuration and loopback responses, alongside preview, idempotency, ownership conflicts and exact-byte restoration. The installed-client CI has separate macOS, Linux and native Windows jobs; a configured job is not a successful run. WSL, managed deployments, arbitrary future versions, production routing and billing are not implied by local or CI fixture results.
