@@ -101,6 +101,7 @@ python skills/tokenlab-api-integration/scripts/search_api.py --detail claude-son
 | Video | `POST /v1/videos/generations` | async |
 | Music | `POST /v1/music/generations` | async |
 | 3D | `POST /v1/3d/generations` | async |
+| Worlds | `POST /v1/worlds/generations` | async |
 | Task status / cancel | `GET` / `DELETE /v1/tasks/{id}` | poll / cancel |
 | TTS | `POST /v1/audio/speech` | binary audio or endpoint-declared response |
 | STT / translation | `POST /v1/audio/transcriptions`, `/translations` | multipart |
@@ -110,6 +111,8 @@ python skills/tokenlab-api-integration/scripts/search_api.py --detail claude-son
 | Rerank | `POST /v1/rerank` | sync JSON |
 | Decisions | `POST /v1/systemone` | synchronous JSON |
 | Text translation | `POST /v1/translations` | sync JSON |
+
+只需执行一次媒体或决策请求（而不是写入应用代码）时，用 `tokenlab-run`；按结果挑选模型用 `tokenlab-model-picker`；具体产出（商品图、图生视频、配音、3D 等）用对应的 `tokenlab-*` outcome skill。
 
 不要从这张表猜具体模型参数。非 chat endpoint 先读取当前模型 detail/OpenAPI；图像尺寸、视频 duration、reference media、音色、格式等限制由所选模型公开 contract 决定。
 

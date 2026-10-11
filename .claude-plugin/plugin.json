@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "tokenlab",
-  "version": "0.1.7",
-  "description": "TokenLab model selection, API integration, native endpoints, cost routing, and OpenAI-compatible migration skills with optional TokenLab MCP servers.",
+  "version": "0.2.0",
+  "description": "TokenLab Agent Skills: run image, video, music, 3D, speech, and System One decision calls; pick models and write prompts; integrate the API, native endpoints, cost routing, and OpenAI-compatible migration. Includes optional TokenLab MCP servers.",
   "author": {
     "name": "TokenLab",
     "email": "cryptoninja2008@gmail.com"
@@ -13,9 +13,13 @@
   "keywords": [
     "tokenlab",
     "ai-api",
+    "image-generation",
+    "video-generation",
+    "audio",
+    "3d",
+    "decisions",
     "model-routing",
     "mcp",
-    "native-endpoints",
     "claude-code"
   ],
   "skills": "./skills/",

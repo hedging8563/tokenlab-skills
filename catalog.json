@@ -1,0 +1,585 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.0",
+  "repository": "https://github.com/hedging8563/tokenlab-skills",
+  "groups": [
+    {
+      "id": "foundation",
+      "title": "Foundation",
+      "description": "Run any TokenLab request correctly, pick the model, and write the prompt.",
+      "skills": [
+        "tokenlab-run",
+        "tokenlab-model-picker",
+        "tokenlab-prompting"
+      ]
+    },
+    {
+      "id": "image",
+      "title": "Image",
+      "description": "Create and edit images: product shots, edits, upscales, text, characters, photoreal stills, and logos.",
+      "skills": [
+        "tokenlab-product-photography",
+        "tokenlab-edit-image",
+        "tokenlab-restore-and-upscale",
+        "tokenlab-text-in-image",
+        "tokenlab-character-consistency",
+        "tokenlab-photoreal-stills",
+        "tokenlab-logos-and-vectors"
+      ]
+    },
+    {
+      "id": "video",
+      "title": "Video",
+      "description": "Animate stills, make ads and cinematic shots, control frames and motion, extend and edit clips.",
+      "skills": [
+        "tokenlab-animate-image",
+        "tokenlab-product-ad-video",
+        "tokenlab-keyframe-transition",
+        "tokenlab-extend-video",
+        "tokenlab-edit-video",
+        "tokenlab-motion-control",
+        "tokenlab-talking-avatar",
+        "tokenlab-cinematic-video"
+      ]
+    },
+    {
+      "id": "audio",
+      "title": "Audio",
+      "description": "Voiceover, transcripts and subtitles, and music.",
+      "skills": [
+        "tokenlab-voiceover",
+        "tokenlab-transcribe-and-subtitle",
+        "tokenlab-music"
+      ]
+    },
+    {
+      "id": "3d",
+      "title": "3D and worlds",
+      "description": "Downloadable 3D assets and explorable worlds.",
+      "skills": [
+        "tokenlab-image-to-3d-asset",
+        "tokenlab-world-generation"
+      ]
+    },
+    {
+      "id": "decision",
+      "title": "Decisions",
+      "description": "Typed yes/no, choice, and score answers for agent branches.",
+      "skills": [
+        "tokenlab-decisions"
+      ]
+    },
+    {
+      "id": "integration",
+      "title": "Integration",
+      "description": "Put TokenLab into apps, native endpoints, cost routes, and OpenAI-compatible migrations.",
+      "skills": [
+        "tokenlab-api-integration",
+        "tokenlab-native-endpoints",
+        "tokenlab-cost-routing",
+        "tokenlab-openai-compatible-migration"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "id": "tokenlab-run",
+      "group": "foundation",
+      "summary": "The execution contract: contract, estimate, upload, call, poll, read results.",
+      "operations": [],
+      "endpoints": [
+        "/v1/models/{model}",
+        "/v1/models/{model}/pricing",
+        "/v1/files",
+        "/v1/tasks/{id}"
+      ],
+      "mcpTools": [
+        "get_model",
+        "get_model_pricing",
+        "upload_file",
+        "get_task_status",
+        "cancel_task"
+      ],
+      "path": "skills/tokenlab-run"
+    },
+    {
+      "id": "tokenlab-model-picker",
+      "group": "foundation",
+      "summary": "Pick the model for an outcome from live catalog signals.",
+      "operations": [],
+      "endpoints": [
+        "/v1/models",
+        "/v1/models/{model}",
+        "/v1/models/{model}/pricing"
+      ],
+      "mcpTools": [
+        "list_models",
+        "get_model",
+        "get_model_pricing",
+        "compare_models"
+      ],
+      "path": "skills/tokenlab-model-picker"
+    },
+    {
+      "id": "tokenlab-prompting",
+      "group": "foundation",
+      "summary": "Prompt craft per model family for image, video, music, and speech.",
+      "operations": [
+        "text-to-image",
+        "image-to-image",
+        "image-edit",
+        "text-to-video",
+        "image-to-video",
+        "music",
+        "tts"
+      ],
+      "endpoints": [],
+      "mcpTools": [
+        "get_model"
+      ],
+      "path": "skills/tokenlab-prompting"
+    },
+    {
+      "id": "tokenlab-product-photography",
+      "group": "image",
+      "summary": "Packshot to studio, lifestyle, and hero shots.",
+      "operations": [
+        "text-to-image",
+        "image-to-image",
+        "image-edit"
+      ],
+      "endpoints": [
+        "/v1/images/generations",
+        "/v1/images/edits"
+      ],
+      "mcpTools": [
+        "create_image",
+        "edit_image",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-product-photography"
+    },
+    {
+      "id": "tokenlab-edit-image",
+      "group": "image",
+      "summary": "Add, remove, replace, recolor, and cut out backgrounds.",
+      "operations": [
+        "image-edit",
+        "image-to-image"
+      ],
+      "endpoints": [
+        "/v1/images/generations",
+        "/v1/images/edits"
+      ],
+      "mcpTools": [
+        "create_image",
+        "edit_image",
+        "edit_image_file",
+        "upload_file",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-edit-image"
+    },
+    {
+      "id": "tokenlab-restore-and-upscale",
+      "group": "image",
+      "summary": "Upscale, sharpen, and restore old or low-resolution photos.",
+      "operations": [
+        "image-edit"
+      ],
+      "endpoints": [
+        "/v1/images/generations",
+        "/v1/images/edits"
+      ],
+      "mcpTools": [
+        "create_image",
+        "edit_image",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-restore-and-upscale"
+    },
+    {
+      "id": "tokenlab-text-in-image",
+      "group": "image",
+      "summary": "Posters, packaging, and UI mockups with exact, legible text.",
+      "operations": [
+        "text-to-image",
+        "image-edit"
+      ],
+      "endpoints": [
+        "/v1/images/generations",
+        "/v1/images/edits"
+      ],
+      "mcpTools": [
+        "create_image",
+        "edit_image",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-text-in-image"
+    },
+    {
+      "id": "tokenlab-character-consistency",
+      "group": "image",
+      "summary": "Keep one character or product the same across images and clips.",
+      "operations": [
+        "image-to-image",
+        "text-to-image",
+        "reference-to-video"
+      ],
+      "endpoints": [
+        "/v1/images/generations",
+        "/v1/images/edits",
+        "/v1/videos/generations"
+      ],
+      "mcpTools": [
+        "create_image",
+        "edit_image",
+        "create_video",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-character-consistency"
+    },
+    {
+      "id": "tokenlab-photoreal-stills",
+      "group": "image",
+      "summary": "Realistic photos of people, places, food, and scenes.",
+      "operations": [
+        "text-to-image"
+      ],
+      "endpoints": [
+        "/v1/images/generations"
+      ],
+      "mcpTools": [
+        "create_image",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-photoreal-stills"
+    },
+    {
+      "id": "tokenlab-logos-and-vectors",
+      "group": "image",
+      "summary": "Logos, icons, and flat marks, with SVG vectorizing.",
+      "operations": [
+        "text-to-image",
+        "image-edit"
+      ],
+      "endpoints": [
+        "/v1/images/generations"
+      ],
+      "mcpTools": [
+        "create_image",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-logos-and-vectors"
+    },
+    {
+      "id": "tokenlab-animate-image",
+      "group": "video",
+      "summary": "Turn a still image into a short video clip.",
+      "operations": [
+        "image-to-video"
+      ],
+      "endpoints": [
+        "/v1/videos/generations"
+      ],
+      "mcpTools": [
+        "create_video",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-animate-image"
+    },
+    {
+      "id": "tokenlab-product-ad-video",
+      "group": "video",
+      "summary": "Product image or brief to a short ad clip.",
+      "operations": [
+        "image-to-video",
+        "reference-to-video",
+        "text-to-video"
+      ],
+      "endpoints": [
+        "/v1/videos/generations"
+      ],
+      "mcpTools": [
+        "create_image",
+        "create_video",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-product-ad-video"
+    },
+    {
+      "id": "tokenlab-keyframe-transition",
+      "group": "video",
+      "summary": "Video that moves from a first frame to a last frame.",
+      "operations": [
+        "start-end-to-video"
+      ],
+      "endpoints": [
+        "/v1/videos/generations"
+      ],
+      "mcpTools": [
+        "create_video",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-keyframe-transition"
+    },
+    {
+      "id": "tokenlab-extend-video",
+      "group": "video",
+      "summary": "Continue a clip past its last frame.",
+      "operations": [
+        "video-extension"
+      ],
+      "endpoints": [
+        "/v1/videos/generations"
+      ],
+      "mcpTools": [
+        "create_video",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-extend-video"
+    },
+    {
+      "id": "tokenlab-edit-video",
+      "group": "video",
+      "summary": "Restyle or change an existing clip with a prompt.",
+      "operations": [
+        "video-to-video"
+      ],
+      "endpoints": [
+        "/v1/videos/generations"
+      ],
+      "mcpTools": [
+        "create_video",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-edit-video"
+    },
+    {
+      "id": "tokenlab-motion-control",
+      "group": "video",
+      "summary": "Move a character image with the motion of a reference video.",
+      "operations": [
+        "motion-control"
+      ],
+      "endpoints": [
+        "/v1/videos/generations"
+      ],
+      "mcpTools": [
+        "create_video",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-motion-control"
+    },
+    {
+      "id": "tokenlab-talking-avatar",
+      "group": "video",
+      "summary": "Portrait plus script or audio to a talking-head video.",
+      "operations": [
+        "image-to-video",
+        "tts"
+      ],
+      "endpoints": [
+        "/v1/videos/generations",
+        "/v1/audio/speech"
+      ],
+      "mcpTools": [
+        "create_video",
+        "create_speech",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-talking-avatar"
+    },
+    {
+      "id": "tokenlab-cinematic-video",
+      "group": "video",
+      "summary": "Text or image to cinematic shots with camera language.",
+      "operations": [
+        "text-to-video",
+        "image-to-video"
+      ],
+      "endpoints": [
+        "/v1/videos/generations"
+      ],
+      "mcpTools": [
+        "create_video",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-cinematic-video"
+    },
+    {
+      "id": "tokenlab-voiceover",
+      "group": "audio",
+      "summary": "Script to natural speech audio with a chosen voice.",
+      "operations": [
+        "tts"
+      ],
+      "endpoints": [
+        "/v1/audio/speech"
+      ],
+      "mcpTools": [
+        "create_speech"
+      ],
+      "path": "skills/tokenlab-voiceover"
+    },
+    {
+      "id": "tokenlab-transcribe-and-subtitle",
+      "group": "audio",
+      "summary": "Audio or video to transcripts, SRT/VTT subtitles, and translations.",
+      "operations": [
+        "stt",
+        "translation"
+      ],
+      "endpoints": [
+        "/v1/audio/transcriptions",
+        "/v1/translations"
+      ],
+      "mcpTools": [
+        "transcribe_audio",
+        "translate_text",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-transcribe-and-subtitle"
+    },
+    {
+      "id": "tokenlab-music",
+      "group": "audio",
+      "summary": "Songs, instrumentals, and sound effects from a brief.",
+      "operations": [
+        "music"
+      ],
+      "endpoints": [
+        "/v1/music/generations"
+      ],
+      "mcpTools": [
+        "create_music",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-music"
+    },
+    {
+      "id": "tokenlab-image-to-3d-asset",
+      "group": "3d",
+      "summary": "Image or text to a downloadable 3D model (GLB and more).",
+      "operations": [
+        "image-to-3d",
+        "text-to-3d"
+      ],
+      "endpoints": [
+        "/v1/3d/generations"
+      ],
+      "mcpTools": [
+        "create_3d_model",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-image-to-3d-asset"
+    },
+    {
+      "id": "tokenlab-world-generation",
+      "group": "3d",
+      "summary": "Text, image, or video to an explorable 3D world.",
+      "operations": [
+        "world-generation"
+      ],
+      "endpoints": [
+        "/v1/worlds/generations"
+      ],
+      "mcpTools": [
+        "create_world",
+        "get_world_status",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-world-generation"
+    },
+    {
+      "id": "tokenlab-decisions",
+      "group": "decision",
+      "summary": "Typed yes/no, choice, and score answers with System One.",
+      "operations": [
+        "systemone"
+      ],
+      "endpoints": [
+        "/v1/systemone"
+      ],
+      "mcpTools": [
+        "evaluate_decisions"
+      ],
+      "path": "skills/tokenlab-decisions"
+    },
+    {
+      "id": "tokenlab-api-integration",
+      "group": "integration",
+      "summary": "Runnable TokenLab code for chat, native, media, and async tasks.",
+      "operations": [
+        "chat"
+      ],
+      "endpoints": [
+        "/v1/chat/completions",
+        "/v1/responses",
+        "/v1/messages",
+        "/v1/tasks/{id}"
+      ],
+      "mcpTools": [
+        "list_models",
+        "get_model",
+        "get_task_status"
+      ],
+      "path": "skills/tokenlab-api-integration"
+    },
+    {
+      "id": "tokenlab-native-endpoints",
+      "group": "integration",
+      "summary": "Use Responses, Messages, Gemini, and System One native routes.",
+      "operations": [
+        "chat",
+        "systemone"
+      ],
+      "endpoints": [
+        "/v1/responses",
+        "/v1/messages",
+        "/v1beta/models/{model}:generateContent",
+        "/v1/systemone"
+      ],
+      "mcpTools": [
+        "create_response",
+        "create_anthropic_message",
+        "create_gemini_content",
+        "evaluate_decisions"
+      ],
+      "path": "skills/tokenlab-native-endpoints"
+    },
+    {
+      "id": "tokenlab-cost-routing",
+      "group": "integration",
+      "summary": "Cost-aware model routes and fallback chains from live pricing.",
+      "operations": [],
+      "endpoints": [
+        "/v1/models",
+        "/v1/models/{model}/pricing"
+      ],
+      "mcpTools": [
+        "list_models",
+        "get_model_pricing",
+        "compare_models"
+      ],
+      "path": "skills/tokenlab-cost-routing"
+    },
+    {
+      "id": "tokenlab-openai-compatible-migration",
+      "group": "integration",
+      "summary": "Move OpenAI-compatible apps to TokenLab with a minimal diff.",
+      "operations": [
+        "chat"
+      ],
+      "endpoints": [
+        "/v1/chat/completions",
+        "/v1/models"
+      ],
+      "mcpTools": [
+        "list_models",
+        "get_model"
+      ],
+      "path": "skills/tokenlab-openai-compatible-migration"
+    }
+  ]
+}

@@ -3,55 +3,88 @@
 [![Validate skills](https://github.com/hedging8563/tokenlab-skills/actions/workflows/validate.yml/badge.svg)](https://github.com/hedging8563/tokenlab-skills/actions/workflows/validate.yml)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-111827)](https://agentskills.io/specification)
 
-This repository contains public agent skills released by TokenLab.
+Agent Skills for [TokenLab](https://tokenlab.sh). Each skill is a recipe for one outcome: a product photo, an animated still, a voiceover, a 3D asset, a typed decision. The agent loads a skill from its `description`, follows the workflow, and calls the TokenLab API over HTTP or MCP. It reads the live model catalog at run time, so the skill stays correct when models change.
 
-## Repository contents
+## How the skills fit together
 
-- `skills/tokenlab-api-integration/` - Build runnable TokenLab API integrations.
-- `skills/tokenlab-cost-routing/` - Choose TokenLab models with cost, latency, and fallback constraints.
-- `skills/tokenlab-model-picker/` - Choose TokenLab models from public catalog signals.
-- `skills/tokenlab-native-endpoints/` - Use TokenLab native Responses, Anthropic Messages, and Gemini routes.
-- `skills/tokenlab-openai-compatible-migration/` - Migrate OpenAI-compatible apps and SDKs to TokenLab safely.
-- Distribution-facing README and license information
+- **Foundation skills** do the shared work:
+  - `tokenlab-run`: the execution contract. Read the model contract, estimate the cost, provide inputs, call, wait for the task, and read the result.
+  - `tokenlab-model-picker`: map an outcome to an operation and to live model IDs.
+  - `tokenlab-prompting`: prompt craft per model family.
+- **Outcome skills** (image, video, audio, 3D, decisions) name default models, a workflow, technique, and a quality bar. They call `tokenlab-run` for the mechanics.
+- **Integration skills** put TokenLab into application code: SDK setup, native endpoints, cost routing, and migration from other OpenAI-compatible providers.
 
-Older generated skills, skills-factory outputs, and sync artifacts are intentionally not part of this repository. TokenLab ships only maintained, documented skills here.
+Install `tokenlab-run` together with any outcome skill. The plugin installs all of them.
 
-## Skill format
+## Catalog
 
-Published skills follow the Agent Skills specification and use `SKILL.md` as the agent-facing entry point.
+`catalog.json` owns the skill list, groups, and order. `skills.sh.json` and this section are generated from it with `python3 scripts/sync_catalog.py`.
 
-- Spec: https://agentskills.io/specification
-- Canonical repo: https://github.com/hedging8563/tokenlab-skills
+<!-- catalog:start -->
 
-## Recommended install
+**Foundation** - Run any TokenLab request correctly, pick the model, and write the prompt.
 
-```bash
-npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-api-integration -y
-npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-cost-routing -y
-npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-model-picker -y
-npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-native-endpoints -y
-npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-openai-compatible-migration -y
-```
+- [`tokenlab-run`](skills/tokenlab-run/) - The execution contract: contract, estimate, upload, call, poll, read results.
+- [`tokenlab-model-picker`](skills/tokenlab-model-picker/) - Pick the model for an outcome from live catalog signals.
+- [`tokenlab-prompting`](skills/tokenlab-prompting/) - Prompt craft per model family for image, video, music, and speech.
 
-## Claude Code Plugin Marketplace
+**Image** - Create and edit images: product shots, edits, upscales, text, characters, photoreal stills, and logos.
 
-This repository is also a Claude Code plugin marketplace. It bundles the five maintained skills with two optional TokenLab MCP connections:
+- [`tokenlab-product-photography`](skills/tokenlab-product-photography/) - Packshot to studio, lifestyle, and hero shots.
+- [`tokenlab-edit-image`](skills/tokenlab-edit-image/) - Add, remove, replace, recolor, and cut out backgrounds.
+- [`tokenlab-restore-and-upscale`](skills/tokenlab-restore-and-upscale/) - Upscale, sharpen, and restore old or low-resolution photos.
+- [`tokenlab-text-in-image`](skills/tokenlab-text-in-image/) - Posters, packaging, and UI mockups with exact, legible text.
+- [`tokenlab-character-consistency`](skills/tokenlab-character-consistency/) - Keep one character or product the same across images and clips.
+- [`tokenlab-photoreal-stills`](skills/tokenlab-photoreal-stills/) - Realistic photos of people, places, food, and scenes.
+- [`tokenlab-logos-and-vectors`](skills/tokenlab-logos-and-vectors/) - Logos, icons, and flat marks, with SVG vectorizing.
 
-- `tokenlab-stdio` runs the published `@tokenlabai/mcp-server` locally over stdio. Public catalog tools work without a key; set `TOKENLAB_API_KEY` only when credentialed tools are needed.
-- `tokenlab-hosted-model-explorer` connects to the public hosted Model Explorer over Streamable HTTP. It exposes read-only model discovery, comparison, and endpoint-example tools.
+**Video** - Animate stills, make ads and cinematic shots, control frames and motion, extend and edit clips.
 
-Add and install it from Claude Code:
+- [`tokenlab-animate-image`](skills/tokenlab-animate-image/) - Turn a still image into a short video clip.
+- [`tokenlab-product-ad-video`](skills/tokenlab-product-ad-video/) - Product image or brief to a short ad clip.
+- [`tokenlab-keyframe-transition`](skills/tokenlab-keyframe-transition/) - Video that moves from a first frame to a last frame.
+- [`tokenlab-extend-video`](skills/tokenlab-extend-video/) - Continue a clip past its last frame.
+- [`tokenlab-edit-video`](skills/tokenlab-edit-video/) - Restyle or change an existing clip with a prompt.
+- [`tokenlab-motion-control`](skills/tokenlab-motion-control/) - Move a character image with the motion of a reference video.
+- [`tokenlab-talking-avatar`](skills/tokenlab-talking-avatar/) - Portrait plus script or audio to a talking-head video.
+- [`tokenlab-cinematic-video`](skills/tokenlab-cinematic-video/) - Text or image to cinematic shots with camera language.
+
+**Audio** - Voiceover, transcripts and subtitles, and music.
+
+- [`tokenlab-voiceover`](skills/tokenlab-voiceover/) - Script to natural speech audio with a chosen voice.
+- [`tokenlab-transcribe-and-subtitle`](skills/tokenlab-transcribe-and-subtitle/) - Audio or video to transcripts, SRT/VTT subtitles, and translations.
+- [`tokenlab-music`](skills/tokenlab-music/) - Songs, instrumentals, and sound effects from a brief.
+
+**3D and worlds** - Downloadable 3D assets and explorable worlds.
+
+- [`tokenlab-image-to-3d-asset`](skills/tokenlab-image-to-3d-asset/) - Image or text to a downloadable 3D model (GLB and more).
+- [`tokenlab-world-generation`](skills/tokenlab-world-generation/) - Text, image, or video to an explorable 3D world.
+
+**Decisions** - Typed yes/no, choice, and score answers for agent branches.
+
+- [`tokenlab-decisions`](skills/tokenlab-decisions/) - Typed yes/no, choice, and score answers with System One.
+
+**Integration** - Put TokenLab into apps, native endpoints, cost routes, and OpenAI-compatible migrations.
+
+- [`tokenlab-api-integration`](skills/tokenlab-api-integration/) - Runnable TokenLab code for chat, native, media, and async tasks.
+- [`tokenlab-native-endpoints`](skills/tokenlab-native-endpoints/) - Use Responses, Messages, Gemini, and System One native routes.
+- [`tokenlab-cost-routing`](skills/tokenlab-cost-routing/) - Cost-aware model routes and fallback chains from live pricing.
+- [`tokenlab-openai-compatible-migration`](skills/tokenlab-openai-compatible-migration/) - Move OpenAI-compatible apps to TokenLab with a minimal diff.
+
+<!-- catalog:end -->
+
+## Install
+
+### Claude Code plugin marketplace
 
 ```text
 /plugin marketplace add hedging8563/tokenlab-skills
 /plugin install tokenlab@tokenlab-tools
 ```
 
-The installed skill names are namespaced as `/tokenlab:tokenlab-api-integration`, `/tokenlab:tokenlab-cost-routing`, `/tokenlab:tokenlab-model-picker`, `/tokenlab:tokenlab-native-endpoints`, and `/tokenlab:tokenlab-openai-compatible-migration`.
+Installed skill names are namespaced, for example `/tokenlab:tokenlab-product-photography`.
 
-The hosted MCP entry is intentionally read-only and does not contain a TokenLab API key. The stdio entry defaults to the public `catalog` profile; set `TOKENLAB_MCP_TOOL_PROFILE=core` or `full` in the environment that launches Claude Code when the client should expose credentialed tools, then restart Claude Code. Set `TOKENLAB_API_KEY` separately for those calls; changing the profile does not change approvals or grant API permissions. The profile uses Claude Code's documented [environment-variable default syntax](https://code.claude.com/docs/en/mcp#environment-variable-expansion-in-mcpjson).
-
-## Codex plugin installation
+### Codex plugin
 
 Codex CLI 0.149.0 can consume this marketplace:
 
@@ -60,11 +93,41 @@ codex plugin marketplace add hedging8563/tokenlab-skills
 codex plugin add tokenlab@tokenlab-tools
 ```
 
-The plugin and the standalone Skills installation above are alternative ways to load the same skills. Neither changes the client's default model provider. See the API integration skill's [Codex](skills/tokenlab-api-integration/references/codex_setup.md), [Claude Code](skills/tokenlab-api-integration/references/claude_setup.md), [OpenCode](skills/tokenlab-api-integration/references/opencode_setup.md), [Pi](skills/tokenlab-api-integration/references/pi_setup.md), and [Hermes](skills/tokenlab-api-integration/references/hermes_setup.md) setup references when you explicitly want TokenLab as a model provider.
+### Skills CLI (any agent)
+
+Install one skill at a time:
+
+```bash
+npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-run -y
+npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-product-photography -y
+```
+
+Use any id from the catalog above.
+
+### Copy the folders
+
+The skills follow the open [Agent Skills specification](https://agentskills.io/specification). Clone the repository and copy the `skills/<id>/` folders into the directory your agent loads skills from (for example `.claude/skills/` or `.agents/skills/`).
+
+```bash
+git clone https://github.com/hedging8563/tokenlab-skills.git
+```
+
+## API key and MCP servers
+
+Media, audio, 3D, and decision calls need a TokenLab API key in `TOKENLAB_API_KEY`. Model discovery and pricing work without a key.
+
+The plugin bundles two optional MCP connections:
+
+- `tokenlab-stdio` runs the published `@tokenlabai/mcp-server` over stdio. It uses the `core` tool profile by default, so outcome skills can call `create_image`, `create_video`, `create_music`, `create_3d_model`, `create_speech`, `evaluate_decisions`, `get_task_status`, and the other credentialed tools. Set `TOKENLAB_API_KEY` for those calls. Set `TOKENLAB_MCP_TOOL_PROFILE=catalog` for read-only model discovery, or `full` for world generation, webhooks, and batch tools. Restart Claude Code after you change it. The profile uses Claude Code's [environment-variable default syntax](https://code.claude.com/docs/en/mcp#environment-variable-expansion-in-mcpjson). Changing the profile does not grant API permissions.
+- `tokenlab-hosted-model-explorer` connects to the public hosted Model Explorer over Streamable HTTP. It is read-only and holds no API key.
+
+The plugin and the Skills CLI are alternative ways to load the same skills. Neither changes the client's default model provider. To use TokenLab as a model provider, see the API integration skill's [Codex](skills/tokenlab-api-integration/references/codex_setup.md), [Claude Code](skills/tokenlab-api-integration/references/claude_setup.md), [OpenCode](skills/tokenlab-api-integration/references/opencode_setup.md), [Pi](skills/tokenlab-api-integration/references/pi_setup.md), and [Hermes](skills/tokenlab-api-integration/references/hermes_setup.md) setup references.
 
 ## Update an existing installation
 
-Plugin release **0.1.6** corrects the hosted Model Explorer MCP connection to `https://exposure-tokenlab-openai-apps-model.vercel.app/mcp`. It retains the self-hosted `/docs` links and the Jev / native System One decision discovery, integration and cost-routing guidance, plus the distinction between chat formats and non-chat operation contracts and reversible setup helpers for Hermes, Codex, Claude Code, OpenCode and Pi. `.claude-plugin/plugin.json` owns the plugin version. The marketplace's metadata version describes the marketplace manifest, not the installed plugin release. A Git push alone does not refresh a cached Claude plugin whose version remains unchanged; see [Claude's version rules](https://code.claude.com/docs/en/plugins-reference#version-management).
+Release **0.2.0** adds the foundation skills, 21 outcome skills for image, video, audio, 3D, and decisions, `catalog.json`, and `skills.sh.json`. The stdio MCP server now defaults to the `core` profile instead of `catalog`. The five earlier skill ids are unchanged.
+
+`.claude-plugin/plugin.json` owns the plugin version. A Git push alone does not refresh a cached Claude plugin whose version is unchanged; see [Claude's version rules](https://code.claude.com/docs/en/plugins-reference#version-management).
 
 For a Claude Code plugin installation:
 
@@ -73,7 +136,7 @@ For a Claude Code plugin installation:
 /plugin update tokenlab@tokenlab-tools
 ```
 
-Restart Claude Code after updating. For a Codex plugin installation, refresh the marketplace snapshot and install the updated version:
+Restart Claude Code after updating. For a Codex plugin installation:
 
 ```bash
 codex plugin marketplace upgrade tokenlab-tools
@@ -81,14 +144,19 @@ codex plugin add tokenlab@tokenlab-tools
 codex plugin list --json
 ```
 
-For skills installed through `npx skills`, update that skill in its original scope. The Skills CLI tracks source content independently of the plugin version:
+For skills installed with `npx skills`, update each skill in its original scope:
 
 ```bash
-# Run in the project where you installed the skill:
+# In the project where you installed the skill:
 npx skills update tokenlab-api-integration --project
 
 # Or, if it was installed globally:
 npx skills update tokenlab-api-integration --global
 ```
 
-Check that the installed API integration skill includes the required helper, including `scripts/configure_hermes.py` for Hermes, before following its setup reference. Other skill names can be updated individually using the same command.
+## Repository rules
+
+- Each folder in `skills/` has a `SKILL.md` whose `name` equals the folder name.
+- Outcome skills use the `tokenlab-` prefix so they never replace another vendor's skill with the same name.
+- Skills name exact model IDs as defaults but tell the agent to confirm them live. They state no prices; the agent reads prices from the pricing API.
+- `python3 -m unittest discover -s tests` checks the catalog, generated files, versions, and helper scripts.

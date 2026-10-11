@@ -1,0 +1,76 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Foundation",
+      "description": "Run any TokenLab request correctly, pick the model, and write the prompt.",
+      "skills": [
+        "tokenlab-run",
+        "tokenlab-model-picker",
+        "tokenlab-prompting"
+      ]
+    },
+    {
+      "title": "Image",
+      "description": "Create and edit images: product shots, edits, upscales, text, characters, photoreal stills, and logos.",
+      "skills": [
+        "tokenlab-product-photography",
+        "tokenlab-edit-image",
+        "tokenlab-restore-and-upscale",
+        "tokenlab-text-in-image",
+        "tokenlab-character-consistency",
+        "tokenlab-photoreal-stills",
+        "tokenlab-logos-and-vectors"
+      ]
+    },
+    {
+      "title": "Video",
+      "description": "Animate stills, make ads and cinematic shots, control frames and motion, extend and edit clips.",
+      "skills": [
+        "tokenlab-animate-image",
+        "tokenlab-product-ad-video",
+        "tokenlab-keyframe-transition",
+        "tokenlab-extend-video",
+        "tokenlab-edit-video",
+        "tokenlab-motion-control",
+        "tokenlab-talking-avatar",
+        "tokenlab-cinematic-video"
+      ]
+    },
+    {
+      "title": "Audio",
+      "description": "Voiceover, transcripts and subtitles, and music.",
+      "skills": [
+        "tokenlab-voiceover",
+        "tokenlab-transcribe-and-subtitle",
+        "tokenlab-music"
+      ]
+    },
+    {
+      "title": "3D and worlds",
+      "description": "Downloadable 3D assets and explorable worlds.",
+      "skills": [
+        "tokenlab-image-to-3d-asset",
+        "tokenlab-world-generation"
+      ]
+    },
+    {
+      "title": "Decisions",
+      "description": "Typed yes/no, choice, and score answers for agent branches.",
+      "skills": [
+        "tokenlab-decisions"
+      ]
+    },
+    {
+      "title": "Integration",
+      "description": "Put TokenLab into apps, native endpoints, cost routes, and OpenAI-compatible migrations.",
+      "skills": [
+        "tokenlab-api-integration",
+        "tokenlab-native-endpoints",
+        "tokenlab-cost-routing",
+        "tokenlab-openai-compatible-migration"
+      ]
+    }
+  ]
+}
