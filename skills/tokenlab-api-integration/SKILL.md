@@ -1,6 +1,6 @@
 ---
 name: tokenlab-api-integration
-description: "集成 TokenLab（历史名 LemonData）AI API：Chat、Responses、Anthropic Messages、Gemini、图像/视频/音乐/3D、TTS/STT、files、embeddings、rerank、System One 决策与异步任务。按公开模型契约选择原生端点并生成 Python/JavaScript/Go/PHP/cURL 代码。触发词：tokenlab、lemondata、API集成、接入模型、多媒体API、异步任务"
+description: "集成 TokenLab AI API：Chat、Responses、Anthropic Messages、Gemini、图像/视频/音乐/3D、TTS/STT、files、embeddings、rerank、System One 决策与异步任务。按公开模型契约选择原生端点并生成 Python/JavaScript/Go/PHP/cURL 代码。触发词：tokenlab、API集成、接入模型、多媒体API、异步任务"
 license: MIT
 metadata:
   category: coding

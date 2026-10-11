@@ -8,7 +8,6 @@ This repository contains public agent skills released by TokenLab.
 ## Repository contents
 
 - `skills/tokenlab-api-integration/` - Build runnable TokenLab API integrations.
-- `skills/tokenlab-cost-routing/` - Choose TokenLab models with cost, latency, and fallback constraints.
 - `skills/tokenlab-model-picker/` - Choose TokenLab models from public catalog signals.
 - `skills/tokenlab-native-endpoints/` - Use TokenLab native Responses, Anthropic Messages, and Gemini routes.
 - `skills/tokenlab-openai-compatible-migration/` - Migrate OpenAI-compatible apps and SDKs to TokenLab safely.
@@ -27,7 +26,6 @@ Published skills follow the Agent Skills specification and use `SKILL.md` as the
 
 ```bash
 npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-api-integration -y
-npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-cost-routing -y
 npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-model-picker -y
 npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-native-endpoints -y
 npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-openai-compatible-migration -y
@@ -35,10 +33,7 @@ npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-o
 
 ## Claude Code Plugin Marketplace
 
-This repository is also a Claude Code plugin marketplace. It bundles the five maintained skills with two optional TokenLab MCP connections:
-
-- `tokenlab-stdio` runs the published `@tokenlabai/mcp-server` locally over stdio. Public catalog tools work without a key; set `TOKENLAB_API_KEY` only when credentialed tools are needed.
-- `tokenlab-hosted-model-explorer` connects to the public hosted Model Explorer over Streamable HTTP. It exposes read-only model discovery, comparison, and endpoint-example tools.
+This repository is also a Claude plugin (`tokenlab`, listed as "TokenLab AI API") and a Claude Code plugin marketplace. The plugin bundles the four maintained skills above. It contains no MCP server, no hooks, and no API key.
 
 Add and install it from Claude Code:
 
@@ -47,9 +42,16 @@ Add and install it from Claude Code:
 /plugin install tokenlab@tokenlab-tools
 ```
 
-The installed skill names are namespaced as `/tokenlab:tokenlab-api-integration`, `/tokenlab:tokenlab-cost-routing`, `/tokenlab:tokenlab-model-picker`, `/tokenlab:tokenlab-native-endpoints`, and `/tokenlab:tokenlab-openai-compatible-migration`.
+The installed skill names are namespaced as `/tokenlab:tokenlab-api-integration`, `/tokenlab:tokenlab-model-picker`, `/tokenlab:tokenlab-native-endpoints`, and `/tokenlab:tokenlab-openai-compatible-migration`.
 
-The hosted MCP entry is intentionally read-only and does not contain a TokenLab API key. The stdio entry defaults to the public `catalog` profile; set `TOKENLAB_MCP_TOOL_PROFILE=core` or `full` in the environment that launches Claude Code when the client should expose credentialed tools, then restart Claude Code. Set `TOKENLAB_API_KEY` separately for those calls; changing the profile does not change approvals or grant API permissions. The profile uses Claude Code's documented [environment-variable default syntax](https://code.claude.com/docs/en/mcp#environment-variable-expansion-in-mcpjson).
+### What the plugin runs, sends, and fetches
+
+- The skills are instructions for Claude. Loading them runs nothing and sends nothing.
+- `tokenlab-model-picker` and `tokenlab-native-endpoints` tell Claude to read TokenLab's public, unauthenticated model catalog (`https://api.tokenlab.sh/v1/models` and per-model detail routes) and the public docs at `https://tokenlab.sh/docs`.
+- `tokenlab-api-integration` ships readable Python helper scripts in `skills/tokenlab-api-integration/scripts/`. Claude runs them only when you ask: `search_api.py` queries the public model catalog; the `configure_*.py` helpers preview, write, and restore a TokenLab provider entry in a local Codex, Claude Code, OpenCode, Pi, or Hermes configuration. The helpers never ask for, print, or store an API key; configuration files only reference the `TOKENLAB_API_KEY` environment variable name. The Claude Code launcher in `configure_claude.py`, when you explicitly start a TokenLab session with it, reads `TOKENLAB_API_KEY` from your local environment and passes it to that Claude Code session as bearer authentication for `https://api.tokenlab.sh`. No key is sent anywhere else.
+- Generated integration code reads `TOKENLAB_API_KEY` from your own environment or secret store and sends requests only to `https://api.tokenlab.sh`.
+
+Support: support@tokenlab.sh. Publisher: TOKENLAB AI INC (https://tokenlab.sh).
 
 ## Codex plugin installation
 
@@ -64,7 +66,7 @@ The plugin and the standalone Skills installation above are alternative ways to 
 
 ## Update an existing installation
 
-Plugin release **0.1.6** corrects the hosted Model Explorer MCP connection to `https://exposure-tokenlab-openai-apps-model.vercel.app/mcp`. It retains the self-hosted `/docs` links and the Jev / native System One decision discovery, integration and cost-routing guidance, plus the distinction between chat formats and non-chat operation contracts and reversible setup helpers for Hermes, Codex, Claude Code, OpenCode and Pi. `.claude-plugin/plugin.json` owns the plugin version. The marketplace's metadata version describes the marketplace manifest, not the installed plugin release. A Git push alone does not refresh a cached Claude plugin whose version remains unchanged; see [Claude's version rules](https://code.claude.com/docs/en/plugins-reference#version-management).
+Plugin release **0.1.8** ships four skills (API integration, model picker, native endpoints, OpenAI-compatible migration) and no bundled MCP servers. `.claude-plugin/plugin.json` owns the plugin version. The marketplace's metadata version describes the marketplace manifest, not the installed plugin release. A Git push alone does not refresh a cached Claude plugin whose version remains unchanged; see [Claude's version rules](https://code.claude.com/docs/en/plugins-reference#version-management).
 
 For a Claude Code plugin installation:
 

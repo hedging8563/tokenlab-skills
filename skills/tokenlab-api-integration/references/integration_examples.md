@@ -5,7 +5,7 @@ These are shape examples, not model-availability truth. Discover a live model an
 ## Environment
 
 ```bash
-export TOKENLAB_API_KEY='sk-...'
+export TOKENLAB_API_KEY='<your TokenLab API key>'
 export TOKENLAB_API_BASE='https://api.tokenlab.sh'
 ```
 
