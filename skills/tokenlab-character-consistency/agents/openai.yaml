@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Character Consistency"
+  short_description: "Same character across images and clips"
+  default_prompt: "Use $tokenlab-character-consistency to show this person in three new scenes with the same face and outfit."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Restore and Upscale"
+  short_description: "Upscale, sharpen, and restore photos"
+  default_prompt: "Use $tokenlab-restore-and-upscale to make this photo four times larger without changing it."

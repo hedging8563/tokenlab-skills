@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Logos and Vectors"
+  short_description: "Logos and icons, then SVG"
+  default_prompt: "Use $tokenlab-logos-and-vectors to make a flat logo mark for a bakery and give me an SVG."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Text in Image"
+  short_description: "Posters, packaging, and mockups with exact text"
+  default_prompt: "Use $tokenlab-text-in-image to make a coffee shop poster that reads MORNING BREW."

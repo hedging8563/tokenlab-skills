@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Photoreal Stills"
+  short_description: "Realistic photos of people, places, and scenes"
+  default_prompt: "Use $tokenlab-photoreal-stills to make a candid street-food photo at dusk in Bangkok."

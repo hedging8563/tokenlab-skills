@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Product Photography"
+  short_description: "Studio, lifestyle, and hero product images"
+  default_prompt: "Use $tokenlab-product-photography to turn this product photo into a studio shot on a white background."

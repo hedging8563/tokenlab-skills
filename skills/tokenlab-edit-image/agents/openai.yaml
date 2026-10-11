@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Edit Image"
+  short_description: "Add, remove, recolor, cut out, or extend an image"
+  default_prompt: "Use $tokenlab-edit-image to remove the plate from this photo and keep everything else the same."
