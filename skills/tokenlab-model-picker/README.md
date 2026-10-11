@@ -1,9 +1,9 @@
 # TokenLab Model Picker
 
-- Category: `coding`
+- Category: `foundation`
 - License: MIT
 
-Chooses TokenLab models from public catalog, task shortlist, contract, and pricing signals.
+Maps an outcome to a public operation and then to live TokenLab model IDs: a default, an alternative, and a fast or low-cost option. It reads the catalog, `recommended_for` scene rankings (24-hour success rate), model contracts, and pricing every time.
 
 Recommended non-interactive install:
 

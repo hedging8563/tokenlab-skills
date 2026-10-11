@@ -1,0 +1,6 @@
+---
+interface:
+  display_name: "TokenLab Prompting"
+  short_description: "Prompt craft per image, video, music, and voice model"
+  default_prompt: "Use $tokenlab-prompting to rewrite this prompt for Veo so the camera move is followed."
+---

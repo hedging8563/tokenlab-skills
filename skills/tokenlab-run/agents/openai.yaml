@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Run"
+  short_description: "Run TokenLab media and decision calls correctly"
+  default_prompt: "Use $tokenlab-run to read the model contract, estimate the cost, run this request, and return the result URL."
