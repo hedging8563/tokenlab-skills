@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Preview, add or restore one Hermes 0.21.3 provider without changing accounts or defaults."""
+"""Preview, add or restore one Hermes 0.21.3 or 0.21.6 provider without changing accounts or defaults."""
 
+import functools
 import json
 import os
 from pathlib import Path
@@ -10,7 +11,7 @@ import sys
 
 from setup_files import SafeParser, SetupError, read_file
 from provider_config import apply, check_model, check_provider, inspect_client, prepare
-from hermes_yaml import insert_provider
+from hermes_yaml import PARSERS, insert_provider, parser_for
 
 
 def provider(model: str) -> dict:
@@ -114,18 +115,21 @@ def main(argv=None) -> int:
                 return subprocess.run([str(runtime), str(Path(__file__).absolute()), *forwarded], check=False).returncode
         root, guards = resolve_home(args.hermes_home)
         desired = None
+        insert = insert_provider
         if not args.restore:
             if not args.model:
                 raise SetupError("--model is required; choose a public Chat Completions model with tool support.")
             desired = provider(args.model)
             version = inspect_client("hermes", args.hermes_bin, (0, 21, 3))
-            if version != "0.21.3":
-                raise SetupError("This helper targets Hermes 0.21.3. Use the manual guide for other versions.")
+            if version not in PARSERS:
+                raise SetupError("This helper targets Hermes 0.21.3 or 0.21.6. Use the manual guide for other versions.")
+            # Parse with the YAML library that this Hermes release itself ships.
+            insert = functools.partial(insert_provider, parser=parser_for(version))
             guards.update(inspect_settings(root, args.provider))
             print(f"Hermes {version}; Python {sys.version_info.major}.{sys.version_info.minor}; configuration: {root / 'config.yaml'}")
             print("Endpoint: https://api.tokenlab.sh/v1 (Chat Completions); credential: TOKENLAB_API_KEY environment reference only.")
         plan = prepare(root / "config.yaml", "Hermes", "providers", args.provider, desired,
-                       restore=args.restore, guards=guards, insert=insert_provider, comment="#")
+                       restore=args.restore, guards=guards, insert=insert, comment="#")
         if args.apply:
             # A managed scope can appear between preview and write. Inspect it
             # again rather than relying only on the initial file snapshot.

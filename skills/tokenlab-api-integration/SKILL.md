@@ -61,7 +61,7 @@ python skills/tokenlab-api-integration/scripts/search_api.py --detail claude-son
 
 ## Hermes 客户端接入
 
-使用 [Hermes 接入说明](references/hermes_setup.md) 和 `scripts/configure_hermes.py` 为官方 Hermes 0.21.3 新增命名 provider。用已安装 Hermes 的 Python 运行，或通过 `--hermes-python` 明确指定它；不在全局 Python 安装依赖。先检测实际 HERMES_HOME、当前 profile 和版本，再预览并按已授权的配置任务执行 `--apply`。
+使用 [Hermes 接入说明](references/hermes_setup.md) 和 `scripts/configure_hermes.py` 为官方 Hermes 新增命名 provider（已测过 0.21.3 和 0.21.6）。用已安装 Hermes 的 Python 运行，或通过 `--hermes-python` 明确指定它；不在全局 Python 安装依赖。先检测实际 HERMES_HOME、当前 profile 和版本，再预览并按已授权的配置任务执行 `--apply`。
 
 仅增量插入 `providers.tokenlab`，使用 `key_env: TOKENLAB_API_KEY`；保留 YAML 注释、已有默认模型、账号和权限。普通启动保持原选择；每次使用教程给出的明确 home/provider/model 启动方式。同名配置、凭据、托管设置、后续编辑或不明确的 YAML 拒绝覆盖，不能通过运行模型向导或删除设置绕过。`--restore` 可在 Hermes 已卸载时恢复原字节。WSL 和托管配置不属于本次自动接入范围。配置创建、实际客户端加载及付费请求分别说明，不能把其中一种当成另一种成功。
 

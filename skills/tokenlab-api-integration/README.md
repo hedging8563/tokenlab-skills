@@ -25,7 +25,7 @@ Files:
 - `scripts/configure_claude.py`: explicit Claude Code session launcher setup and restoration; preserves saved accounts, defaults and permissions
 - `references/claude_setup.md`: session authentication, supported commands, conflicts and actual-client verification scope
 - `scripts/configure_opencode.py` and `scripts/configure_pi.py`: reversible named-provider setup
-- `scripts/configure_hermes.py`: Hermes 0.21.3 named-provider setup with its installed Python/YAML parser
+- `scripts/configure_hermes.py`: named-provider setup for Hermes 0.21.3 and 0.21.6 (both tested) with its installed Python/YAML parser
 - `references/hermes_setup.md`: runtime selection, preview/apply, configuration checks and restoration
 - `scripts/setup_files.py`: shared atomic file operations for the configuration helpers
 - `agents/openai.yaml`: agent-facing display metadata

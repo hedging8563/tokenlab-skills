@@ -23,9 +23,9 @@ jobs:
         with:
           node-version: '24'
       - name: Test configuration, discovery, and task examples without real clients
-        # Hermes ships this parser; CI's otherwise empty Python also needs it.
+        # Hermes 0.21.3 ships PyYAML and 0.21.6 ships ruamel.yaml; test both parsers.
         run: |
-          python -m pip install PyYAML==6.0.3
+          python -m pip install PyYAML==6.0.3 ruamel.yaml==0.18.16
           python -m unittest discover -s tests -p 'test_*.py'
 
   validate:
@@ -56,8 +56,8 @@ jobs:
           node-version: '24'
       - name: Install the exact clients under test
         run: npm install --global @openai/codex@0.149.0 @anthropic-ai/claude-code@2.1.263 opencode-ai@1.18.31 @earendil-works/pi-coding-agent@0.85.1
-      - name: Install the pinned YAML parser for configuration tests
-        run: python -m pip install PyYAML==6.0.3
+      - name: Install the pinned YAML parsers for configuration tests
+        run: python -m pip install PyYAML==6.0.3 ruamel.yaml==0.18.16
       - name: Load temporary profiles and complete loopback-only client requests
         env:
           TOKENLAB_INSTALLED_CLIENT_TESTS: '1'
@@ -66,28 +66,35 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_configure_*.py'
 
   installed-hermes:
-    name: Hermes 0.21.3 (${{ matrix.os }})
+    name: Hermes ${{ matrix.hermes.version }} (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        # 0.21.3 bundles PyYAML 6.0.3; 0.21.6 bundles ruamel.yaml 0.18.16 (Python >= 3.14) and no PyYAML.
+        hermes:
+          - {version: '0.21.3', tag: 'v2026.9.14', revision: '345cd2b057a452236de401d3534b8502a7465e8d', python: '3.13'}
+          - {version: '0.21.6', tag: 'v0.21.6', revision: '818c13be1dc4fd28987e1e881a9408224afd4535', python: '3.14'}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: ${{ matrix.hermes.python }}
       - name: Install the fixed official Hermes release in an isolated environment
         shell: python
+        env:
+          HERMES_TAG: ${{ matrix.hermes.tag }}
+          HERMES_REVISION: ${{ matrix.hermes.revision }}
         run: |
           import os, pathlib, subprocess, sys, venv
           root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'tokenlab-hermes-official'
           root.mkdir()
           source = root / 'source'
           subprocess.run(['git', '-c', 'core.longpaths=true', 'clone', '--depth', '1', '--branch',
-                          'v2026.9.14', 'https://github.com/NousResearch/hermes-agent.git', str(source)], check=True)
+                          os.environ['HERMES_TAG'], 'https://github.com/NousResearch/hermes-agent.git', str(source)], check=True)
           revision = subprocess.check_output(['git', '-C', str(source), 'rev-parse', 'HEAD'], text=True).strip()
-          assert revision == '345cd2b057a452236de401d3534b8502a7465e8d', revision
+          assert revision == os.environ['HERMES_REVISION'], revision
           runtime = root / 'venv'
           venv.EnvBuilder(with_pip=True).create(runtime)
           binary_dir = runtime / ('Scripts' if os.name == 'nt' else 'bin')

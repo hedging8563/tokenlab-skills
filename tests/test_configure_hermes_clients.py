@@ -1,9 +1,10 @@
-"""Pinned official Hermes CLI completes a local Chat Completions tool round trip."""
+"""Each tested official Hermes CLI (0.21.3, 0.21.6) completes a local Chat Completions tool round trip."""
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import signal
 import subprocess
@@ -19,11 +20,11 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "skills" / "tokenlab-api-integra
 
 
 @unittest.skipUnless(os.environ.get("TOKENLAB_HERMES_CLIENT_TESTS") == "1",
-                     "Set TOKENLAB_HERMES_CLIENT_TESTS=1 for the pinned installed Hermes check")
+                     "Set TOKENLAB_HERMES_CLIENT_TESTS=1 for the installed tested Hermes check")
 class InstalledHermesTests(unittest.TestCase):
     def test_official_cli_completes_read_only_tool_round_trip_and_preserves_existing_settings(self):
         executable = os.environ.get("TOKENLAB_HERMES_BIN") or shutil.which("hermes")
-        self.assertIsNotNone(executable, "Install the pinned official Hermes 0.21.3 client")
+        self.assertIsNotNone(executable, "Install a tested official Hermes client (0.21.3 or 0.21.6)")
         python = os.environ.get("TOKENLAB_HERMES_PYTHON", sys.executable)
         fixture_key = "sk-tokenlab-hermes-fixture-not-a-real-key"
         model = "fixture-tool-model"
@@ -127,8 +128,17 @@ class InstalledHermesTests(unittest.TestCase):
             self.addCleanup(server.server_close)
             thread = threading.Thread(target=server.serve_forever, name="hermes-chat-fixture")
             origin = f"http://127.0.0.1:{server.server_port}"
+            # Use the installed client's current schema version (44 for 0.21.3,
+            # 50 for 0.21.6) so reading the fixture never triggers its migration.
+            schema = subprocess.run(
+                [python, "-c", "from hermes_cli.config import DEFAULT_CONFIG; print(int(DEFAULT_CONFIG['_config_version']))"],
+                cwd=directory, env={key: os.environ[key] for key in ("PATH", "SYSTEMROOT", "SystemRoot") if key in os.environ}
+                | {"HOME": directory, "USERPROFILE": directory, "HERMES_HOME": str(config), "PYTHONDONTWRITEBYTECODE": "1"},
+                capture_output=True, text=True, timeout=60)
+            self.assertEqual(schema.returncode, 0, schema.stderr)
+            config_version = int(schema.stdout.strip().splitlines()[-1])
             original = ("# Preserve this provider, default, and approval policy.\r\n"
-                        "_config_version: 44\r\n"
+                        f"_config_version: {config_version}\r\n"
                         "model: {default: fixture-existing-model, provider: 'custom:existing'}\r\n"
                         "providers:\r\n"
                         "  existing:\r\n"
@@ -215,7 +225,8 @@ class InstalledHermesTests(unittest.TestCase):
                 self.assertEqual(target.read_bytes(), original)
                 applied = run([*helper, "--model", model, "--apply"])
                 self.assertEqual(applied.returncode, 0, applied.stderr)
-                self.assertIn("Hermes 0.21.3;", applied.stdout)
+                tested = re.search(r"^Hermes (0\.21\.[36]);", applied.stdout, re.MULTILINE)
+                self.assertIsNotNone(tested, applied.stdout)
                 configured = target.read_bytes()
                 self.assertEqual(target.stat().st_mode, original_mode)
                 configured_snapshot = snapshot(target)
@@ -283,7 +294,7 @@ class InstalledHermesTests(unittest.TestCase):
                     if path.is_file():
                         self.assertFalse(fixture_key.encode() in path.read_bytes(),
                                          f"Fixture credential persisted in {path.name}")
-                print(json.dumps({"client": "hermes", "version": "0.21.3", "result": "success", "reply": reply,
+                print(json.dumps({"client": "hermes", "version": tested.group(1), "result": "success", "reply": reply,
                                   "tool": "read_file", "metadata_probes": metadata_requests, "captured_requests": [
                                       {"path": request["path"], "model": request["body"]["model"],
                                        "stream": request["body"].get("stream", False),
