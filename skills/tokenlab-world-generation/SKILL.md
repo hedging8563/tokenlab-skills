@@ -19,24 +19,36 @@ Make an explorable 3D place from a description, images, or a video. The result i
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change. World models appear in `GET /v1/models?recommended_for=3d` with the `world-generation` operation.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Need | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Draft a layout or idea | `marble-1.0-draft` | | `marble-1.0-draft` |
-| Final world | `marble-1.1` | `marble-1.0` | `marble-1.0-draft` |
-| Large outdoor or large indoor space | `marble-1.1-plus` (bigger world, more credits) | `marble-1.1` | |
+| `world-generation` | `marble-1.0-draft` | default | Draft a layout or idea |
+| `world-generation` | `marble-1.1` | alternative | Final world |
+| `world-generation` | `marble-1.1-plus` | alternative | Large outdoor or indoor space |
+| `world-generation` | `marble-1.0` | alternative | Final world, earlier tier |
 
-All four take the same fields: `prompt`, `image`, `image_url`, `images`, `video_url`, `is_pano`, `seed`, `display_name`, `tags`, `permission`, and the native `world_prompt` object.
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+How to choose:
+
+- **Draft a layout or idea:** Marble draft. It is the cheapest tier and took about 40 s in testing.
+- **Final world:** Marble 1.1.
+- **Large indoor or outdoor space:** Marble 1.1 Plus.
+- **Final world, earlier tier:** Marble 1.0.
+
+Exact fields come from the model contract; credits per input type come from the pricing entry. All `marble-*` tiers take the same fields: `prompt`, `image`, `image_url`, `images`, `video_url`, `is_pano`, `seed`, `display_name`, `tags`, `permission`, and the native `world_prompt` object.
 
 ## Workflow
 
 Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
 
-1. Read the contract: `python scripts/tokenlab_run.py contract marble-1.0-draft --operation world-generation`. Send only listed fields.
-2. Estimate with `GET /v1/models/{model}/pricing`. World models charge credits per request, shown as a USD range in `pricing_summary`; `pricing_details.worldLabs` lists credits per input type and the USD price per credit. Example: `marble-1.0-draft` from text or one image = (credits for that input type) × (USD per credit). Use `official_max_price` as the upper bound and tell the user before you start.
-3. Draft first. Run `marble-1.0-draft` with the brief. Show the viewer link and thumbnail. Change the brief until the layout is right.
-4. Make the final world with `marble-1.1` (or `marble-1.1-plus` for large spaces), same brief, after the user agrees to the price.
+1. Read the contract: `python scripts/tokenlab_run.py contract MODEL_ID --operation world-generation`. Take `MODEL_ID` from the Models list above. Send only listed fields.
+2. Estimate with `GET /v1/models/{model}/pricing`. World models charge credits per request, shown as a USD range in `pricing_summary`; `pricing_details.worldLabs` lists credits per input type and the USD price per credit. Example: Marble draft from text or one image = (credits for that input type) × (USD per credit). Use `official_max_price` as the upper bound and tell the user before you start.
+3. Draft first. Run Marble draft with the brief. Show the viewer link and thumbnail. Change the brief until the layout is right.
+4. Make the final world with Marble 1.1 (or Marble 1.1 Plus for large spaces), same brief, after the user agrees to the price.
 5. Call and wait: `python scripts/tokenlab_run.py run /v1/worlds/generations --json @body.json --wait --interval 10`. Save the task `id` and `poll_url` (`/v1/worlds/generations/{id}`) first. A draft took about 40 s in testing; World Labs says a standard world takes about 5 minutes. On a timeout, resume with `poll TASK_ID`.
 6. Read the result:
    - `world_marble_url`: the world viewer link to open and explore.
@@ -46,11 +58,11 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
    - `cost.total_credits`: generation usage in credits, not a currency amount.
 7. Download the files the user needs; media-result URLs stay valid for 30 days. Return the viewer link, file URLs, model, and task ID.
 
-Body examples:
+Body examples. The first is a draft and the second is a final world. Take `MODEL_ID` from the Models list above (the Marble draft and Marble 1.1 entries).
 
 ```json
-{"model": "marble-1.0-draft", "prompt": "A small Japanese tea room at dusk: tatami floor, low wooden table, paper sliding doors glowing with warm lamp light, a garden with a stone lantern visible through an open door.", "display_name": "Tea room draft"}
-{"model": "marble-1.1", "image_url": "https://...", "prompt": "Extend this cafe interior into a full room with the same style."}
+{"model": "MODEL_ID", "prompt": "A small Japanese tea room at dusk: tatami floor, low wooden table, paper sliding doors glowing with warm lamp light, a garden with a stone lantern visible through an open door.", "display_name": "Tea room draft"}
+{"model": "MODEL_ID", "image_url": "https://...", "prompt": "Extend this cafe interior into a full room with the same style."}
 ```
 
 ## Technique

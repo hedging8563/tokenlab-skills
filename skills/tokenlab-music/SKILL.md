@@ -20,25 +20,40 @@ Make music and sound from a brief: full songs with lyrics, instrumentals, loops 
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change. Find current models with `GET /v1/models?recommended_for=music`.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Need | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Full song with vocals and lyrics | `suno-music` (`mv`, `prompt`, `title`, `tags`, `negative_tags`) | `minimax-music-2.6` (`prompt`, `full_lyrics`, `negative_prompt`, `output_format`, `seed`) | |
-| Instrumental track | `suno-music` with `make_instrumental: true` | `stable-audio-3` (`duration`, `output_format` `mp3`/`wav`, `steps`, `cfg_scale`, `seed`) | `stable-audio-3-small-music-text-to-audio` (`duration`) |
-| Short loop or bed for video | `stable-audio-3-small-music-text-to-audio` (`prompt`, `duration`, `negative_prompt`) | `stable-audio-3` | `stable-audio-3-small-music-text-to-audio` |
-| Sound effect | `stable-audio-3-small-sfx-text-to-audio` (`prompt`, `duration`, `negative_prompt`) | `stable-audio-3-small-sfx-base-text-to-audio` | `stable-audio-3-small-sfx-text-to-audio` |
-| Extend, cover, or split stems of a Suno track | `suno-music` with `audio_operation` (see `references/suno.md`) | | |
+| `music` | `suno-music` | default | Song with vocals and lyrics, or instrumental |
+| `music` | `minimax-music-2.6` | alternative | Song, alternative |
+| `music` | `stable-audio-3` | alternative | Instrumental with length control |
+| `music` | `stable-audio-3-small-music-text-to-audio` | alternative | Short loop or bed for video |
+| `music` | `stable-audio-3-small-sfx-text-to-audio` | alternative | Sound effect |
+| `music` | `stable-audio-3-small-sfx-base-text-to-audio` | alternative | Sound effect, alternative |
+
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+How to choose:
+
+- **Song with vocals and lyrics, or an instrumental song:** Suno. It also extends, covers, and splits existing tracks.
+- **Song, alternative:** MiniMax Music.
+- **Instrumental with length control:** Stable Audio 3.
+- **Short loop or bed for video:** the small Stable Audio 3 music model.
+- **Sound effect:** the small Stable Audio 3 SFX models.
+
+Exact fields come from the model contract.
 
 ## Workflow
 
 Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
 
 1. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation music`. Read `supported_parameters` and `notes`. Each model has its own field names (`tags` vs `negative_prompt`, `full_lyrics`, `duration`). Send only listed fields.
-2. Estimate with `GET /v1/models/{model}/pricing`. Music models price per request. For `suno-music`, the price depends on the action (`music` vs stem separation); read the entry for your action. Tell the user the estimate before a batch.
-3. Write the body (see Technique). `suno-music` needs `mv` for generation; the docs list `chirp-v3-5`, `chirp-v4`, `chirp-v4-5`, `chirp-v4-5plus`, `chirp-v4-5all`, `chirp-v5`, `chirp-v5-5`.
+2. Estimate with `GET /v1/models/{model}/pricing`. Music models price per request. For Suno, the price depends on the action (`music` vs stem separation); read the entry for your action. Tell the user the estimate before a batch.
+3. Write the body (see Technique). Suno needs `mv` for generation; the docs list `chirp-v3-5`, `chirp-v4`, `chirp-v4-5`, `chirp-v4-5plus`, `chirp-v4-5all`, `chirp-v5`, `chirp-v5-5`.
 4. Call and wait: `python scripts/tokenlab_run.py run /v1/music/generations --json @body.json --wait`. Save the task `id` and `poll_url` first. Poll every 5–10 s. On a timeout, resume with `poll TASK_ID`; do not create a second task.
-5. Read the result: `audio_url` (TokenLab media URL, kept 30 days). `suno-music` can also return `image_url` (cover art), `title`, `audio_id`, and lyrics fields. Keep `audio_id` and the task ID if the user may extend or split the track later.
+5. Read the result: `audio_url` (TokenLab media URL, kept 30 days). Suno can also return `image_url` (cover art), `title`, `audio_id`, and lyrics fields. Keep `audio_id` and the task ID if the user may extend or split the track later.
 6. Download the audio and check its length and that it plays. Return the `audio_url`, model, task ID, and the brief you sent.
 
 Do not hand the user `stream_audio_url`. It is a temporary listen-while-making link, not a TokenLab media result, and it stops working.
@@ -46,8 +61,8 @@ Do not hand the user `stream_audio_url`. It is a temporary listen-while-making l
 ## Technique
 
 - **Brief order for songs:** genre and era, mood, tempo, lead instrument, vocal type, structure. Example `tags`: "indie folk, acoustic guitar, warm female vocal, gentle". Put the story or theme in `prompt`.
-- **Say what to avoid** in the field the model has: `negative_tags` on `suno-music`, `negative_prompt` on `minimax-music-2.6` and the small Stable Audio models.
-- **Instrumental:** on `suno-music` set `make_instrumental: true` instead of writing "no vocals" in the prompt.
+- **Say what to avoid** in the field the model has: `negative_tags` on Suno, `negative_prompt` on MiniMax Music and the small Stable Audio models.
+- **Instrumental:** on Suno set `make_instrumental: true` instead of writing "no vocals" in the prompt.
 - **Your own lyrics:** use `full_lyrics` where the contract lists it. Mark sections on their own lines, such as `[Verse]` and `[Chorus]`, and keep lines short and singable.
 - **Clips and loops:** describe sound, not story. Genre, instruments, BPM, mood, texture: "warm lo-fi hip hop loop, mellow Rhodes chords, soft vinyl crackle, relaxed boom-bap drums, 80 BPM, instrumental". Set `duration` in seconds.
 - **Sound effects:** one event per request, with the source, action, and space: "heavy wooden door slams shut in a stone hallway, short echo". Use a short `duration`.

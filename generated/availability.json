@@ -1,0 +1,298 @@
+{
+  "tokenlab-run": {
+    "status": "available",
+    "models": [],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-model-picker": {
+    "status": "available",
+    "models": [],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-prompting": {
+    "status": "available",
+    "models": [],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-product-photography": {
+    "status": "available",
+    "models": [
+      "flux-2-pro",
+      "seedream-5.0",
+      "recraft-v4.1-utility",
+      "p-image",
+      "nano-banana-2",
+      "nano-banana-2-lite",
+      "bria-rmbg-v2-0",
+      "ideogram-replace-background-v3-turbo",
+      "ideogram-replace-background-v3"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-edit-image": {
+    "status": "available",
+    "models": [
+      "nano-banana-2",
+      "flux-kontext-pro",
+      "qwen-image-edit-2511",
+      "gpt-image-2",
+      "p-image-edit",
+      "ideogram-edit-v3-turbo",
+      "stability-inpaint",
+      "bria-rmbg-v2-0",
+      "ideogram-replace-background-v3-turbo",
+      "ideogram-reframe-v3-turbo",
+      "seedream-5.0"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-restore-and-upscale": {
+    "status": "available",
+    "models": [
+      "stability-upscale-fast",
+      "topaz-labs-wonder-3-5",
+      "bria-image-increase-resolution",
+      "stability-upscale-conservative",
+      "p-image-upscale",
+      "nano-banana-2",
+      "p-image-edit"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-text-in-image": {
+    "status": "available",
+    "models": [
+      "ideogram-4-5",
+      "ideogram-generate-v3-turbo",
+      "nano-banana-pro",
+      "gpt-image-2",
+      "p-image-ideogram",
+      "nano-banana-2"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-character-consistency": {
+    "status": "available",
+    "models": [
+      "nano-banana-2",
+      "ideogram-character-remix-v3",
+      "seedream-5.0",
+      "nano-banana-2-lite",
+      "flux-2-pro",
+      "ideogram-character-v3",
+      "p-image",
+      "grok-imagine-video",
+      "kling-omni-video",
+      "seedance-2.0"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-photoreal-stills": {
+    "status": "available",
+    "models": [
+      "flux-2-pro",
+      "flux-2-max",
+      "seedream-5.0-pro",
+      "krea-2-large",
+      "stable-image-ultra",
+      "flux-2-klein-9b"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-logos-and-vectors": {
+    "status": "available",
+    "models": [
+      "recraft-v4.1",
+      "recraft-v4.1-pro",
+      "ideogram-4-5",
+      "recraft-v4.1-flash",
+      "recraft-vectorize",
+      "picsart-image-vectorizer"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-animate-image": {
+    "status": "available",
+    "models": [
+      "veo3.1-fast",
+      "kling-v3.0",
+      "hailuo-h3",
+      "seedance-2.0",
+      "pixverse-v6",
+      "grok-imagine-video"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-product-ad-video": {
+    "status": "available",
+    "models": [
+      "veo3.1-fast",
+      "veo3.1",
+      "kling-v3.0",
+      "grok-imagine-video",
+      "seedance-2.0"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-keyframe-transition": {
+    "status": "available",
+    "models": [
+      "veo3.1-fast",
+      "seedance-2.0",
+      "wan-3.0",
+      "hailuo-h3-max",
+      "viduq3-turbo"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-extend-video": {
+    "status": "available",
+    "models": [
+      "seedance-2.0",
+      "seedance-2.0-fast",
+      "seedance-2.5",
+      "seedance-2.0-mini",
+      "veo3.1-fast",
+      "grok-imagine-video"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-edit-video": {
+    "status": "available",
+    "models": [
+      "grok-imagine-video",
+      "kling-omni-video",
+      "flux-video-edit",
+      "happyhorse-1.0",
+      "seedance-2.0"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-motion-control": {
+    "status": "available",
+    "models": [
+      "kling-2.6-motion-control",
+      "kling-3.0-motion-control"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-talking-avatar": {
+    "status": "available",
+    "models": [
+      "omnihuman-1-5",
+      "veed-fabric-1-0",
+      "p-video-avatar",
+      "veo3.1-fast",
+      "grok-tts"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-cinematic-video": {
+    "status": "available",
+    "models": [
+      "veo3.1",
+      "seedance-2.0",
+      "kling-v3.0",
+      "hailuo-h3",
+      "wan-3.0",
+      "grok-imagine-video"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-voiceover": {
+    "status": "available",
+    "models": [
+      "grok-tts",
+      "eleven-v4-turbo",
+      "speech-2.8-hd",
+      "speech-2.8-turbo",
+      "cosyvoice-v3.5-plus",
+      "kling-tts",
+      "qwen3-tts-flash"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-transcribe-and-subtitle": {
+    "status": "available",
+    "models": [
+      "whisper-large-v3-turbo",
+      "whisper-large-v3",
+      "qwen3-asr-flash",
+      "fun-asr",
+      "doubao-seed-translation"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-music": {
+    "status": "available",
+    "models": [
+      "suno-music",
+      "minimax-music-2.6",
+      "stable-audio-3",
+      "stable-audio-3-small-music-text-to-audio",
+      "stable-audio-3-small-sfx-text-to-audio",
+      "stable-audio-3-small-sfx-base-text-to-audio"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-image-to-3d-asset": {
+    "status": "available",
+    "models": [
+      "tripo-h3.1",
+      "rodin-gen-2",
+      "seed3d-2.0",
+      "tripo-p1.0",
+      "meshy-6",
+      "tripo-3d-v3-1"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-world-generation": {
+    "status": "available",
+    "models": [
+      "marble-1.0-draft",
+      "marble-1.1",
+      "marble-1.1-plus",
+      "marble-1.0"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-decisions": {
+    "status": "available",
+    "models": [
+      "jev-1.13"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-api-integration": {
+    "status": "available",
+    "models": [
+      "gpt-5.6-luna",
+      "gpt-5.6-sol",
+      "claude-sonnet-4-6"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-native-endpoints": {
+    "status": "available",
+    "models": [
+      "gpt-5.6-sol",
+      "claude-sonnet-4-6",
+      "gemini-3.5-flash",
+      "jev-1.13"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-cost-routing": {
+    "status": "available",
+    "models": [],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  },
+  "tokenlab-openai-compatible-migration": {
+    "status": "available",
+    "models": [
+      "gpt-5.6-luna"
+    ],
+    "checkedAt": "2026-10-11T21:14:40Z"
+  }
+}

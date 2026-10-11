@@ -21,26 +21,41 @@ Both the image and the video must have an aspect ratio between 2:5 and 5:2.
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Need | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Character image + motion video (`motion-control`) | `kling-2.6-motion-control` (`image_url`, `video_url`, `prompt`, `resolution` 720p/1080p; Verified and Official supply) | `kling-3.0-motion-control` (same fields; Official supply) | `kling-2.6-motion-control` at `720p` |
+| `motion-control` | `kling-2.6-motion-control` | default | Character image plus motion video |
+| `motion-control` | `kling-3.0-motion-control` | alternative | Newer tier |
 
-Both use `POST /v1/videos/generations` with `operation: "motion-control"`. `resolution` is a required selector.
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+### How to choose
+
+Exact fields and values come from each model's contract.
+
+- **Kling motion control 2.6:** the default. A character image plus a motion video.
+- **Kling motion control 3.0:** the newer tier, with the same inputs.
+- **Both:** the motion video is 3-30 s and sets the output length. The image and the video must be within 2:5 to 5:2. `resolution` (`720p` or `1080p`) is required.
+
+All use `POST /v1/videos/generations` with `operation: "motion-control"`. `resolution` is a required selector.
 
 ## Workflow
 
 Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
 
-1. Read the contract: `python scripts/tokenlab_run.py contract kling-2.6-motion-control --operation motion-control`. Read `durations_label`, `aspect_ratios_label`, and `notes` in the full model detail (`GET /v1/models/{model}`).
+1. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation motion-control`. Read `durations_label`, `aspect_ratios_label`, and `notes` in the full model detail (`GET /v1/models/{model}`).
 2. Check the inputs: the motion video is 3-30 s, both inputs are within 2:5 to 5:2, and the image framing matches the video (half-body with half-body, full-body with full-body). Use `ffprobe` for the video length.
-3. Estimate the cost: `python scripts/tokenlab_run.py price kling-2.6-motion-control`. Price is per second at the chosen resolution, and the output is as long as the motion video. Estimate = per-second price × motion video seconds. Tell the user the estimate.
+3. Estimate the cost: `python scripts/tokenlab_run.py price MODEL`. Price is per second at the chosen resolution, and the output is as long as the motion video. Estimate = per-second price × motion video seconds. Tell the user the estimate.
 4. Build the body:
 
    ```json
-   {"model": "kling-2.6-motion-control", "operation": "motion-control", "image_url": "https://...character.jpg", "video_url": "https://...motion.mp4", "prompt": "The man in the green sweater in a warm beige studio.", "resolution": "720p"}
+   {"model": "MODEL_ID", "operation": "motion-control", "image_url": "https://...character.jpg", "video_url": "https://...motion.mp4", "prompt": "The man in the green sweater in a warm beige studio.", "resolution": "720p"}
    ```
+
+   Take `MODEL_ID` from the Models list above for `motion-control`.
 
 5. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait --timeout 1800`. These jobs can take several minutes. Save the task ID. Poll every 5-10 s.
 6. If a wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.

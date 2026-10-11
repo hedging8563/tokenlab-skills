@@ -1,6 +1,6 @@
 # Image prompt families
 
-Each section starts with the source. "Contract" lines state what the TokenLab model contract lists. Check the live contract before you send a parameter. Numbers marked "maker" come from the model maker's own docs and may differ from TokenLab limits.
+Each section starts with the source. The "Models" line gives the family and its ID pattern. Find current IDs with `GET /v1/models?recommended_for=image` and pick the ones that match. "Contract" lines state what the TokenLab model contract lists. Check the live contract before you send a parameter. Numbers marked "maker" come from the model maker's own docs and may differ from TokenLab limits.
 
 ## FLUX
 
@@ -9,7 +9,7 @@ Sources:
 - https://docs.bfl.ai/flux_2/flux2_image_editing (editing and multi-reference)
 - https://docs.bfl.ai/kontext/kontext_image_editing (FLUX.1 Kontext)
 
-Models: `flux-2-pro`, `flux-2-max`, `flux-2-flex`, `flux-2-dev`, `flux-2-klein-4b`, `flux-2-klein-9b`, `flux-kontext-pro`, `flux-kontext-max`, `flux-pro-1.1`, `flux-pro-1.1-ultra`.
+Models: FLUX.2 (`flux-2-*`: pro, max, flex, dev, Klein), FLUX.1 Kontext (`flux-kontext-*`), and FLUX1.1 pro (`flux-pro-*`).
 
 Structure that works:
 - Subject, then action, then style, then context, then small details. The maker says the model weights early words more.
@@ -26,10 +26,10 @@ Edits and references:
 - Kontext: keep edits short and specific ("Change the car color to red"). Describe the new setting and leave the person's features out, so they carry over. For text edits write `Replace 'old' with 'new'`. Chain edits one step at a time.
 
 Contract:
-- `flux-2-pro` and `flux-2-klein-*` list `prompt`, `input_image`, `resolution`, `async`. No `negative_prompt`, no `seed`.
-- `flux-2-dev` lists `negative_prompt`, `seed`, `steps`, `guidance_scale`, `cfg_scale`, `width`, `height`, `images`.
-- `flux-pro-1.1-ultra` lists `aspect_ratio`, `image_prompt`, `raw`.
-- The maker guide says FLUX.2 pro and max take no negative prompts. Phrase wishes in positive words. Use `negative_prompt` on `flux-2-dev` only as a light extra.
+- FLUX.2 pro and the FLUX.2 Klein models (`flux-2-klein-*`) list `prompt`, `input_image`, `resolution`, `async`. No `negative_prompt`, no `seed`.
+- FLUX.2 dev lists `negative_prompt`, `seed`, `steps`, `guidance_scale`, `cfg_scale`, `width`, `height`, `images`.
+- FLUX1.1 pro ultra lists `aspect_ratio`, `image_prompt`, `raw`.
+- The maker guide says FLUX.2 pro and max take no negative prompts. Phrase wishes in positive words. Use `negative_prompt` on FLUX.2 dev only as a light extra.
 
 Examples:
 - "Soaking wet tiger cub sheltering under a banana leaf in a rainy jungle, close-up photo, shallow depth of field, soft overcast light."
@@ -38,13 +38,13 @@ Examples:
 Pitfalls:
 - Do not write "no blur". Write "sharp focus throughout".
 - A hex code floating in the prompt gives random results. Attach it to an object.
-- No official guide was read for `flux-pro-1.1`. Use the general structure and test one call.
+- No official guide was read for FLUX1.1 pro. Use the general structure and test one call.
 
 ## Nano Banana and Gemini image
 
 Source: https://ai.google.dev/gemini-api/docs/image-generation (prompt guide and templates).
 
-Models: `nano-banana-2`, `nano-banana-2.1`, `nano-banana-2-lite`, `nano-banana-pro`, `gemini-3.1-flash-image`, `gemini-3-pro-image`.
+Models: Nano Banana (2, 2.1, 2 lite, Pro) and Gemini image (`gemini-*-image`).
 
 Structure that works:
 - Write a full scene as sentences, not a keyword list. The maker examples give setting, subject, materials, light, composition, and mood.
@@ -61,9 +61,9 @@ Edits:
 - Maker note: many reference images are allowed, with limits that vary by model (up to 14 objects on some). The TokenLab contract does not state a limit. Start with a few.
 
 Contract:
-- `nano-banana-2` and `nano-banana-2.1`: `prompt`, `aspect_ratio`, `resolution` (1k, 2k, 4k), `size`, `response_format`, `async`; image inputs `image_url`, `image_urls`, `reference_image_urls`.
-- `nano-banana-2-lite` allows `resolution` 1k only.
-- `nano-banana-pro` and `gemini-3-pro-image` list fewer aspect ratios than `nano-banana-2`. Read the list first.
+- Nano Banana 2 and 2.1: `prompt`, `aspect_ratio`, `resolution` (1k, 2k, 4k), `size`, `response_format`, `async`; image inputs `image_url`, `image_urls`, `reference_image_urls`.
+- Nano Banana 2 lite allows `resolution` 1k only.
+- Nano Banana Pro and Gemini 3 Pro Image list fewer aspect ratios than Nano Banana 2. Read the list first.
 - No `negative_prompt` on any of them.
 
 Examples:
@@ -81,7 +81,7 @@ Sources:
 - https://developers.openai.com/cookbook/examples/multimodal/image-gen-models-prompting-guide
 - https://developers.openai.com/api/docs/guides/image-generation
 
-Model: `gpt-image-2`.
+Models: GPT Image (`gpt-image-*`). The contract lines below were read on GPT Image 2.
 
 Structure that works:
 - Order: scene or background, subject, key details, constraints.
@@ -118,7 +118,7 @@ Sources:
 - https://docs.byteplus.com/en/docs/modelark/seedream-4-0-5-0-prompt-guide (the maker prompt guide; the page body did not load for me, so the points below come from search excerpts of the maker docs and are partial)
 - https://docs.byteplus.com/en/docs/ModelArk/1541523 (image API reference)
 
-Models: `seedream-5.0`, `seedream-5.0-pro`, `seedream-5.0-lite`, `seedream-5.0-flash`, `seedream-4.5`.
+Models: Seedream 5.0 (base, pro, lite, flash) and 4.5 (`seedream-*`).
 
 Structure that works:
 - Describe subject, action, and setting in plain, connected prose. Add style, color, light, or composition when they matter. Avoid keyword piles.
@@ -130,9 +130,9 @@ Structure that works:
 - Size: set a resolution level and describe the shape in words, or set exact size. Do not do both (maker).
 
 Contract:
-- `seedream-5.0` and `seedream-4.5`: text-to-image on `/v1/images/generations`; image-to-image on `/v1/images/edits`. Params include `prompt`, `aspect_ratio`, `resolution`, `size`, `quality`, `n`, `response_format`.
-- `seedream-5.0-pro`: `resolution` is required (1k or 2k). Image-to-image goes to `/v1/images/generations`.
-- `seedream-5.0-lite` lists `prompt`, `image`, `image_url`, `n`, `response_format`, `async`.
+- Seedream 5.0 and 4.5: text-to-image on `/v1/images/generations`; image-to-image on `/v1/images/edits`. Params include `prompt`, `aspect_ratio`, `resolution`, `size`, `quality`, `n`, `response_format`.
+- Seedream 5.0 pro: `resolution` is required (1k or 2k). Image-to-image goes to `/v1/images/generations`.
+- Seedream 5.0 lite lists `prompt`, `image`, `image_url`, `n`, `response_format`, `async`.
 - No `negative_prompt`.
 
 Examples:
@@ -147,7 +147,7 @@ Pitfalls:
 
 Source: https://www.recraft.ai/docs/prompt-engineering-guide/prompting-with-recraft-v4
 
-Models: `recraft-v4.1`, `recraft-v4.1-pro`, `recraft-v4.1-utility`, `recraft-v4.1-flash`.
+Models: Recraft V4.1 (base, pro, utility, flash; `recraft-*`).
 
 Structure that works:
 - Short prompts (about 3 to 6 words) let the model make design choices. Use them to explore, then make variants.
@@ -159,7 +159,7 @@ Structure that works:
 - 3D: define form, materials, light, camera, and color, or the result is loose.
 
 Contract:
-- `recraft-v4.1` lists `prompt`, `n`, `size`, `response_format`. The listed `n` is 1 and the listed `size` is `1024x1024`. The pro, utility, and flash models list the same four fields. Read the contract for other sizes before you plan a layout.
+- Recraft V4.1 lists `prompt`, `n`, `size`, `response_format`. The listed `n` is 1 and the listed `size` is `1024x1024`. The pro, utility, and flash models list the same four fields. Read the contract for other sizes before you plan a layout.
 - No `negative_prompt`. The maker examples state exclusions inside the prompt ("flat color, no gradients, no texture").
 
 Examples:
@@ -174,7 +174,7 @@ Pitfalls:
 
 Source: https://www.alibabacloud.com/help/en/model-studio/qwen-image-api (API reference with prompt notes). The maker's detailed prompt guide is a separate page that I did not read.
 
-Models: `qwen-image-3.0`, `qwen-image-2.0`, `qwen-image-2.0-pro`, `qwen-image-edit-2511`.
+Models: Qwen Image 3.0, 2.0, 2.0 pro, and Qwen Image Edit (`qwen-image-*`).
 
 Structure that works:
 - Describe content, style, and composition. Chinese and English both work.
@@ -184,9 +184,9 @@ Structure that works:
 - Maker feature: `prompt_extend` rewrites your prompt. Turn it off when you need exact control. The TokenLab contract does not list it.
 
 Contract:
-- `qwen-image-3.0`: `prompt`, `image`, `image_url`, `image_urls`, `mask`, `reference_image_urls`, `n`, `resolution` (1k, 2k), `size`, `response_format`. No `negative_prompt`.
-- `qwen-image-2.0`: `prompt`, `image_url`, `n`, `resolution`, `size`, `response_format`.
-- `qwen-image-edit-2511` (edit only): `negative_prompt`, `cfg_scale`, `guidance_scale`, `seed`, `steps`, `image`, `image_url`, `image_urls`, `images`, `width`, `height`.
+- Qwen Image 3.0: `prompt`, `image`, `image_url`, `image_urls`, `mask`, `reference_image_urls`, `n`, `resolution` (1k, 2k), `size`, `response_format`. No `negative_prompt`.
+- Qwen Image 2.0: `prompt`, `image_url`, `n`, `resolution`, `size`, `response_format`.
+- Qwen Image Edit 2511 (edit only): `negative_prompt`, `cfg_scale`, `guidance_scale`, `seed`, `steps`, `image`, `image_url`, `image_urls`, `images`, `width`, `height`.
 
 Example:
 - "A cafe menu board. Title "TODAY'S BREW" at the top in white chalk lettering. Three lines below, left aligned: "Latte 4.5", "Mocha 5.0", "Tea 3.0". Dark green board, warm light."
@@ -199,7 +199,7 @@ Pitfalls:
 
 Sources: no official prompting guide found. The maker API reference (https://developer.ideogram.ai/) covers parameters only, so the advice below is general.
 
-Models: `ideogram-4-5`, `ideogram-generate-v3` and the other `ideogram-generate-v3*` models.
+Models: Ideogram 4.5 and the Ideogram V3 generate models (`ideogram-*`).
 
 Conservative advice:
 - Use Ideogram when the picture needs readable text. Put the exact words in quotes and say where each line sits.
@@ -207,8 +207,8 @@ Conservative advice:
 - Describe subject, setting, light, and style in short sentences.
 
 Contract:
-- `ideogram-generate-v3` text-to-image lists `prompt`, `aspect_ratio`, `negative_prompt`, `expand_prompt`, `n`, `seed`, `response_format`. `expand_prompt` may rewrite your prompt. Read its contract description before you rely on exact wording.
-- `ideogram-4-5` lists `prompt`, `quality` (`low`, `medium`, `high`), `width`, `height`, `n`, `seed`, `output_format`, and for edits `image`, `image_url`, `image_urls`, `mask`. No `negative_prompt`.
+- Ideogram V3 generate text-to-image lists `prompt`, `aspect_ratio`, `negative_prompt`, `expand_prompt`, `n`, `seed`, `response_format`. `expand_prompt` may rewrite your prompt. Read its contract description before you rely on exact wording.
+- Ideogram 4.5 lists `prompt`, `quality` (`low`, `medium`, `high`), `width`, `height`, `n`, `seed`, `output_format`, and for edits `image`, `image_url`, `image_urls`, `mask`. No `negative_prompt`.
 
 Example:
 - "Storefront sign above a bakery door, hand-painted cream letters on dark green, reads "OLD MILL BAKERY", warm evening light, 3:2."

@@ -20,14 +20,33 @@ Turn one still into a short clip. The image is the first frame. The prompt says 
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices, durations, and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Need | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| General image-to-video | `veo3.1-fast` (4, 6, or 8 s; 720p or 1080p; 9:16 or 16:9; audio always on) | `kling-v3.0` (3-15 s, 720p/1080p, `output_audio` on or off), `hailuo-h3` (6 or 10 s, 768p, native audio), `seedance-2.0` (4-15 s, 480p-4k, audio on by default), `wan-3.0` (2-30 s, 480p-1080p) | `grok-imagine-video` (1-15 s, 480p/720p), `viduq3-turbo` (540p-1080p), `hailuo-h3-max` (5-15 s, 480p/768p) |
-| Silent loop or background plate | `pixverse-v6` (1-15 s, 360p-1080p, audio off by default) | `kling-v3.0` with `output_audio: false`, `viduq3-turbo` with `output_audio: false` | `pixverse-v6` at 360p or 540p |
+| `image-to-video` | `veo3.1-fast` | default | General image-to-video with sound |
+| `image-to-video` | `kling-v3.0` | alternative | Alternative; sound on or off |
+| `image-to-video` | `hailuo-h3` | alternative | Alternative with native audio |
+| `image-to-video` | `seedance-2.0` | alternative | Alternative; long clips and high resolution |
+| `image-to-video` | `pixverse-v6` | alternative | Silent loop or background plate |
+| `image-to-video` | `grok-imagine-video` | alternative | Low-cost draft |
 
-All of these use `POST /v1/videos/generations` with `operation: "image-to-video"`. Most take the image in `image_url`; `viduq3-turbo` lists `image` and `start_image` instead. Send `output_audio` only when the operation lists it.
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+### How to choose
+
+Exact fields and values come from each model's contract.
+
+- **Veo 3.1 Fast:** the general choice with sound. 4, 6, or 8 s at 720p or 1080p. Audio is always on.
+- **Kling 3.0:** an alternative with sound on or off. 3-15 s.
+- **Hailuo H3:** an alternative with native audio. 6 or 10 s at 768p. Takes `negative_prompt`.
+- **Seedance 2.0:** long clips (4-15 s) and high resolution (up to 4k).
+- **PixVerse:** silent loops and background plates. Lists `output_audio`, 1-15 s, 360p-1080p.
+- **Grok Imagine video:** a low-cost draft. 1-15 s at 480p or 720p. The output follows the input image shape.
+
+All of these use `POST /v1/videos/generations` with `operation: "image-to-video"`. Most take the image in `image_url`; some (for example Vidu Q3) list `image` and `start_image` instead. Send `output_audio` only when the operation lists it.
 
 ## Workflow
 
@@ -38,8 +57,10 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 3. Write the prompt (see Technique) and build the body:
 
    ```json
-   {"model": "grok-imagine-video", "operation": "image-to-video", "image_url": "https://...", "prompt": "She smiles, raises her right hand, and waves at the camera twice. Static camera, soft studio light.", "duration": 2, "resolution": "480p"}
+   {"model": "MODEL_ID", "operation": "image-to-video", "image_url": "https://...", "prompt": "She smiles, raises her right hand, and waves at the camera twice. Static camera, soft studio light.", "duration": 2, "resolution": "480p"}
    ```
+
+   Take `MODEL_ID` from the Models list above for `image-to-video`. Set `duration` and `resolution` to values its contract lists.
 
 4. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID before you poll. The helper polls every 5 s; keep the interval at 5-10 s.
 5. If your wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a second task for the same request.
@@ -54,8 +75,8 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 - **Keep identity.** Say what must not change: "keep her face, hair, and jacket exactly as in the image."
 - **Sound on Veo.** Veo 3.1 always makes audio. Describe the sounds you want ("soft wind, distant gulls"). Put spoken words in quotes. If you say nothing, you still get audio.
 - **Silent output.** Pick a model whose contract lists `output_audio` and send `false`. Do not send `output_audio` to a model that does not list it.
-- **Aspect ratio.** Crop the image before you call. Image-to-video output on `grok-imagine-video` follows the input image shape.
-- **Prompt is required on some models.** `hailuo-h3-max` needs a non-empty prompt for every operation.
+- **Aspect ratio.** Crop the image before you call. Image-to-video output on Grok Imagine video follows the input image shape.
+- **Prompt is required on some models.** Hailuo H3 Max needs a non-empty prompt for every operation.
 
 ## Quality bar
 

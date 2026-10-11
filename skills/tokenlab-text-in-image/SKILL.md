@@ -20,21 +20,36 @@ Make posters, signs, packaging, and mockups with words that are spelled right an
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Stage | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| New design with text (text-to-image) | `ideogram-4-5` (`width` / `height`, `quality`) | `ideogram-generate-v3-turbo` (`aspect_ratio`, `negative_prompt`), `nano-banana-pro`, `gpt-image-2`, `recraft-v4.1` (`size` `1024x1024` only), `qwen-image-3.0` | `p-image-ideogram` |
-| Fix or replace text in an image (image-edit) | `ideogram-4-5` (`operation: "image-edit"`, optional `mask`) | `nano-banana-2` (`operation: "image-edit"`), `gpt-image-2` (`/v1/images/edits`) | |
+| `text-to-image` | `ideogram-4-5` | default | New design with exact text |
+| `text-to-image` | `ideogram-generate-v3-turbo` | alternative | Design with text, alternative |
+| `text-to-image` | `nano-banana-pro` | alternative | Design with text, alternative |
+| `text-to-image` | `gpt-image-2` | alternative | Design with text, alternative |
+| `text-to-image` | `p-image-ideogram` | alternative | Low-cost draft |
+| `image-edit` | `ideogram-4-5` | default | Fix or replace text in an image |
+| `image-edit` | `nano-banana-2` | alternative | Fix text, alternative |
+| `image-edit` | `gpt-image-2` | alternative | Fix text with a mask |
 
-All of these use `/v1/images/generations` for the operation shown, except `gpt-image-2` edits.
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+How to choose:
+
+- **New design with exact text** (`text-to-image`): Ideogram 4.5 first. Ideogram V3 turbo, Nano Banana Pro, and GPT Image are alternatives. The P-Image Ideogram model is a low-cost square draft.
+- **Fix text in an image** (`image-edit`): Ideogram 4.5, or Nano Banana. Use GPT Image when you need a mask.
+
+All of these use `/v1/images/generations` for the operation shown, except GPT Image edits, which use `/v1/images/edits`. Exact fields come from each model's contract.
 
 ## Workflow
 
 Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
 
-1. Read the contract for the model and operation. Note the size fields and the allowed values. On `ideogram-4-5`, `quality` has different allowed values for text-to-image and image-edit.
-2. Estimate the cost from `GET /v1/models/{model}/pricing`. On `ideogram-4-5` the price changes with `operation` and `quality`. Multiply by `n`.
+1. Read the contract for the model and operation. Note the size fields and the allowed values. On Ideogram 4.5, `quality` has different allowed values for text-to-image and image-edit.
+2. Estimate the cost from `GET /v1/models/{model}/pricing`. On Ideogram 4.5 the price changes with `operation` and `quality`. Multiply by `n`.
 3. Write the prompt (see Technique). Put every word to render in double quotes. Send `operation: "text-to-image"`.
 4. Read the response. A sync response has `data[].url`. A response with `status: "pending"` and `poll_url` is a task: poll it every 5–10 s until `completed` or `failed`.
 5. **Read every word in the result, letter by letter,** against the user's copy. Look for missing, doubled, or swapped letters and for extra text the user did not ask for.
@@ -48,9 +63,9 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 - **Short copy.** Each extra word raises the odds of a typo. Titles and short lines work best. Add long body text later in a design tool.
 - **Describe the letters, not a font name.** Ideogram does not load real fonts. Say "bold condensed sans-serif", "thin serif", or "tall gold art deco capitals".
 - **One place and one style per block, in reading order.** "Headline \"JAZZ NIGHT\" in tall gold art deco capitals across the top. Below it, smaller text \"Friday 8pm\" in a thin gold sans-serif."
-- **Forbid extra text.** End the prompt with "No other text." Google's text examples use the same line. In a 2026-10-12 test, `ideogram-4-5` spelled the copy right but added a venue line the prompt did not ask for.
+- **Forbid extra text.** End the prompt with "No other text." Google's text examples use the same line. In a 2026-10-12 test, Ideogram 4.5 spelled the copy right but added a venue line the prompt did not ask for.
 - **Keep the scene simple.** A busy background leaves less room for clean letters.
-- **Size controls.** `p-image-ideogram` lists `width` and `height`, but two tests at 768 × 1024 and 1024 × 1536 both returned 1024 × 1024. Use it for square drafts only. `ideogram-4-5` with `width: 832, height: 1248` returned 1664 × 2496 (same 2:3 ratio).
+- **Size controls.** The P-Image Ideogram model lists `width` and `height`, but two tests at 768 × 1024 and 1024 × 1536 both returned 1024 × 1024. Use it for square drafts only. Ideogram 4.5 with `width: 832, height: 1248` returned 1664 × 2496 (same 2:3 ratio).
 
 ## Quality bar
 

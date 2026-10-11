@@ -1,11 +1,11 @@
-# `suno-music` request shapes
+# Suno request shapes
 
-All shapes go to `POST /v1/music/generations` and return a task. Check the live contract first: `GET /v1/models/suno-music`, then `operation_constraints[].supported_parameters` and `notes`. Prices differ by action; read `GET /v1/models/suno-music/pricing`.
+All shapes go to `POST /v1/music/generations` and return a task. Check the live contract first: `GET /v1/models/MODEL_ID`, then `operation_constraints[].supported_parameters` and `notes`. Prices differ by action; read `GET /v1/models/MODEL_ID/pricing`. Take `MODEL_ID` from the Models list in `SKILL.md` (the Suno entry).
 
 ## Generate a song
 
 ```json
-{"model": "suno-music", "mv": "chirp-v5", "title": "Small Lights",
+{"model": "MODEL_ID", "mv": "chirp-v5", "title": "Small Lights",
  "tags": "indie folk, acoustic guitar, warm female vocal, gentle",
  "prompt": "A short, gentle indie folk song about city lights coming on after rain. Simple verse and chorus."}
 ```

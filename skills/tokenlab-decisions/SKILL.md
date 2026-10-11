@@ -19,11 +19,21 @@ Ask a decision model named, typed questions about a state, and get structured an
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Need | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Typed decisions on text or JSON | `jev-1.13` | | `jev-1.13` |
+| `systemone` | `jev-1.13` | default | Typed decisions on text or JSON |
+
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+How to choose:
+
+- **Typed decisions on text or JSON:** Jev. It prices per input token.
+
+Exact fields come from the model contract.
 
 Discover decision models with `GET /v1/models?category=decision`. `recommended_for=decision` is also meant to work; if the API rejects it with `invalid_recommended_for`, use `category=decision`.
 
@@ -42,22 +52,22 @@ The decision endpoint takes only `model`, `state`, and `questions`. It has no me
 
 Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
 
-1. Discover and read the contract: `GET /v1/models?category=decision`, then `python scripts/tokenlab_run.py contract jev-1.13 --operation systemone`. The contract lists `state` and `questions`.
+1. Discover and read the contract: `GET /v1/models?category=decision`, then `python scripts/tokenlab_run.py contract MODEL_ID --operation systemone`. Take `MODEL_ID` from the Models list above or from that discovery call. The contract lists `state` and `questions`.
 2. Write the questions (see Technique and `references/question-design.md`). Give each a stable name; the response uses the same names.
-3. Estimate with `GET /v1/models/{model}/pricing`. `jev-1.13` prices per input token. Example: 469 input tokens × (input price per 1M tokens) / 1,000,000. Estimate a batch from one real call's `usage.input_tokens`.
+3. Estimate with `GET /v1/models/{model}/pricing`. Jev prices per input token. Example: 469 input tokens × (input price per 1M tokens) / 1,000,000. Estimate a batch from one real call's `usage.input_tokens`.
 4. Call `POST /v1/systemone`: `python scripts/tokenlab_run.py run /v1/systemone --json @body.json`. Keep the `x-request-id`. There is no task to poll.
 5. Read `answers.<name>` and `usage`. Keep `noul`, `probabilities`, `confidence`, and `usage` exactly as returned. Do not round a probability into a Boolean in storage.
 6. Apply your thresholds in code (see below). Log the request ID, the answers, and the action taken.
 7. Before the answers drive real actions, run them on the user's labeled cases and tune the thresholds.
 
-HTTP:
+HTTP (take `MODEL_ID` from the Models list above):
 
 ```bash
 curl https://api.tokenlab.sh/v1/systemone \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "jev-1.13",
+    "model": "MODEL_ID",
     "state": {"ticket": "I was charged twice for my October invoice. Please refund the duplicate payment today.", "plan": "pro"},
     "questions": {
       "refund_requested": {"type": "noul", "instructions": "Does the customer explicitly ask for a refund?",
@@ -73,7 +83,7 @@ curl https://api.tokenlab.sh/v1/systemone \
 Response (live, 2026-10-12, trimmed):
 
 ```json
-{"model": "jev-1.13",
+{"model": "MODEL_ID",
  "answers": {
    "refund_requested": {"type": "noul", "noul": 0.99},
    "team": {"type": "choice", "choice": "billing", "probabilities": {"billing": 1, "technical": 0, "sales": 0}, "confidence": 1},
@@ -85,7 +95,7 @@ MCP (`core` or `full` profile), same fields:
 
 ```json
 {"name": "evaluate_decisions",
- "arguments": {"model": "jev-1.13",
+ "arguments": {"model": "MODEL_ID",
    "state": {"ticket": "Please refund the duplicate payment."},
    "questions": {"refund_requested": {"type": "noul", "instructions": "Does the customer explicitly ask for a refund?"}}}}
 ```

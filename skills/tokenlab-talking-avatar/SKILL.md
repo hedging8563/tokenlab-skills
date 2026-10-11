@@ -24,13 +24,29 @@ TokenLab does not offer lip-sync onto an existing video. Every path starts from 
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Path | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Portrait + speech audio (`image-to-video`, `image_url` + `audio_url`) | `omnihuman-1-5` (`prompt`, `mask`, `seed`) | `veed-fabric-1-0` (no `prompt`; `resolution`) | `p-video-avatar` (`prompt`, `resolution` 720p/1080p) |
-| Script → speech audio (`/v1/audio/speech`) | `grok-tts` (voices `eve`, `ara`, `rex`, `sal`, `leo`; `mp3`) | other TTS models; see `tokenlab-voiceover` | |
-| Portrait + short quoted line, no audio file (`image-to-video`) | `veo3.1-fast` (4, 6, or 8 s; 720p/1080p; 9:16 or 16:9; audio always on) | `veo3.1` | |
+| `image-to-video` | `omnihuman-1-5` | default | Portrait plus speech audio |
+| `image-to-video` | `veed-fabric-1-0` | alternative | Portrait plus speech, alternative |
+| `image-to-video` | `p-video-avatar` | alternative | Low-cost portrait plus speech |
+| `image-to-video` | `veo3.1-fast` | alternative | Portrait plus a short quoted line, no audio file |
+| `tts` | `grok-tts` | default | Script to speech audio |
+
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+### How to choose
+
+Exact fields and values come from each model's contract.
+
+- **OmniHuman 1.5 (Path A):** a portrait plus speech audio. The default avatar model.
+- **Fabric 1.0 (Path A):** a portrait plus speech, as an alternative.
+- **P-Video Avatar (Path A):** a low-cost portrait plus speech.
+- **Veo 3.1 Fast (Path B):** a portrait plus a short quoted line, with no audio file. Audio is always on. 4, 6, or 8 s.
+- **Grok TTS:** turns the script into speech audio for Path A.
 
 The avatar models price per second of output, and the output follows the audio length. Check `GET /v1/models/{model}/pricing` for the resolution you send.
 
@@ -43,8 +59,10 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 1. **Get the audio.** If the user has a recording, use its public `https` URL. If the user has a script, make speech:
 
    ```bash
-   python scripts/tokenlab_run.py run /v1/audio/speech --json '{"model": "grok-tts", "input": "Hi, I am Mia. This mug keeps my coffee hot all morning.", "voice": "eve", "response_format": "mp3"}' --out line.mp3
+   python scripts/tokenlab_run.py run /v1/audio/speech --json '{"model": "MODEL_ID", "input": "Hi, I am Mia. This mug keeps my coffee hot all morning.", "voice": "VOICE", "response_format": "mp3"}' --out line.mp3
    ```
+
+   Take the TTS `MODEL_ID` from the Models list above (operation `tts`) and a voice that model lists (for example `eve` on Grok TTS).
 
    TTS returns audio bytes, not a URL. Put the file on storage the user controls with a public `https` URL that stays valid until the task starts (for example a public bucket or CDN path). A `data:` URL does not work for speech: `audio_url` is capped at 8192 characters, which holds well under one second of audio. `POST /v1/files` is not a general audio host.
 2. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation image-to-video`. Send only listed fields.
@@ -52,20 +70,24 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 4. Build the body and call:
 
    ```json
-   {"model": "p-video-avatar", "operation": "image-to-video", "image_url": "https://...portrait.jpg", "audio_url": "https://...line.mp3", "prompt": "She speaks to the camera with natural head movement and a friendly expression.", "resolution": "720p"}
+   {"model": "MODEL_ID", "operation": "image-to-video", "image_url": "https://...portrait.jpg", "audio_url": "https://...line.mp3", "prompt": "She speaks to the camera with natural head movement and a friendly expression.", "resolution": "720p"}
    ```
+
+   Take an avatar `MODEL_ID` (one that takes `audio_url`) from the Models list above for `image-to-video`. Send `resolution` only when its contract lists it.
 
    `python scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID. Poll every 5-10 s.
 
 ### Path B: the video model speaks the line
 
-1. Read the contract: `python scripts/tokenlab_run.py contract veo3.1-fast --operation image-to-video`.
+1. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation image-to-video`, with the Veo 3.1 Fast model from the Models list.
 2. Estimate: per-second price (audio is always on) × `duration`. Tell the user.
 3. Put the line in quotes inside the prompt. Keep it short enough to say in the clip length (about 2-3 words per second):
 
    ```json
-   {"model": "veo3.1-fast", "operation": "image-to-video", "image_url": "https://...portrait.jpg", "prompt": "Close-up portrait, eye level, static camera. She looks into the lens, smiles, and says: \"Hi, I'm Mia. This mug keeps my coffee hot all morning.\" Quiet room tone, no music.", "duration": 4, "resolution": "720p", "aspect_ratio": "9:16"}
+   {"model": "MODEL_ID", "operation": "image-to-video", "image_url": "https://...portrait.jpg", "prompt": "Close-up portrait, eye level, static camera. She looks into the lens, smiles, and says: \"Hi, I'm Mia. This mug keeps my coffee hot all morning.\" Quiet room tone, no music.", "duration": 4, "resolution": "720p", "aspect_ratio": "9:16"}
    ```
+
+   Use the Veo 3.1 Fast `MODEL_ID` from the Models list above (`image-to-video`).
 
 4. Call and wait as above.
 

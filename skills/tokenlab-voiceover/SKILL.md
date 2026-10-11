@@ -20,21 +20,38 @@ Turn a written script into clean speech audio. The speech endpoint is synchronou
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change. Find current speech models with `GET /v1/models?recommended_for=tts`.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Need | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| General narration and app voice | `grok-tts` (`voice`: `eve`, `ara`, `rex`, `sal`, `leo`; `mp3`) | `eleven-v4-turbo` (`voice`, `language_code`, `seed`), `cosyvoice-v3.5-plus` (`voice`, `speed`) | `qwen3-tts-flash` (named voices, WAV output) |
-| Large voice library, speed control | `speech-2.8-hd` (`voice` from a long published list, or `voice_id`; `speed`; `mp3`, `wav`, `flac`, `pcm`) | `speech-2.8-turbo` (`voice_id`, `speed`, same formats) | `speech-2.8-turbo` |
-| Many short lines at a flat per-request price | `kling-tts` (`input`, `voice_id`) | | |
+| `tts` | `grok-tts` | default | General narration and app voice |
+| `tts` | `eleven-v4-turbo` | alternative | Alternative voices |
+| `tts` | `speech-2.8-hd` | alternative | Large voice library, speed control |
+| `tts` | `speech-2.8-turbo` | alternative | Faster tier of the large library |
+| `tts` | `cosyvoice-v3.5-plus` | alternative | Alternative |
+| `tts` | `kling-tts` | alternative | Many short lines at a flat per-request price |
+| `tts` | `qwen3-tts-flash` | alternative | Low-cost named voices |
 
-Most speech models price per input character. `kling-tts` prices per request. Read `pricing_unit` before you estimate.
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+How to choose:
+
+- **General narration and app voice:** Grok TTS. It has five named voices and inline speech tags.
+- **Large named voice library and speed control:** MiniMax Speech 2.8. HD is the quality tier; Turbo is the faster tier.
+- **Other voices, or a voice ID the user already has:** ElevenLabs. Its contract has no voice list.
+- **Alternative with speed control:** CosyVoice.
+- **Low-cost named voices:** Qwen TTS Flash. It returns WAV only.
+- **Many short lines:** Kling TTS. It prices per request, not per character.
+
+Exact fields, voice lists, and formats come from the model contract. Most speech models price per input character. Read `pricing_unit` before you estimate.
 
 ## Workflow
 
 Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
 
-1. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation tts`. Note `supported_parameters` and `parameter_options` (voice names, `response_format` values). Send only listed fields. `grok-tts` takes `input`, `voice`, `response_format`.
+1. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation tts`. Note `supported_parameters` and `parameter_options` (voice names, `response_format` values). Send only listed fields. Grok TTS takes `input`, `voice`, `response_format`.
 2. Pick the voice from `parameter_options.voice`. If the model lists no voice options, use the voice from `recommended_request`, or ask the user for a `voice_id`. Do not invent voice names.
 3. Estimate: count the characters in `input` and multiply by the per-character price from `GET /v1/models/{model}/pricing`. Per-character prices are quoted per 1M characters. Example: 78 characters × (price per 1M characters) / 1,000,000.
 4. Split scripts longer than 4,096 characters (the endpoint limit) at paragraph or sentence breaks. Use one voice and the same settings for every part. Join the files in order.
@@ -45,13 +62,13 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 ## Technique
 
 - **Punctuation sets the pace.** Commas, periods, and question marks guide timing and tone. "That's amazing!" sounds excited; "That's amazing." sounds flat. Paragraph breaks give natural pauses.
-- **`grok-tts` speech tags.** Inline tags go where the sound would happen: `[pause]`, `[long-pause]`, `[laugh]`. Wrapping tags change a span: `<whisper>...</whisper>`, `<slow>...</slow>`, `<soft>...</soft>`. Tags are not read aloud. Punctuation plus one inline tag sounds more natural than a stack of inline tags. Wrapping tags can nest: `<slow><soft>Goodnight.</soft></slow>`. These tags are for `grok-tts`; check the model maker's guide before you use tags on another model.
+- **Grok TTS speech tags.** Inline tags go where the sound would happen: `[pause]`, `[long-pause]`, `[laugh]`. Wrapping tags change a span: `<whisper>...</whisper>`, `<slow>...</slow>`, `<soft>...</soft>`. Tags are not read aloud. Punctuation plus one inline tag sounds more natural than a stack of inline tags. Wrapping tags can nest: `<slow><soft>Goodnight.</soft></slow>`. These tags are for Grok TTS; check the model maker's guide before you use tags on another model.
 - **Write numbers and names the way they are said.** "twenty twenty-six", "four point five". Test hard names on a short line first.
-- **Speed:** use `speed` only where the contract lists it (`speech-2.8-*`, `cosyvoice-v3.5-plus`, `qwen3-tts-flash`). Keep it near 1 for narration.
+- **Speed:** use `speed` only where the contract lists it (MiniMax Speech 2.8, CosyVoice, Qwen TTS Flash). Keep it near 1 for narration.
 - **One voice per character.** For dialogue, give each speaker a fixed voice and render line by line. Keep a table of line → voice → file.
 - **Short test first.** Render one sentence in two or three voices, let the user pick, then render the full script.
 
-See `references/voices.md` for the voice fields per model and how to pick one.
+See `references/voices.md` for the voice fields per model family and how to pick one.
 
 ## Quality bar
 

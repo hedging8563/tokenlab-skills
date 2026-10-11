@@ -21,12 +21,37 @@ Write each shot like a director: what the camera sees, how it moves, through whi
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices, durations, and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Need | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Text to shot (`text-to-video`) | `veo3.1` (4, 6, or 8 s; 720p/1080p; 9:16 or 16:9; audio always on) | `seedance-2.0` (4-15 s, 480p-4k, 21:9 too), `kling-v3.0` (3-15 s, 720p/1080p), `hailuo-h3` (6 or 10 s, 768p, `negative_prompt`), `wan-3.0` (2-30 s, 480p-1080p, 21:9 too), `seedance-2.5` (4-30 s, 480p/720p), `veo3.1-fast` | `grok-imagine-video` (1-15 s, 480p/720p), `viduq3-turbo` (540p-1080p), `p-video-2` (`duration`, optional `width`/`height`) |
-| Still to shot (`image-to-video`, `image_url`) | `veo3.1` | `kling-v3.0`, `seedance-2.0`, `wan-3.0`, `hailuo-h3` | `grok-imagine-video` |
+| `text-to-video` | `veo3.1` | default | Cinematic shot with sound |
+| `text-to-video` | `seedance-2.0` | alternative | Alternative; long clips, 21:9 |
+| `text-to-video` | `kling-v3.0` | alternative | Alternative |
+| `text-to-video` | `hailuo-h3` | alternative | Alternative; negative prompt |
+| `text-to-video` | `wan-3.0` | alternative | Alternative; long clips |
+| `text-to-video` | `grok-imagine-video` | alternative | Low-cost draft |
+| `image-to-video` | `veo3.1` | default | Cinematic shot with sound |
+| `image-to-video` | `seedance-2.0` | alternative | Alternative; long clips, 21:9 |
+| `image-to-video` | `kling-v3.0` | alternative | Alternative |
+| `image-to-video` | `hailuo-h3` | alternative | Alternative; negative prompt |
+| `image-to-video` | `wan-3.0` | alternative | Alternative; long clips |
+| `image-to-video` | `grok-imagine-video` | alternative | Low-cost draft |
+
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+### How to choose
+
+Exact fields and values come from each model's contract.
+
+- **Veo 3.1:** the default cinematic shot with sound. 4, 6, or 8 s at 720p or 1080p. Audio is always on.
+- **Seedance 2.0:** an alternative for longer clips (4-15 s) and 21:9.
+- **Kling 3.0:** an alternative, 3-15 s.
+- **Hailuo H3:** an alternative that takes `negative_prompt`. 6 or 10 s at 768p.
+- **Wan 3.0:** an alternative for long clips, 2-30 s at 480p-1080p.
+- **Grok Imagine video:** a low-cost draft. 1-15 s at 480p or 720p.
 
 All use `POST /v1/videos/generations` with an explicit `operation`. Send `output_audio` or `negative_prompt` only when the operation lists it.
 
@@ -41,8 +66,10 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 5. Build each body:
 
    ```json
-   {"model": "veo3.1", "operation": "text-to-video", "prompt": "Slow dolly-in, eye level, 35mm lens. A lighthouse keeper in a yellow raincoat climbs wet stone stairs at dusk; waves crash below. Cold blue light with a warm lamp glow from the window. Film noir mood, light rain. Sound: wind, surf, his boots on wet stone.", "duration": 8, "resolution": "720p", "aspect_ratio": "16:9"}
+   {"model": "MODEL_ID", "operation": "text-to-video", "prompt": "Slow dolly-in, eye level, 35mm lens. A lighthouse keeper in a yellow raincoat climbs wet stone stairs at dusk; waves crash below. Cold blue light with a warm lamp glow from the window. Film noir mood, light rain. Sound: wind, surf, his boots on wet stone.", "duration": 8, "resolution": "720p", "aspect_ratio": "16:9"}
    ```
+
+   Take `MODEL_ID` from the Models list above for the shot's operation. Set `duration` and `resolution` to values its contract lists.
 
 6. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @shot1.json --wait`. Save each task ID. Poll every 5-10 s.
 7. If a wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
@@ -56,7 +83,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 - **Light sets the mood.** Name its direction and color: "low warm sun from behind", "cold blue night with neon spill", "single overhead practical".
 - **Sound on Veo.** Veo always makes audio. Describe effects and ambience explicitly. Put dialogue in quotes: `She whispers, "We're late."`
 - **Consistency across shots.** Reuse the same character description and style line. For a fixed character or set, make a still first (see `tokenlab-character-consistency`) and use image-to-video from it.
-- **Exclusions.** Use `negative_prompt` only on models that list it (for example `hailuo-h3`). Elsewhere, describe the result you want instead.
+- **Exclusions.** Use `negative_prompt` only on models that list it (for example Hailuo H3). Elsewhere, describe the result you want instead.
 - **Shot vocabulary:** see `references/shot-language.md`.
 
 ## Quality bar

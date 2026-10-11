@@ -4,6 +4,8 @@ import importlib.util
 import json
 from pathlib import Path
 import re
+import shutil
+import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,6 +20,7 @@ def load_module(name, path):
 
 
 sync_catalog = load_module('sync_catalog', ROOT / 'scripts/sync_catalog.py')
+sync_models = load_module('sync_models', ROOT / 'scripts/sync_models.py')
 CATALOG = json.loads((ROOT / 'catalog.json').read_text())
 FOLDERS = sorted(p.name for p in (ROOT / 'skills').iterdir() if p.is_dir())
 
@@ -103,6 +106,47 @@ class CatalogTests(unittest.TestCase):
             start = section.index(f"**{group['title']}**")
             for skill_id in group['skills']:
                 self.assertGreater(section.index(f'[`{skill_id}`]'), start)
+
+    def test_skills_with_operations_have_one_generated_model_block(self):
+        for skill in CATALOG['skills']:
+            with self.subTest(skill=skill['id']):
+                text = (ROOT / skill['path'] / 'SKILL.md').read_text()
+                expected = 1 if skill['operations'] else 0
+                self.assertEqual(len(sync_models.BLOCK.findall(text)), expected)
+
+    def test_preferred_model_ids_appear_only_inside_the_generated_block(self):
+        ids = {e if isinstance(e, str) else e['id'] for s in CATALOG['skills'] for e in s.get('preferredModels', [])}
+        token = re.compile(r'[a-z0-9][a-z0-9.\-]*[a-z0-9]')
+        for skill in CATALOG['skills']:
+            for path in sorted((ROOT / skill['path']).rglob('*.md')):
+                with self.subTest(path=str(path.relative_to(ROOT))):
+                    prose = sync_models.BLOCK.sub('', path.read_text())
+                    self.assertEqual(sorted(set(token.findall(prose)) & ids), [])
+
+    def test_preferred_models_name_operations_of_their_skill(self):
+        for skill in CATALOG['skills']:
+            for entry in skill.get('preferredModels', []):
+                if isinstance(entry, dict) and 'operation' in entry:
+                    self.assertIn(entry['operation'], skill['operations'], (skill['id'], entry['id']))
+
+    def test_availability_lists_every_skill(self):
+        availability = json.loads((ROOT / 'generated/availability.json').read_text())
+        self.assertEqual(sorted(availability), FOLDERS)
+        for entry in availability.values():
+            self.assertIn(entry['status'], ('available', 'unavailable'))
+
+    def test_patch_bump_changes_every_manifest_together(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copy(ROOT / 'catalog.json', root / 'catalog.json')
+            shutil.copytree(ROOT / '.claude-plugin', root / '.claude-plugin')
+            version = sync_catalog.bump_patch(root)
+            major, minor, patch = CATALOG['version'].split('.')
+            self.assertEqual(version, f'{major}.{minor}.{int(patch) + 1}')
+            self.assertEqual(json.loads((root / 'catalog.json').read_text())['version'], version)
+            self.assertEqual(json.loads((root / '.claude-plugin/plugin.json').read_text())['version'], version)
+            self.assertEqual(json.loads((root / '.claude-plugin/marketplace.json').read_text())['metadata']['version'],
+                             version)
 
     def test_versions_agree(self):
         plugin = json.loads((ROOT / '.claude-plugin/plugin.json').read_text())

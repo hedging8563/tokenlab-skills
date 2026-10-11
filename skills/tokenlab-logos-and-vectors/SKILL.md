@@ -20,25 +20,38 @@ Make a simple mark or icon and deliver it as an SVG. The text-to-image models he
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Stage | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Mark or icon (text-to-image, raster) | `recraft-v4.1` (`size` `1024x1024` only, `n` 1) | `recraft-v4.1-pro` (`size` `2048x2048` only), `ideogram-4-5` for marks with words | `recraft-v4.1-flash` |
-| Raster to SVG (image-edit) | `recraft-vectorize` (`operation: "image-edit"`, `image_url`) | `picsart-image-vectorizer` | |
+| `text-to-image` | `recraft-v4.1` | default | Mark or icon (raster) |
+| `text-to-image` | `recraft-v4.1-pro` | alternative | Mark at a larger size |
+| `text-to-image` | `ideogram-4-5` | alternative | Mark with words |
+| `text-to-image` | `recraft-v4.1-flash` | alternative | Low-cost draft |
+| `image-edit` | `recraft-vectorize` | default | Raster to SVG |
+| `image-edit` | `picsart-image-vectorizer` | alternative | Raster to SVG, alternative |
 
-All use `/v1/images/generations`.
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+How to choose, by stage:
+
+- **Mark or icon** (`text-to-image`): Recraft V4.1. Use the Pro tier for a larger size and the Flash tier for a low-cost draft. Use Ideogram 4.5 when the mark has words.
+- **Raster to SVG** (`image-edit`): Recraft vectorize, or the Picsart vectorizer as an alternative.
+
+All use `/v1/images/generations`. Exact fields come from each model's contract.
 
 ## Workflow
 
 Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
 
-1. Read the contract for each model. Each Recraft text-to-image model lists one `size` value and `n` `1` only: `1024x1024` for `recraft-v4.1` and `recraft-v4.1-flash`, `2048x2048` for `recraft-v4.1-pro`.
+1. Read the contract for each model. Each Recraft V4.1 text-to-image model lists one `size` value and `n` `1` only: `1024x1024` for the base and Flash tiers, `2048x2048` for the Pro tier.
 2. Estimate the cost from `GET /v1/models/{model}/pricing`: marks times the price per image, plus one vectorize call per chosen mark.
 3. **Marks.** Generate 3–4 options, one call each, with different shape ideas (see Technique). Send `operation: "text-to-image"`, the model's one `size` value, and `n: 1`.
 4. Read each response. A sync response has `data[].url`. A response with `status: "pending"` and `poll_url` is a task: poll it every 5–10 s until `completed` or `failed`.
 5. Let the user pick one mark. Vectorize only the pick.
-6. **SVG.** Send `{"model": "recraft-vectorize", "operation": "image-edit", "image_url": "MARK_URL"}`. Do not send `output_format: "svg"`; it returns `400` (the field accepts only `png`, `jpeg`, `webp`). Leave `output_format` out.
+6. **SVG.** Send `{"model": "MODEL_ID", "operation": "image-edit", "image_url": "MARK_URL"}`. Take `MODEL_ID` from the Models list above for the vectorize (`image-edit`) operation. Do not send `output_format: "svg"`; it returns `400` (the field accepts only `png`, `jpeg`, `webp`). Leave `output_format` out.
 7. Download the result and check the file. In tests, both vectorizers returned real SVG (`Content-Type: image/svg+xml`) although the result URL ends in `.png`. Save it with a `.svg` name.
 8. Return the SVG file or URL, the raster URL, the model per stage, and the task IDs.
 

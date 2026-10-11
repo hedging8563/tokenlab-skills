@@ -20,16 +20,33 @@ Show the same character in new scenes, poses, and clips. The method: lock one an
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Stage | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Make the anchor image (text-to-image) | `nano-banana-2` | `flux-2-pro`, `seedream-5.0` | `p-image` |
-| New scene from the anchor (image-to-image) | `nano-banana-2` (`operation: "image-to-image"`, `image_urls`) | `ideogram-character-remix-v3`, `seedream-5.0` (image-to-image on `/v1/images/edits`), `flux-kontext-pro` (image-edit on `/v1/images/edits`) | `nano-banana-2-lite` (`1k` only) |
-| New image from a face reference only | `ideogram-character-v3` (text-to-image, `reference_image_urls`, max 1) | | |
-| Short clip with the character (reference-to-video) | `grok-imagine-video` (`reference_images`, up to 7; 1–10 s; `480p` / `720p`) | `kling-omni-video`, `viduq3`, `seedance-2.0` | |
+| `image-to-image` | `nano-banana-2` | default | New scene from the anchor |
+| `image-to-image` | `ideogram-character-remix-v3` | alternative | New scene, alternative |
+| `image-to-image` | `seedream-5.0` | alternative | New scene, alternative |
+| `image-to-image` | `nano-banana-2-lite` | alternative | Low-cost new scene |
+| `text-to-image` | `nano-banana-2` | default | Make the anchor image |
+| `text-to-image` | `flux-2-pro` | alternative | Anchor image, alternative |
+| `text-to-image` | `ideogram-character-v3` | alternative | New image from one face reference |
+| `text-to-image` | `p-image` | alternative | Low-cost anchor |
+| `reference-to-video` | `grok-imagine-video` | default | Short clip with the character |
+| `reference-to-video` | `kling-omni-video` | alternative | Clip, alternative |
+| `reference-to-video` | `seedance-2.0` | alternative | Clip with many references |
 
-`references/request-bodies.md` has tested bodies for the anchor, a new scene, and a clip.
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+How to choose, by stage:
+
+- **Anchor** (`text-to-image`): Nano Banana or FLUX.2. Ideogram Character makes a new image from one face reference. P-Image is the low-cost anchor.
+- **New scene** (`image-to-image`): Nano Banana first. Ideogram Character remix and Seedream are alternatives. The Nano Banana lite tier is the low-cost option.
+- **Clip** (`reference-to-video`): Grok Imagine video for a short clip, Kling Omni video as an alternative, Seedance 2 when you have many references.
+
+Exact fields and reference limits come from each model's contract. `references/request-bodies.md` has tested bodies for the anchor, a new scene, and a clip.
 
 ## Workflow
 
@@ -50,7 +67,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 - **Change one axis at a time.** New place, or new pose, or new outfit. A prompt that changes all three makes drift more likely.
 - **Keep references clean.** Use the anchor and approved results only. A blurry or off-model reference spreads its errors.
 - **Name the clothing, even when it stays the same.** "same mustard yellow knit sweater" holds the outfit better than "same clothes".
-- **Reference counts are per model.** `ideogram-character-*` takes one reference image. `grok-imagine-video` reference-to-video takes up to 7. Read the contract limit for other models before you send more than one.
+- **Reference counts are per model.** `ideogram-character-*` takes one reference image. Grok Imagine video reference-to-video takes up to 7. Read the contract limit for other models before you send more than one.
 - **Video prompts describe motion only.** The references carry the look. "She turns her head toward the camera and smiles. Static camera." Keep the clip short for a first test.
 
 ## Quality bar

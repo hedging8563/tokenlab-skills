@@ -19,32 +19,51 @@ Make one downloadable 3D object from an image or a short description. 3D jobs ar
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change. Find current 3D models with `GET /v1/models?recommended_for=3d` (the list also has world models; skip `marble-*` here).
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Need | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Photo to 3D object | `tripo-h3.1` (`prompt`, `image_url`) | `rodin-gen-2` (`image_url`, `seed`, `format`), `seed3d-2.0` (image input only), `tripo-p1.0`, `hitem3d-2.0`, `meshy-6`, `hyper3d-gen2` | `tripo-h3.1` |
-| Text to 3D object | `tripo-h3.1` (`prompt`) | `tripo-3d-v3-1` (text only; `negative_prompt`, `seed`), `rodin-gen-2`, `tripo-p1.0`, `meshy-6` | `tripo-h3.1` |
-| Lighter mesh for games or the web | `rodin-gen-2` | | |
+| `image-to-3d` | `tripo-h3.1` | default | Photo or text to a 3D object |
+| `image-to-3d` | `rodin-gen-2` | alternative | Lighter mesh for games or the web |
+| `image-to-3d` | `seed3d-2.0` | alternative | Photo to 3D, alternative |
+| `image-to-3d` | `tripo-p1.0` | alternative | Alternative |
+| `image-to-3d` | `meshy-6` | alternative | Alternative |
+| `text-to-3d` | `tripo-h3.1` | default | Photo or text to a 3D object |
+| `text-to-3d` | `rodin-gen-2` | alternative | Lighter mesh for games or the web |
+| `text-to-3d` | `tripo-3d-v3-1` | alternative | Text to 3D, alternative |
+| `text-to-3d` | `tripo-p1.0` | alternative | Alternative |
+| `text-to-3d` | `meshy-6` | alternative | Alternative |
 
-In a 2026-10-12 check on the same mug photo, `tripo-h3.1` returned a 43 MB GLB with about 755k vertices, and `rodin-gen-2` returned a 7 MB GLB with about 17k vertices. Check size before you ship a model to a web page or a game.
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+How to choose:
+
+- **Photo or text to one 3D object:** Tripo (H3.1). It gives a detailed, heavy mesh.
+- **Lighter mesh for games or the web:** Rodin.
+- **Alternatives:** Seed3D for photo to 3D, an earlier Tripo tier for text to 3D, Tripo P1.0, and Meshy. Confirm the operation in the contract.
+
+Exact fields, operations, and output formats come from the model contract.
+
+In a 2026-10-12 check on the same mug photo, Tripo (H3.1) returned a 43 MB GLB with about 755k vertices, and Rodin returned a 7 MB GLB with about 17k vertices. Check size before you ship a model to a web page or a game.
 
 ## Workflow
 
 Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
 
-1. Read the contract: `python scripts/tokenlab_run.py contract tripo-h3.1 --operation image-to-3d`. Confirm the model publishes the operation you need (`image-to-3d` or `text-to-3d`). Send only fields in `supported_parameters`.
+1. Read the contract: `python scripts/tokenlab_run.py contract MODEL_ID --operation image-to-3d`. Take `MODEL_ID` from the Models list above. Confirm the model publishes the operation you need (`image-to-3d` or `text-to-3d`). Send only fields in `supported_parameters`.
 2. Do not send `operation`. `/v1/3d/generations` infers it: `prompt` alone is text-to-3d; `image` or `image_url` makes it image-to-3d. Some contracts list `operation`; requests without it still work.
-3. Estimate with `GET /v1/models/{model}/pricing`. Prices are per request and can differ by operation and option. Read the entry that matches your operation and the `default_selection`. Example: for `tripo-h3.1` image-to-3d, read the entry for the default `texture: none` selection; that is the price per model. Tell the user before you start.
+3. Estimate with `GET /v1/models/{model}/pricing`. Prices are per request and can differ by operation and option. Read the entry that matches your operation and the `default_selection`. Example: for Tripo (H3.1) image-to-3d, read the entry for the default `texture: none` selection; that is the price per model. Tell the user before you start.
 4. Check the input URL opens without login. Then call and wait: `python scripts/tokenlab_run.py run /v1/3d/generations --json @body.json --wait --interval 8`. Save the task `id` and `poll_url` first. Jobs took about 2–4 minutes in testing. On a timeout, resume with `poll TASK_ID`.
 5. Read the result: `model_url` always; `glb_url`, `fbx_url`, `obj_url`, `usdz_url` when the model returns them. Some models also return a preview render in `output`. URLs stay valid for 30 days.
 6. Download the file. Check it is a real model file (a GLB starts with the bytes `glTF`), its size, and a preview. Return the URLs, model, and task ID.
 
-Body examples:
+Body examples (take `MODEL_ID` from the Models list above):
 
 ```json
-{"model": "tripo-h3.1", "prompt": "A white ceramic mug with a bare tan clay base and a rounded handle. Only the mug, no table or background.", "image_url": "https://..."}
-{"model": "tripo-h3.1", "prompt": "a stylized low-poly robot mascot, rounded body, short antenna"}
+{"model": "MODEL_ID", "prompt": "A white ceramic mug with a bare tan clay base and a rounded handle. Only the mug, no table or background.", "image_url": "https://..."}
+{"model": "MODEL_ID", "prompt": "a stylized low-poly robot mascot, rounded body, short antenna"}
 ```
 
 ## Technique

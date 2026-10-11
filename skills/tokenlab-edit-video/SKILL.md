@@ -19,12 +19,29 @@ Change an existing clip with a prompt. The source keeps the motion, timing, and 
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices, limits, and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Need | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Prompt-only restyle or change of a short clip | `grok-imagine-video` (`prompt` + `video_url` only; output keeps the source length, at most 8.7 s, and at most 720p) | `kling-omni-video` (`video_url` plus optional `image_urls` references; `duration`, `aspect_ratio`, `resolution`; `output_audio` must be `false`), `seedance-2.0` (`video_url` plus image, video, and audio references; 480p-4k) | `flux-video-edit` (source up to 15 s, 720p, and 50 MiB; send `duration` = source length) |
-| Change guided by reference images | `kling-omni-video` | `happyhorse-1.0` (`video_url` + `reference_images`; 720p/1080p; output capped at 15 s; do not send `output_audio`), `seedance-2.0` | |
+| `video-to-video` | `grok-imagine-video` | default | Prompt-only restyle of a short clip |
+| `video-to-video` | `kling-omni-video` | alternative | Change guided by reference images |
+| `video-to-video` | `flux-video-edit` | alternative | Prompt-only edit, alternative |
+| `video-to-video` | `happyhorse-1.0` | alternative | References, alternative |
+| `video-to-video` | `seedance-2.0` | alternative | Alternative |
+
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+### How to choose
+
+Exact fields and values come from each model's contract.
+
+- **Grok Imagine video:** a prompt-only restyle of a short clip. Output is capped at 8.7 s. No `duration`, `resolution`, or `aspect_ratio`.
+- **Kling Omni video:** a change guided by reference images.
+- **FLUX video edit:** a prompt-only alternative. Source up to 15 s, 720p, and 50 MiB. `duration` is required.
+- **HappyHorse:** an alternative that takes reference images. Output is capped at 15 s, at 720p or 1080p.
+- **Seedance 2.0:** an alternative.
 
 All use `POST /v1/videos/generations` with `operation: "video-to-video"`. Seedance may reject a source clip that shows a realistic person.
 
@@ -32,18 +49,22 @@ All use `POST /v1/videos/generations` with `operation: "video-to-video"`. Seedan
 
 Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
 
-1. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation video-to-video`. Note `supported_parameters`, `notes`, and `delivery`. Send only listed fields. `grok-imagine-video` does not use `duration`, `resolution`, or `aspect_ratio` for this operation; leave them out.
-2. Check the source against the model's limits (`grok-imagine-video`: 8.7 s output cap; `flux-video-edit`: 15 s, 720p, 50 MiB; `happyhorse-1.0`: 15 s output cap). Trim the clip to the shot you need first.
-3. Estimate the cost: `python scripts/tokenlab_run.py price MODEL`, then per-second price × output seconds. On these models the output length follows the source. `grok-imagine-video` holds the cost of its 8.7 s maximum up front and charges the delivered length. Use the Official price as the upper bound. Tell the user the estimate.
-4. Build the body:
+1. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation video-to-video`. Note `supported_parameters`, `notes`, and `delivery`. Send only listed fields. Grok Imagine video does not use `duration`, `resolution`, or `aspect_ratio` for this operation; leave them out.
+2. Check the source against the model's limits (Grok Imagine video: 8.7 s output cap; FLUX video edit: 15 s, 720p, 50 MiB; HappyHorse: 15 s output cap). Trim the clip to the shot you need first.
+3. Estimate the cost: `python scripts/tokenlab_run.py price MODEL`, then per-second price × output seconds. On these models the output length follows the source. Grok Imagine video holds the cost of its 8.7 s maximum up front and charges the delivered length. Use the Official price as the upper bound. Tell the user the estimate.
+4. Build the body. A prompt-only model with no length field (Grok Imagine video):
 
    ```json
-   {"model": "grok-imagine-video", "operation": "video-to-video", "video_url": "https://....mp4", "prompt": "Turn the scene into a hand-drawn watercolor animation. Keep her pose, motion, and framing."}
+   {"model": "MODEL_ID", "operation": "video-to-video", "video_url": "https://....mp4", "prompt": "Turn the scene into a hand-drawn watercolor animation. Keep her pose, motion, and framing."}
    ```
 
+   A model that requires `duration` (FLUX video edit):
+
    ```json
-   {"model": "flux-video-edit", "operation": "video-to-video", "video_url": "https://....mp4", "prompt": "...", "duration": 2}
+   {"model": "MODEL_ID", "operation": "video-to-video", "video_url": "https://....mp4", "prompt": "...", "duration": 2}
    ```
+
+   Take `MODEL_ID` from the Models list above for `video-to-video`, and send only the fields its contract lists.
 
 5. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID. Poll every 5-10 s.
 6. If a wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
@@ -56,8 +77,8 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 - **Style words that travel well:** a medium ("watercolor", "claymation", "pencil sketch", "anime cel shading"), a palette ("muted teal and orange"), and a light change ("golden hour", "neon night").
 - **Short, clean sources.** Trim to the shot you need. Hard cuts inside the source often break the edit.
 - **Source audio.** Edits can keep the source soundtrack. Do not expect the edit to remove or replace sound; use an editor for audio.
-- **Duration on `flux-video-edit`.** Send `duration` equal to the source length in seconds. It sets the first hold; the final charge follows the delivered clip.
-- **Reference images.** On `kling-omni-video` and `happyhorse-1.0`, add a reference image for a precise look or object instead of a long description.
+- **Duration on FLUX video edit.** Send `duration` equal to the source length in seconds. It sets the first hold; the final charge follows the delivered clip.
+- **Reference images.** On Kling Omni video and HappyHorse, add a reference image for a precise look or object instead of a long description.
 
 ## Quality bar
 

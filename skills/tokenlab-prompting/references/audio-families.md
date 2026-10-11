@@ -1,6 +1,6 @@
 # Audio prompt families: music and speech
 
-Each section starts with the source. "Contract" lines state what the TokenLab model contract lists. Check the live contract before you send a parameter. Numbers marked "maker" come from the model maker's docs and may differ from TokenLab limits.
+Each section starts with the source. The "Models" line gives the family and its ID pattern. Find current IDs with `GET /v1/models?recommended_for=music` or `recommended_for=tts` and pick the ones that match. "Contract" lines state what the TokenLab model contract lists. Check the live contract before you send a parameter. Numbers marked "maker" come from the model maker's docs and may differ from TokenLab limits.
 
 ## Suno
 
@@ -10,7 +10,7 @@ Sources:
 
 No full official prompt manual was read. Treat the points below as maker hints from those pages.
 
-Model: `suno-music`.
+Models: Suno (`suno-*`).
 
 Structure that works:
 - Two kinds of text. Style text says how the song sounds. Lyrics say what is sung. Do not mix them.
@@ -39,7 +39,7 @@ Pitfalls:
 
 Source: https://platform.minimax.io/docs/api-reference/music-generation
 
-Model: `minimax-music-2.6`.
+Models: MiniMax music (`minimax-music-*`).
 
 Structure that works:
 - Style prompt: describe style, mood, and setting with short comma-separated terms. Maker example: genre, emotion, and scene together ("indie folk, introspective, a solitary walk, a coffee shop").
@@ -63,9 +63,9 @@ Pitfalls:
 
 Sources:
 - https://kb.stability.ai/knowledge-base/stable-audio-3-prompt-guide
-- https://github.com/Stability-AI/stable-audio-3/blob/main/docs/guides/prompting.md
+- The prompting guide in Stability AI's Stable Audio 3 GitHub repository (`docs/guides/prompting.md`)
 
-Models: `stable-audio-3`, `stable-audio-3-small-music-text-to-audio`, `stable-audio-3-small-sfx-text-to-audio`, `stable-audio-3-small-sfx-base-text-to-audio`.
+Models: Stable Audio 3, plus its small music, small SFX, and small SFX base models (`stable-audio-*`).
 
 Structure that works:
 - Music: genre first, then main instruments and rhythm, then mood, arrangement, and production feel. Add BPM. Era, place, a recording method, or a listening scene help ("the last song of a long night at a club").
@@ -77,8 +77,8 @@ Structure that works:
 - Results vary per run. Iterate.
 
 Contract:
-- `stable-audio-3`: `prompt`, `duration`, `output_format` (mp3, wav), `seed`, `steps`, `cfg_scale`, `model`.
-- The three `stable-audio-3-small-*` models: `prompt`, `duration`, `seconds`, `seed`, `steps`, `guidance_scale`, `negative_prompt`.
+- Stable Audio 3 (full model): `prompt`, `duration`, `output_format` (mp3, wav), `seed`, `steps`, `cfg_scale`, `model`.
+- The three small models: `prompt`, `duration`, `seconds`, `seed`, `steps`, `guidance_scale`, `negative_prompt`.
 - The maker guide does not cover negative prompts. Use `negative_prompt` only as a light extra.
 
 Examples:
@@ -103,7 +103,7 @@ General rules:
 
 Source: https://docs.x.ai/developers/model-capabilities/audio/text-to-speech
 
-Model: `grok-tts`.
+Models: Grok TTS.
 
 - Voices in the contract: `eve`, `ara`, `rex`, `sal`, `leo`. The maker page does not describe them. Listen to a sample of each before you choose.
 - Maker tags: inline tags like `[pause]`, `[long-pause]`, `[laugh]`; wrapping tags like `<whisper>...</whisper>`, `<slow>`, `<soft>`. Put them where the expression would happen, wrap whole phrases, and do not stack many. Nesting works: `<slow><soft>Goodnight, sleep well.</soft></slow>`.
@@ -114,19 +114,19 @@ Model: `grok-tts`.
 
 Source: https://platform.minimax.io/docs/api-reference/speech-t2a-http
 
-Models: `speech-2.8-hd`, `speech-2.8-turbo`, `minimax-speech-2-8`.
+Models: MiniMax Speech 2.8 HD, Turbo, and the base model (`speech-2.8-*`, `minimax-speech-*`).
 
-- `voice_id` picks the voice; `speed` sets pace (maker range 0.5 to 2, default 1). Contract default voice: `male-qn-qingse`. `speech-2.8-hd` also lists English voice names such as `English_expressive_narrator` and `English_Whispering_girl`.
+- `voice_id` picks the voice; `speed` sets pace (maker range 0.5 to 2, default 1). Contract default voice: `male-qn-qingse`. Speech 2.8 HD also lists English voice names such as `English_expressive_narrator` and `English_Whispering_girl`.
 - Pause marker in the text (maker): `<#1.5#>` for a 1.5 second pause. Put it between speech, not at an edge, and not twice in a row. Range 0.01 to 99.99.
 - Interjection tags in the text (maker, 2.8 models): `(laughs)`, `(sighs)`, `(breath)`, `(gasps)`. Test each one.
 - Maker input limit: under 10,000 characters per call.
-- Contract: `speech-2.8-hd` and `speech-2.8-turbo` list `input`, `voice`, `voice_id`, `speed`, `response_format`. They do not list `emotion`, `vol`, or `pitch`, so set mood with the script and the voice choice. `minimax-speech-2-8` lists `language_code` and `n` and no `speed`.
+- Contract: Speech 2.8 HD and Turbo list `input`, `voice`, `voice_id`, `speed`, `response_format`. They do not list `emotion`, `vol`, or `pitch`, so set mood with the script and the voice choice. The base model (`minimax-speech-*`) lists `language_code` and `n` and no `speed`.
 
 ### ElevenLabs
 
 Source: https://elevenlabs.io/docs/overview/capabilities/text-to-speech/best-practices
 
-Model: `eleven-v4-turbo`.
+Models: ElevenLabs (`eleven-*`).
 
 - v3 and v4 take audio tags in square brackets for delivery, such as emotion, whisper, or a laugh. Describe the voice quality in the tag so it is not read as a sound effect, for example `[low, gravelly voice]`. Match tags to the voice. Test rare tags.
 - Ellipses add a pause and weight. Capital letters add stress. Natural speech punctuation sets the rhythm.
@@ -139,7 +139,7 @@ Model: `eleven-v4-turbo`.
 
 Source: https://www.alibabacloud.com/help/en/model-studio/introduction-to-cosyvoice-ssml-markup-language (SSML) and https://www.alibabacloud.com/help/en/model-studio/cosyvoice-voice-list (instructions).
 
-Model: `cosyvoice-v3.5-plus`.
+Models: CosyVoice (`cosyvoice-*`).
 
 - Maker: SSML tags in the text can set rate, tone, pauses, and volume, but only for some voices. The maker also has an `instruction` field with a strict Chinese format. The TokenLab contract lists neither an SSML switch nor an instruction field.
 - Contract: `input`, `voice`, `speed`, `response_format`. Use `speed` and the voice choice. Do not rely on SSML in `input` until a short test shows it works.
@@ -148,7 +148,7 @@ Model: `cosyvoice-v3.5-plus`.
 
 Source: https://www.alibabacloud.com/help/en/model-studio/qwen-tts
 
-Model: `qwen3-tts-flash`.
+Models: Qwen3 TTS flash (`qwen3-tts-*`).
 
 - The maker says style instructions belong to the separate instruct model, not to the plain flash model. The contract has no instruction field.
 - Contract: `input`, `voice` (default `Cherry`), `language_code`, `speed`, `response_format`. Output is WAV whatever you ask. Set `language_code` to the language of the text for correct sound.

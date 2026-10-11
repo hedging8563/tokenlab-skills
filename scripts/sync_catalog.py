@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Generate skills.sh.json and the README catalog section from catalog.json.
 
-catalog.json owns skill ids, groups, order, and summaries. Run this script after
-you change it. `--check` exits non-zero when a generated file is out of date.
+catalog.json owns skill ids, groups, order, summaries, and the release version.
+Run this script after you change it. `--check` exits non-zero when a generated
+file is out of date. `--bump-patch` raises the patch version in catalog.json,
+plugin.json, and marketplace.json together, then regenerates.
 """
 
 import argparse
@@ -61,10 +63,32 @@ def outputs(catalog):
     }
 
 
+def bump_patch(root=ROOT):
+    """Raise the patch version in every manifest that carries the release version."""
+    catalog_path = root / 'catalog.json'
+    catalog = json.loads(catalog_path.read_text())
+    major, minor, patch = (int(part) for part in catalog['version'].split('.'))
+    version = f'{major}.{minor}.{patch + 1}'
+    catalog['version'] = version
+    catalog_path.write_text(json.dumps(catalog, indent=2) + '\n')
+    plugin_path = root / '.claude-plugin' / 'plugin.json'
+    plugin = json.loads(plugin_path.read_text())
+    plugin['version'] = version
+    plugin_path.write_text(json.dumps(plugin, indent=2) + '\n')
+    marketplace_path = root / '.claude-plugin' / 'marketplace.json'
+    marketplace = json.loads(marketplace_path.read_text())
+    marketplace['metadata']['version'] = version
+    marketplace_path.write_text(json.dumps(marketplace, indent=2) + '\n')
+    return version
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true', help='fail if a generated file is out of date')
+    parser.add_argument('--bump-patch', action='store_true', help='raise the patch version, then regenerate')
     args = parser.parse_args(argv)
+    if args.bump_patch:
+        print(bump_patch())
     stale = []
     for path, content in outputs(load_catalog()).items():
         current = path.read_text() if path.exists() else None
@@ -74,7 +98,7 @@ def main(argv=None):
             stale.append(path.name)
         else:
             path.write_text(content)
-            print(f'wrote {path.name}')
+            print(f'wrote {path.name}', file=sys.stderr)
     if stale:
         print(f"out of date: {', '.join(stale)}; run python3 scripts/sync_catalog.py", file=sys.stderr)
         return 1

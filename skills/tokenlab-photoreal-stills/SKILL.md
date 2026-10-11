@@ -20,13 +20,28 @@ Make images that look like real photographs. The prompt does most of the work: s
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Use | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| General photoreal (text-to-image) | `flux-2-pro` (`resolution` as pixels, for example `1344x768`) | `flux-2-max`, `seedream-5.0-pro` (`aspect_ratio` + `resolution` `1k` / `2k`, `resolution` required), `krea-2-medium` / `krea-2-large` (`width` / `height`), `stable-image-ultra` (`aspect_ratio`), `z-image` (prompt only, max 800 characters) | `flux-2-klein-9b`, `p-image` |
+| `text-to-image` | `flux-2-pro` | default | General photoreal |
+| `text-to-image` | `flux-2-max` | alternative | Highest-detail hero image |
+| `text-to-image` | `seedream-5.0-pro` | alternative | Photoreal, alternative look |
+| `text-to-image` | `krea-2-large` | alternative | Photoreal, alternative look |
+| `text-to-image` | `stable-image-ultra` | alternative | Photoreal, alternative look |
+| `text-to-image` | `flux-2-klein-9b` | alternative | Low-cost draft |
 
-All use `/v1/images/generations`. Send `operation: "text-to-image"` when the contract lists `operation` (`stable-image-ultra` lists only `prompt` and `aspect_ratio`).
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+How to choose:
+
+- **General photoreal:** FLUX.2. Its top tier gives the most detail for a hero image.
+- **Alternative look:** Seedream, Krea, or Stable Image Ultra.
+- **Low-cost draft:** a FLUX.2 Klein model.
+
+All use `/v1/images/generations`. Send `operation: "text-to-image"` when the contract lists `operation` (Stable Image Ultra lists only `prompt` and `aspect_ratio`). Exact fields come from each model's contract.
 
 ## Workflow
 
@@ -35,7 +50,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 1. Read the contract. Note the size field: `resolution` as `WIDTHxHEIGHT`, `aspect_ratio`, `width` / `height`, or none. Send only listed fields.
 2. Estimate the cost from `GET /v1/models/{model}/pricing`: price per image times the image count.
 3. Write the prompt (see Technique). Set the frame size for the use.
-4. Read the response. A sync response has `data[].url`. A response with `status: "pending"` and `poll_url` is a task: poll it every 5–10 s until `completed` or `failed`. In tests, `flux-2-pro` returned a task without `async: true`.
+4. Read the response. A sync response has `data[].url`. A response with `status: "pending"` and `poll_url` is a task: poll it every 5–10 s until `completed` or `failed`. In tests, a FLUX.2 model returned a task without `async: true`.
 5. Check the result against the Quality bar. Re-run with a changed prompt, not the same one, when a detail is wrong.
 6. Return the result URLs, the model, the task IDs, and the prompt you sent.
 
@@ -47,7 +62,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 - **Use positive words, not negatives.** FLUX.2 does not support negative prompts. Say "sharp focus throughout", not "no blur".
 - **Colors by hex.** For brand colors on FLUX.2, tie the code to an object: "the awning is color #1F6F5C".
 - **Skin and hands.** Ask for "natural skin texture" and keep hands in a simple pose, such as holding one object. Check fingers in every result.
-- **Frame size.** On the FLUX family, `resolution` takes pixels: `flux-2-klein-9b` with `1344x768` returned 1344 × 768. A wrong value returns `400` with `param: "resolution"`. `p-image` lists `width` / `height`, but a 768 × 768 test returned 1024 × 1024; use it for square drafts.
+- **Frame size.** On the FLUX family, `resolution` takes pixels: a FLUX.2 Klein model with `1344x768` returned 1344 × 768. A wrong value returns `400` with `param: "resolution"`. P-Image lists `width` / `height`, but a 768 × 768 test returned 1024 × 1024; use it for square drafts.
 - **Draft cheap, then finish.** Explore the composition with a low-cost model, then run the chosen prompt on the default for the final image.
 
 ## Quality bar

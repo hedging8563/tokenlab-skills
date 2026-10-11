@@ -19,13 +19,30 @@ Add new footage after the last frame of a clip. There are two kinds of input: a 
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices, durations, and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Source | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Any public clip (`video_url`) | `seedance-2.0` (`duration` 4-15 s or `-1`, 480p-4k, `output_audio` on or off) | `seedance-2.0-fast` (480p/720p), `seedance-2.5` (480p/720p) | `seedance-2.0-mini` (480p/720p) |
-| A clip that `veo3.1` or `veo3.1-fast` made on TokenLab (`task_id`) | the same model that made the clip | | |
-| A clip that `grok-imagine-video` made on TokenLab (`task_id` + `extend_at` + `extend_times`) | `grok-imagine-video` | | |
+| `video-extension` | `seedance-2.0` | default | Continue any public clip from its video_url |
+| `video-extension` | `seedance-2.0-fast` | alternative | Faster, up to 720p |
+| `video-extension` | `seedance-2.5` | alternative | Newer tier, up to 720p |
+| `video-extension` | `seedance-2.0-mini` | alternative | Low-cost, up to 720p |
+| `video-extension` | `veo3.1-fast` | alternative | Only a clip this model made (task_id) |
+| `video-extension` | `grok-imagine-video` | alternative | Only a clip this model made (task_id) |
+
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+### How to choose
+
+Exact fields and values come from each model's contract.
+
+- **Seedance 2.0:** the default. Continues any public clip from its `video_url`. Adds 4-15 s, 480p up to 4k.
+- **Seedance 2.0 Fast:** faster, up to 720p.
+- **Seedance 2.5:** the newer tier, up to 720p. Adds up to 30 s.
+- **Seedance 2.0 Mini:** low cost, up to 720p.
+- **Veo 3.1 Fast and Grok Imagine video:** extend only a clip that the same model made, by `task_id`.
 
 All use `POST /v1/videos/generations` with `operation: "video-extension"`. Veo and Grok extension have Verified supply only, and they need the task ID of a clip from the same model. If TokenLab rejects the task ID with a `400` (for example `record not found` or `cannot currently honor these request parameters`), that clip cannot be extended on that model. Use the Seedance path with the clip's `video_url`.
 
@@ -42,8 +59,10 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 4. Build the body:
 
    ```json
-   {"model": "seedance-2.0", "operation": "video-extension", "video_url": "https://....mp4", "prompt": "Extend the video: the steam keeps rising from the full mug, and the camera slowly pushes in. Same morning window light.", "duration": 4, "resolution": "480p", "output_audio": false}
+   {"model": "MODEL_ID", "operation": "video-extension", "video_url": "https://....mp4", "prompt": "Extend the video: the steam keeps rising from the full mug, and the camera slowly pushes in. Same morning window light.", "duration": 4, "resolution": "480p", "output_audio": false}
    ```
+
+   Take a Seedance `MODEL_ID` (`seedance-2*`) from the Models list above for `video-extension`. Set `duration` and `resolution` to values its contract lists.
 
 5. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID. Poll every 5-10 s.
 6. If a wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
@@ -56,8 +75,8 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 - **One beat per extension.** Add one action per call. For a long scene, extend several times and check each part before the next call.
 - **Match the source settings.** Use the same aspect ratio and resolution as the source, so the parts join cleanly.
 - **Seedance input rules.** Seedance rejects a source clip that "may contain real person", and that check also caught a photoreal AI-generated person. Real people need TokenLab's Seedance material and real-person verification flow. Very small clips are rejected for pixel count.
-- **Grok fields.** `grok-imagine-video` takes `task_id`, `prompt`, `extend_at` (the second in the source where the new part starts), and `extend_times` (the added seconds as a string, for example `"6"`). It does not take `duration` or `resolution` for this operation.
-- **Veo fields.** `veo3.1` and `veo3.1-fast` take `task_id` (or `origin_task_id`) and `prompt`. Google's Veo docs say an extension continues from the final second of the clip and that a voice is hard to continue if it is not present in the last second.
+- **Grok fields.** Grok Imagine video takes `task_id`, `prompt`, `extend_at` (the second in the source where the new part starts), and `extend_times` (the added seconds as a string, for example `"6"`). It does not take `duration` or `resolution` for this operation.
+- **Veo fields.** Veo 3.1 and Veo 3.1 Fast take `task_id` (or `origin_task_id`) and `prompt`. Google's Veo docs say an extension continues from the final second of the clip and that a voice is hard to continue if it is not present in the last second.
 - **Join the parts.** When both files have the same size, frame rate, and audio layout: `ffmpeg -i part1.mp4 -i part2.mp4 -filter_complex "[0:v][1:v]concat=n=2:v=1:a=0[v]" -map "[v]" joined.mp4` (video only). Add audio back in the editor if you need it.
 
 ## Quality bar

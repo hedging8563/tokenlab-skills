@@ -21,11 +21,29 @@ If the user has only the start image, make the end image by editing it with `tok
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices, durations, and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Need | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| First and last frame (`start-end-to-video`, `start_image` + `end_image`) | `veo3.1-fast` (4, 6, or 8 s; 720p/1080p; 9:16 or 16:9; audio always on; Verified delivery only for this operation) | `seedance-2.0` (4-15 s, 480p-4k), `wan-3.0` (2-30 s, 480p-1080p), `hailuo-h3-max` (5-15 s, 480p/768p, prompt required), `veo3.1` | `viduq3-turbo` (540p-1080p, `output_audio` on or off), `pixverse-v6` (1-15 s, 360p-1080p, silent by default) |
+| `start-end-to-video` | `veo3.1-fast` | default | First and last frame |
+| `start-end-to-video` | `seedance-2.0` | alternative | Alternative; long clips |
+| `start-end-to-video` | `wan-3.0` | alternative | Alternative |
+| `start-end-to-video` | `hailuo-h3-max` | alternative | Alternative; prompt required |
+| `start-end-to-video` | `viduq3-turbo` | alternative | Low-cost draft |
+
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+### How to choose
+
+Exact fields and values come from each model's contract.
+
+- **Veo 3.1 Fast:** the default first-and-last-frame model, with sound. 4, 6, or 8 s at 720p or 1080p.
+- **Seedance 2.0:** an alternative for longer clips (4-15 s), 480p up to 4k.
+- **Wan 3.0:** an alternative, 2-30 s at 480p-1080p. No driving audio in this mode.
+- **Hailuo H3 Max:** an alternative, 5-15 s at 480p or 768p. A prompt is required.
+- **Vidu Q3 Turbo:** a low-cost draft. Lists `output_audio`, so it can be silent. `resolution` is required.
 
 All use `POST /v1/videos/generations` with `operation: "start-end-to-video"`, `start_image`, and `end_image`. Send `output_audio` only when the operation lists it.
 
@@ -39,8 +57,10 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 4. Build the body:
 
    ```json
-   {"model": "viduq3-turbo", "operation": "start-end-to-video", "start_image": "https://...empty-mug.jpg", "end_image": "https://...full-mug.jpg", "prompt": "Hot black coffee pours into the empty white mug from above until it is full, then soft steam rises. Static camera, same morning window light.", "duration": 2, "resolution": "540p", "output_audio": false}
+   {"model": "MODEL_ID", "operation": "start-end-to-video", "start_image": "https://...empty-mug.jpg", "end_image": "https://...full-mug.jpg", "prompt": "Hot black coffee pours into the empty white mug from above until it is full, then soft steam rises. Static camera, same morning window light.", "duration": 2, "resolution": "540p", "output_audio": false}
    ```
+
+   Take `MODEL_ID` from the Models list above for `start-end-to-video`. Set `duration` and `resolution` to values its contract lists, and send `output_audio` only when it is listed.
 
 5. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID. Poll every 5-10 s.
 6. If a wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
@@ -54,7 +74,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 - **One change per clip.** A single pour, turn, or reveal works best. Chain more clips for more changes.
 - **Give it time.** Large changes need more seconds. Keep 2-4 s for small changes and 6-8 s for big moves.
 - **Lock the camera when the subject moves.** "Static camera" keeps the frames aligned; add one camera move only when the frames differ by viewpoint.
-- **Prompt rules.** `hailuo-h3-max` needs a non-empty prompt for every operation. `wan-3.0` does not take driving audio in first/last-frame mode.
+- **Prompt rules.** Hailuo H3 Max needs a non-empty prompt for every operation. Wan 3.0 does not take driving audio in first/last-frame mode.
 - **Sound.** Veo models always add audio; describe it. For silent output, pick a model that lists `output_audio` and send `false`.
 
 ## Quality bar

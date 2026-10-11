@@ -20,13 +20,27 @@ Turn speech into text you can ship: a clean transcript, timed SRT or VTT subtitl
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change. Find current models with `GET /v1/models?recommended_for=stt` and `GET /v1/models?recommended_for=translation`.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Stage | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Timed transcript for subtitles | `whisper-large-v3-turbo` (`response_format: "verbose_json"`, `timestamp_granularities[]=word`) | `whisper-large-v3` | `whisper-large-v3-turbo` |
-| Plain transcript (no timings needed) | `qwen3-asr-flash` (`language`, `prompt`, `response_format`: `json`, `text`, `verbose_json`) | `fun-asr` (can return a task), `grok-stt`, `fish-transcribe-1` (`json` only) | `whisper-large-v3-turbo` |
-| Translate transcript or cue text | `doubao-seed-translation` on `/v1/translations` (`text`, `target_language`, `source_language`) | A chat model, when you need tone or glossary control | |
+| `stt` | `whisper-large-v3-turbo` | default | Timed transcript for subtitles |
+| `stt` | `whisper-large-v3` | alternative | Timed transcript, alternative |
+| `stt` | `qwen3-asr-flash` | alternative | Plain transcript |
+| `stt` | `fun-asr` | alternative | Plain transcript, alternative |
+| `translation` | `doubao-seed-translation` | default | Translate transcript or cue text |
+
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+How to choose:
+
+- **Timed transcript for subtitles:** Whisper. The turbo tier is the default; large v3 is the alternative. `verbose_json` returns `segments`, and word timings when you ask for them.
+- **Plain transcript:** Qwen ASR, or Fun ASR as the alternative. Qwen ASR takes `prompt` for spelling. Check for timings before you build subtitles from it.
+- **Translate transcript or cue text:** Doubao Seed Translation, through `/v1/translations`.
+
+Exact fields come from the model contract.
 
 Do not use `/v1/audio/translations` for this skill. Translate the text with `/v1/translations` instead.
 
@@ -34,11 +48,11 @@ Do not use `/v1/audio/translations` for this skill. Translate the text with `/v1
 
 Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
 
-1. Read the contracts: `python scripts/tokenlab_run.py contract whisper-large-v3-turbo --operation stt` and `contract doubao-seed-translation --operation translation`.
+1. Read the contracts: `python scripts/tokenlab_run.py contract MODEL_ID --operation stt` for the speech-to-text model and `contract MODEL_ID --operation translation` for the translation model. Take `MODEL_ID` from the Models list above.
 2. Check the file. If it is over 25 MB, cut it into parts at silences, or extract a mono audio track from the video (for example `ffmpeg -i in.mp4 -vn -ac 1 -b:a 64k out.mp3`). Keep each part's start offset.
 3. Estimate. Speech-to-text prices per second of audio; some models bill a minimum length per request (read `minimumUnitCount` in `GET /v1/models/{model}/pricing`). Example: a 5.5 s clip on a 10 s minimum is billed as 10 s × (price per second). Translation prices per token.
 4. Transcribe with timings. Multipart upload:
-   `python scripts/tokenlab_run.py run /v1/audio/transcriptions --form model=whisper-large-v3-turbo --form response_format=verbose_json --form 'timestamp_granularities[]=word' --form language=en --file file=@clip.mp3 > transcript.json`
+   `python scripts/tokenlab_run.py run /v1/audio/transcriptions --form model=MODEL_ID --form response_format=verbose_json --form 'timestamp_granularities[]=word' --form language=en --file file=@clip.mp3 > transcript.json`
    The response can be the transcript or a task (`status` + `poll_url`). If it is a task, poll it.
 5. Build subtitles from the timings: `python scripts/subtitles.py transcript.json --format srt --max-chars 42 > clip.en.srt` (or `--format vtt`). This works even when a model cannot return SRT or VTT itself. Add each part's start offset if you split the file.
 6. Translate cue by cue, so each cue keeps its time:
@@ -53,7 +67,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 - **Ask for `verbose_json`.** It returns `segments` with `start` and `end`, and word timings when you ask for them. Build SRT/VTT from that. Direct `response_format=srt` or `vtt` is documented for Whisper, but if it fails, the `verbose_json` path still works.
 - **Whisper fields.** The Whisper model contracts list only `file` and `language`, but the transcription API reference documents `response_format` and `timestamp_granularities` for Whisper, and both work today. If a call returns `400 unsupported_parameter`, drop them and fall back to plain `json` text.
 - **Send `language` when you know it.** It avoids a wrong-language guess on short or noisy clips.
-- **Use `prompt` for spelling** on models that list it (`qwen3-asr-flash`): put names and terms in it, for example "TokenLab, Kubernetes, Dr. Okafor".
+- **Use `prompt` for spelling** on models that list it (Qwen ASR): put names and terms in it, for example "TokenLab, Kubernetes, Dr. Okafor".
 - **Not every `verbose_json` has timings.** Some models return only `text`, `language`, and `duration`. Use a Whisper model when you need segments.
 - **Cue length:** about 42 characters per line and one or two lines per cue reads well. `--max-chars` splits long segments on word timings.
 - **Translate text, not files.** Send cue lines, not the SRT with timestamps; the translator can merge or drop lines. Keep the line count equal to the cue count.

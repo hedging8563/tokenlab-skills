@@ -124,15 +124,7 @@
       "id": "tokenlab-prompting",
       "group": "foundation",
       "summary": "Prompt craft per model family for image, video, music, and speech.",
-      "operations": [
-        "text-to-image",
-        "image-to-image",
-        "image-edit",
-        "text-to-video",
-        "image-to-video",
-        "music",
-        "tts"
-      ],
+      "operations": [],
       "endpoints": [],
       "mcpTools": [
         "get_model"
@@ -157,7 +149,59 @@
         "edit_image",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-product-photography"
+      "path": "skills/tokenlab-product-photography",
+      "preferredModels": [
+        {
+          "id": "nano-banana-2",
+          "operation": "image-to-image",
+          "use": "Restage an existing product photo"
+        },
+        {
+          "id": "seedream-5.0",
+          "operation": "image-to-image",
+          "use": "Restage, alternative look"
+        },
+        {
+          "id": "nano-banana-2-lite",
+          "operation": "image-to-image",
+          "use": "Low-cost restage"
+        },
+        {
+          "id": "flux-2-pro",
+          "operation": "text-to-image",
+          "use": "Shot from a written brief"
+        },
+        {
+          "id": "seedream-5.0",
+          "operation": "text-to-image",
+          "use": "Shot from a brief, alternative look"
+        },
+        {
+          "id": "recraft-v4.1-utility",
+          "operation": "text-to-image",
+          "use": "Flat catalog mockup"
+        },
+        {
+          "id": "p-image",
+          "operation": "text-to-image",
+          "use": "Low-cost draft"
+        },
+        {
+          "id": "bria-rmbg-v2-0",
+          "operation": "image-edit",
+          "use": "Cut out the background"
+        },
+        {
+          "id": "ideogram-replace-background-v3-turbo",
+          "operation": "image-edit",
+          "use": "Replace the background in place"
+        },
+        {
+          "id": "ideogram-replace-background-v3",
+          "operation": "image-edit",
+          "use": "Replace the background, higher tier"
+        }
+      ]
     },
     {
       "id": "tokenlab-edit-image",
@@ -178,7 +222,69 @@
         "upload_file",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-edit-image"
+      "path": "skills/tokenlab-edit-image",
+      "preferredModels": [
+        {
+          "id": "nano-banana-2",
+          "operation": "image-edit",
+          "use": "Prompt-only edit: add, remove, replace, recolor"
+        },
+        {
+          "id": "flux-kontext-pro",
+          "operation": "image-edit",
+          "use": "Prompt-only edit, alternative"
+        },
+        {
+          "id": "qwen-image-edit-2511",
+          "operation": "image-edit",
+          "use": "Prompt-only edit, alternative"
+        },
+        {
+          "id": "gpt-image-2",
+          "operation": "image-edit",
+          "use": "Edit with an optional mask"
+        },
+        {
+          "id": "p-image-edit",
+          "operation": "image-edit",
+          "use": "Low-cost prompt-only edit"
+        },
+        {
+          "id": "ideogram-edit-v3-turbo",
+          "operation": "image-edit",
+          "use": "Masked edit of a marked area"
+        },
+        {
+          "id": "stability-inpaint",
+          "operation": "image-edit",
+          "use": "Masked edit, alternative"
+        },
+        {
+          "id": "bria-rmbg-v2-0",
+          "operation": "image-edit",
+          "use": "Cut out the subject (transparent PNG)"
+        },
+        {
+          "id": "ideogram-replace-background-v3-turbo",
+          "operation": "image-edit",
+          "use": "New background, same subject"
+        },
+        {
+          "id": "ideogram-reframe-v3-turbo",
+          "operation": "image-edit",
+          "use": "Extend the frame (outpaint)"
+        },
+        {
+          "id": "nano-banana-2",
+          "operation": "image-to-image",
+          "use": "New image from reference images"
+        },
+        {
+          "id": "seedream-5.0",
+          "operation": "image-to-image",
+          "use": "New image from references, alternative"
+        }
+      ]
     },
     {
       "id": "tokenlab-restore-and-upscale",
@@ -196,7 +302,37 @@
         "edit_image",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-restore-and-upscale"
+      "path": "skills/tokenlab-restore-and-upscale",
+      "preferredModels": [
+        {
+          "id": "stability-upscale-fast",
+          "use": "Upscale"
+        },
+        {
+          "id": "topaz-labs-wonder-3-5",
+          "use": "Upscale, alternative"
+        },
+        {
+          "id": "bria-image-increase-resolution",
+          "use": "Upscale, alternative"
+        },
+        {
+          "id": "stability-upscale-conservative",
+          "use": "Upscale with a guiding prompt"
+        },
+        {
+          "id": "p-image-upscale",
+          "use": "Low-cost upscale"
+        },
+        {
+          "id": "nano-banana-2",
+          "use": "Repair damage, fading, or blur before the upscale"
+        },
+        {
+          "id": "p-image-edit",
+          "use": "Low-cost repair"
+        }
+      ]
     },
     {
       "id": "tokenlab-text-in-image",
@@ -215,7 +351,49 @@
         "edit_image",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-text-in-image"
+      "path": "skills/tokenlab-text-in-image",
+      "preferredModels": [
+        {
+          "id": "ideogram-4-5",
+          "operation": "text-to-image",
+          "use": "New design with exact text"
+        },
+        {
+          "id": "ideogram-generate-v3-turbo",
+          "operation": "text-to-image",
+          "use": "Design with text, alternative"
+        },
+        {
+          "id": "nano-banana-pro",
+          "operation": "text-to-image",
+          "use": "Design with text, alternative"
+        },
+        {
+          "id": "gpt-image-2",
+          "operation": "text-to-image",
+          "use": "Design with text, alternative"
+        },
+        {
+          "id": "p-image-ideogram",
+          "operation": "text-to-image",
+          "use": "Low-cost draft"
+        },
+        {
+          "id": "ideogram-4-5",
+          "operation": "image-edit",
+          "use": "Fix or replace text in an image"
+        },
+        {
+          "id": "nano-banana-2",
+          "operation": "image-edit",
+          "use": "Fix text, alternative"
+        },
+        {
+          "id": "gpt-image-2",
+          "operation": "image-edit",
+          "use": "Fix text with a mask"
+        }
+      ]
     },
     {
       "id": "tokenlab-character-consistency",
@@ -237,7 +415,64 @@
         "create_video",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-character-consistency"
+      "path": "skills/tokenlab-character-consistency",
+      "preferredModels": [
+        {
+          "id": "nano-banana-2",
+          "operation": "text-to-image",
+          "use": "Make the anchor image"
+        },
+        {
+          "id": "flux-2-pro",
+          "operation": "text-to-image",
+          "use": "Anchor image, alternative"
+        },
+        {
+          "id": "ideogram-character-v3",
+          "operation": "text-to-image",
+          "use": "New image from one face reference"
+        },
+        {
+          "id": "p-image",
+          "operation": "text-to-image",
+          "use": "Low-cost anchor"
+        },
+        {
+          "id": "nano-banana-2",
+          "operation": "image-to-image",
+          "use": "New scene from the anchor"
+        },
+        {
+          "id": "ideogram-character-remix-v3",
+          "operation": "image-to-image",
+          "use": "New scene, alternative"
+        },
+        {
+          "id": "seedream-5.0",
+          "operation": "image-to-image",
+          "use": "New scene, alternative"
+        },
+        {
+          "id": "nano-banana-2-lite",
+          "operation": "image-to-image",
+          "use": "Low-cost new scene"
+        },
+        {
+          "id": "grok-imagine-video",
+          "operation": "reference-to-video",
+          "use": "Short clip with the character"
+        },
+        {
+          "id": "kling-omni-video",
+          "operation": "reference-to-video",
+          "use": "Clip, alternative"
+        },
+        {
+          "id": "seedance-2.0",
+          "operation": "reference-to-video",
+          "use": "Clip with many references"
+        }
+      ]
     },
     {
       "id": "tokenlab-photoreal-stills",
@@ -253,7 +488,33 @@
         "create_image",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-photoreal-stills"
+      "path": "skills/tokenlab-photoreal-stills",
+      "preferredModels": [
+        {
+          "id": "flux-2-pro",
+          "use": "General photoreal"
+        },
+        {
+          "id": "flux-2-max",
+          "use": "Highest-detail hero image"
+        },
+        {
+          "id": "seedream-5.0-pro",
+          "use": "Photoreal, alternative look"
+        },
+        {
+          "id": "krea-2-large",
+          "use": "Photoreal, alternative look"
+        },
+        {
+          "id": "stable-image-ultra",
+          "use": "Photoreal, alternative look"
+        },
+        {
+          "id": "flux-2-klein-9b",
+          "use": "Low-cost draft"
+        }
+      ]
     },
     {
       "id": "tokenlab-logos-and-vectors",
@@ -270,7 +531,39 @@
         "create_image",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-logos-and-vectors"
+      "path": "skills/tokenlab-logos-and-vectors",
+      "preferredModels": [
+        {
+          "id": "recraft-v4.1",
+          "operation": "text-to-image",
+          "use": "Mark or icon (raster)"
+        },
+        {
+          "id": "recraft-v4.1-pro",
+          "operation": "text-to-image",
+          "use": "Mark at a larger size"
+        },
+        {
+          "id": "ideogram-4-5",
+          "operation": "text-to-image",
+          "use": "Mark with words"
+        },
+        {
+          "id": "recraft-v4.1-flash",
+          "operation": "text-to-image",
+          "use": "Low-cost draft"
+        },
+        {
+          "id": "recraft-vectorize",
+          "operation": "image-edit",
+          "use": "Raster to SVG"
+        },
+        {
+          "id": "picsart-image-vectorizer",
+          "operation": "image-edit",
+          "use": "Raster to SVG, alternative"
+        }
+      ]
     },
     {
       "id": "tokenlab-animate-image",
@@ -286,7 +579,33 @@
         "create_video",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-animate-image"
+      "path": "skills/tokenlab-animate-image",
+      "preferredModels": [
+        {
+          "id": "veo3.1-fast",
+          "use": "General image-to-video with sound"
+        },
+        {
+          "id": "kling-v3.0",
+          "use": "Alternative; sound on or off"
+        },
+        {
+          "id": "hailuo-h3",
+          "use": "Alternative with native audio"
+        },
+        {
+          "id": "seedance-2.0",
+          "use": "Alternative; long clips and high resolution"
+        },
+        {
+          "id": "pixverse-v6",
+          "use": "Silent loop or background plate"
+        },
+        {
+          "id": "grok-imagine-video",
+          "use": "Low-cost draft"
+        }
+      ]
     },
     {
       "id": "tokenlab-product-ad-video",
@@ -305,7 +624,59 @@
         "create_video",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-product-ad-video"
+      "path": "skills/tokenlab-product-ad-video",
+      "preferredModels": [
+        {
+          "id": "veo3.1-fast",
+          "operation": "image-to-video",
+          "use": "Animate one product still"
+        },
+        {
+          "id": "veo3.1",
+          "operation": "image-to-video",
+          "use": "Higher tier"
+        },
+        {
+          "id": "kling-v3.0",
+          "operation": "image-to-video",
+          "use": "Alternative; sound on or off"
+        },
+        {
+          "id": "grok-imagine-video",
+          "operation": "image-to-video",
+          "use": "Low-cost draft"
+        },
+        {
+          "id": "seedance-2.0",
+          "operation": "reference-to-video",
+          "use": "Keep the product from several photos"
+        },
+        {
+          "id": "veo3.1-fast",
+          "operation": "reference-to-video",
+          "use": "References, alternative"
+        },
+        {
+          "id": "grok-imagine-video",
+          "operation": "reference-to-video",
+          "use": "Low-cost references"
+        },
+        {
+          "id": "veo3.1-fast",
+          "operation": "text-to-video",
+          "use": "Brief only, no photo"
+        },
+        {
+          "id": "seedance-2.0",
+          "operation": "text-to-video",
+          "use": "Brief only, alternative"
+        },
+        {
+          "id": "grok-imagine-video",
+          "operation": "text-to-video",
+          "use": "Low-cost draft"
+        }
+      ]
     },
     {
       "id": "tokenlab-keyframe-transition",
@@ -321,7 +692,29 @@
         "create_video",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-keyframe-transition"
+      "path": "skills/tokenlab-keyframe-transition",
+      "preferredModels": [
+        {
+          "id": "veo3.1-fast",
+          "use": "First and last frame"
+        },
+        {
+          "id": "seedance-2.0",
+          "use": "Alternative; long clips"
+        },
+        {
+          "id": "wan-3.0",
+          "use": "Alternative"
+        },
+        {
+          "id": "hailuo-h3-max",
+          "use": "Alternative; prompt required"
+        },
+        {
+          "id": "viduq3-turbo",
+          "use": "Low-cost draft"
+        }
+      ]
     },
     {
       "id": "tokenlab-extend-video",
@@ -337,7 +730,33 @@
         "create_video",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-extend-video"
+      "path": "skills/tokenlab-extend-video",
+      "preferredModels": [
+        {
+          "id": "seedance-2.0",
+          "use": "Continue any public clip from its video_url"
+        },
+        {
+          "id": "seedance-2.0-fast",
+          "use": "Faster, up to 720p"
+        },
+        {
+          "id": "seedance-2.5",
+          "use": "Newer tier, up to 720p"
+        },
+        {
+          "id": "seedance-2.0-mini",
+          "use": "Low-cost, up to 720p"
+        },
+        {
+          "id": "veo3.1-fast",
+          "use": "Only a clip this model made (task_id)"
+        },
+        {
+          "id": "grok-imagine-video",
+          "use": "Only a clip this model made (task_id)"
+        }
+      ]
     },
     {
       "id": "tokenlab-edit-video",
@@ -353,7 +772,29 @@
         "create_video",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-edit-video"
+      "path": "skills/tokenlab-edit-video",
+      "preferredModels": [
+        {
+          "id": "grok-imagine-video",
+          "use": "Prompt-only restyle of a short clip"
+        },
+        {
+          "id": "kling-omni-video",
+          "use": "Change guided by reference images"
+        },
+        {
+          "id": "flux-video-edit",
+          "use": "Prompt-only edit, alternative"
+        },
+        {
+          "id": "happyhorse-1.0",
+          "use": "References, alternative"
+        },
+        {
+          "id": "seedance-2.0",
+          "use": "Alternative"
+        }
+      ]
     },
     {
       "id": "tokenlab-motion-control",
@@ -369,7 +810,17 @@
         "create_video",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-motion-control"
+      "path": "skills/tokenlab-motion-control",
+      "preferredModels": [
+        {
+          "id": "kling-2.6-motion-control",
+          "use": "Character image plus motion video"
+        },
+        {
+          "id": "kling-3.0-motion-control",
+          "use": "Newer tier"
+        }
+      ]
     },
     {
       "id": "tokenlab-talking-avatar",
@@ -388,7 +839,34 @@
         "create_speech",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-talking-avatar"
+      "path": "skills/tokenlab-talking-avatar",
+      "preferredModels": [
+        {
+          "id": "omnihuman-1-5",
+          "operation": "image-to-video",
+          "use": "Portrait plus speech audio"
+        },
+        {
+          "id": "veed-fabric-1-0",
+          "operation": "image-to-video",
+          "use": "Portrait plus speech, alternative"
+        },
+        {
+          "id": "p-video-avatar",
+          "operation": "image-to-video",
+          "use": "Low-cost portrait plus speech"
+        },
+        {
+          "id": "veo3.1-fast",
+          "operation": "image-to-video",
+          "use": "Portrait plus a short quoted line, no audio file"
+        },
+        {
+          "id": "grok-tts",
+          "operation": "tts",
+          "use": "Script to speech audio"
+        }
+      ]
     },
     {
       "id": "tokenlab-cinematic-video",
@@ -405,7 +883,33 @@
         "create_video",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-cinematic-video"
+      "path": "skills/tokenlab-cinematic-video",
+      "preferredModels": [
+        {
+          "id": "veo3.1",
+          "use": "Cinematic shot with sound"
+        },
+        {
+          "id": "seedance-2.0",
+          "use": "Alternative; long clips, 21:9"
+        },
+        {
+          "id": "kling-v3.0",
+          "use": "Alternative"
+        },
+        {
+          "id": "hailuo-h3",
+          "use": "Alternative; negative prompt"
+        },
+        {
+          "id": "wan-3.0",
+          "use": "Alternative; long clips"
+        },
+        {
+          "id": "grok-imagine-video",
+          "use": "Low-cost draft"
+        }
+      ]
     },
     {
       "id": "tokenlab-voiceover",
@@ -420,7 +924,37 @@
       "mcpTools": [
         "create_speech"
       ],
-      "path": "skills/tokenlab-voiceover"
+      "path": "skills/tokenlab-voiceover",
+      "preferredModels": [
+        {
+          "id": "grok-tts",
+          "use": "General narration and app voice"
+        },
+        {
+          "id": "eleven-v4-turbo",
+          "use": "Alternative voices"
+        },
+        {
+          "id": "speech-2.8-hd",
+          "use": "Large voice library, speed control"
+        },
+        {
+          "id": "speech-2.8-turbo",
+          "use": "Faster tier of the large library"
+        },
+        {
+          "id": "cosyvoice-v3.5-plus",
+          "use": "Alternative"
+        },
+        {
+          "id": "kling-tts",
+          "use": "Many short lines at a flat per-request price"
+        },
+        {
+          "id": "qwen3-tts-flash",
+          "use": "Low-cost named voices"
+        }
+      ]
     },
     {
       "id": "tokenlab-transcribe-and-subtitle",
@@ -439,7 +973,34 @@
         "translate_text",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-transcribe-and-subtitle"
+      "path": "skills/tokenlab-transcribe-and-subtitle",
+      "preferredModels": [
+        {
+          "id": "whisper-large-v3-turbo",
+          "operation": "stt",
+          "use": "Timed transcript for subtitles"
+        },
+        {
+          "id": "whisper-large-v3",
+          "operation": "stt",
+          "use": "Timed transcript, alternative"
+        },
+        {
+          "id": "qwen3-asr-flash",
+          "operation": "stt",
+          "use": "Plain transcript"
+        },
+        {
+          "id": "fun-asr",
+          "operation": "stt",
+          "use": "Plain transcript, alternative"
+        },
+        {
+          "id": "doubao-seed-translation",
+          "operation": "translation",
+          "use": "Translate transcript or cue text"
+        }
+      ]
     },
     {
       "id": "tokenlab-music",
@@ -455,7 +1016,33 @@
         "create_music",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-music"
+      "path": "skills/tokenlab-music",
+      "preferredModels": [
+        {
+          "id": "suno-music",
+          "use": "Song with vocals and lyrics, or instrumental"
+        },
+        {
+          "id": "minimax-music-2.6",
+          "use": "Song, alternative"
+        },
+        {
+          "id": "stable-audio-3",
+          "use": "Instrumental with length control"
+        },
+        {
+          "id": "stable-audio-3-small-music-text-to-audio",
+          "use": "Short loop or bed for video"
+        },
+        {
+          "id": "stable-audio-3-small-sfx-text-to-audio",
+          "use": "Sound effect"
+        },
+        {
+          "id": "stable-audio-3-small-sfx-base-text-to-audio",
+          "use": "Sound effect, alternative"
+        }
+      ]
     },
     {
       "id": "tokenlab-image-to-3d-asset",
@@ -472,7 +1059,35 @@
         "create_3d_model",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-image-to-3d-asset"
+      "path": "skills/tokenlab-image-to-3d-asset",
+      "preferredModels": [
+        {
+          "id": "tripo-h3.1",
+          "use": "Photo or text to a 3D object"
+        },
+        {
+          "id": "rodin-gen-2",
+          "use": "Lighter mesh for games or the web"
+        },
+        {
+          "id": "seed3d-2.0",
+          "operation": "image-to-3d",
+          "use": "Photo to 3D, alternative"
+        },
+        {
+          "id": "tripo-3d-v3-1",
+          "operation": "text-to-3d",
+          "use": "Text to 3D, alternative"
+        },
+        {
+          "id": "tripo-p1.0",
+          "use": "Alternative"
+        },
+        {
+          "id": "meshy-6",
+          "use": "Alternative"
+        }
+      ]
     },
     {
       "id": "tokenlab-world-generation",
@@ -489,7 +1104,25 @@
         "get_world_status",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-world-generation"
+      "path": "skills/tokenlab-world-generation",
+      "preferredModels": [
+        {
+          "id": "marble-1.0-draft",
+          "use": "Draft a layout or idea"
+        },
+        {
+          "id": "marble-1.1",
+          "use": "Final world"
+        },
+        {
+          "id": "marble-1.1-plus",
+          "use": "Large outdoor or indoor space"
+        },
+        {
+          "id": "marble-1.0",
+          "use": "Final world, earlier tier"
+        }
+      ]
     },
     {
       "id": "tokenlab-decisions",
@@ -504,7 +1137,13 @@
       "mcpTools": [
         "evaluate_decisions"
       ],
-      "path": "skills/tokenlab-decisions"
+      "path": "skills/tokenlab-decisions",
+      "preferredModels": [
+        {
+          "id": "jev-1.13",
+          "use": "Typed decisions on text or JSON"
+        }
+      ]
     },
     {
       "id": "tokenlab-api-integration",
@@ -524,7 +1163,24 @@
         "get_model",
         "get_task_status"
       ],
-      "path": "skills/tokenlab-api-integration"
+      "path": "skills/tokenlab-api-integration",
+      "preferredModels": [
+        {
+          "id": "gpt-5.6-luna",
+          "operation": "chat",
+          "use": "Example for Chat Completions clients (OpenCode, Pi, Hermes)"
+        },
+        {
+          "id": "gpt-5.6-sol",
+          "operation": "chat",
+          "use": "Example for Responses clients (Codex)"
+        },
+        {
+          "id": "claude-sonnet-4-6",
+          "operation": "chat",
+          "use": "Example for Messages clients (Claude Code)"
+        }
+      ]
     },
     {
       "id": "tokenlab-native-endpoints",
@@ -546,7 +1202,29 @@
         "create_gemini_content",
         "evaluate_decisions"
       ],
-      "path": "skills/tokenlab-native-endpoints"
+      "path": "skills/tokenlab-native-endpoints",
+      "preferredModels": [
+        {
+          "id": "gpt-5.6-sol",
+          "operation": "chat",
+          "use": "Example for Responses"
+        },
+        {
+          "id": "claude-sonnet-4-6",
+          "operation": "chat",
+          "use": "Example for Anthropic Messages"
+        },
+        {
+          "id": "gemini-3.5-flash",
+          "operation": "chat",
+          "use": "Example for Gemini generateContent"
+        },
+        {
+          "id": "jev-1.13",
+          "operation": "systemone",
+          "use": "Example for System One decisions"
+        }
+      ]
     },
     {
       "id": "tokenlab-cost-routing",
@@ -579,7 +1257,14 @@
         "list_models",
         "get_model"
       ],
-      "path": "skills/tokenlab-openai-compatible-migration"
+      "path": "skills/tokenlab-openai-compatible-migration",
+      "preferredModels": [
+        {
+          "id": "gpt-5.6-luna",
+          "operation": "chat",
+          "use": "Example for Chat Completions"
+        }
+      ]
     }
   ]
 }

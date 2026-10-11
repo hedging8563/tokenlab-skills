@@ -20,14 +20,33 @@ Turn a product into a short ad clip that keeps the product exact. Start from a g
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices, durations, and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Shot | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Animate one product still (`image-to-video`, `image_url`) | `veo3.1-fast` (4, 6, or 8 s; 720p/1080p; 9:16 or 16:9; audio always on) | `veo3.1` (same fields, higher tier), `kling-v3.0` (3-15 s, `output_audio` on or off), `seedance-2.0` (4-15 s, 480p-4k) | `grok-imagine-video` (1-15 s, 480p/720p), `pixverse-v6` (1-15 s, 360p-1080p, silent by default) |
-| Keep the product from several photos (`reference-to-video`, `reference_images`) | `seedance-2.0` (up to 9 reference images; optional `video_urls` and `audio_urls`) | `veo3.1-fast` (8 s only for this operation), `hailuo-h3` (1-5 images, 6 or 10 s, 768p) | `grok-imagine-video` (up to 7 images, max 10 s) |
-| Brief only, no photo (`text-to-video`) | `veo3.1-fast` | `kling-v3.0`, `seedance-2.0`, `hailuo-h3` | `grok-imagine-video`, `pixverse-v6` |
-| Make the product still first | See `tokenlab-product-photography` | | |
+| `image-to-video` | `veo3.1-fast` | default | Animate one product still |
+| `image-to-video` | `veo3.1` | alternative | Higher tier |
+| `image-to-video` | `kling-v3.0` | alternative | Alternative; sound on or off |
+| `image-to-video` | `grok-imagine-video` | alternative | Low-cost draft |
+| `reference-to-video` | `seedance-2.0` | default | Keep the product from several photos |
+| `reference-to-video` | `veo3.1-fast` | alternative | References, alternative |
+| `reference-to-video` | `grok-imagine-video` | alternative | Low-cost references |
+| `text-to-video` | `veo3.1-fast` | default | Brief only, no photo |
+| `text-to-video` | `seedance-2.0` | alternative | Brief only, alternative |
+| `text-to-video` | `grok-imagine-video` | alternative | Low-cost draft |
+
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+### How to choose
+
+Exact fields and values come from each model's contract.
+
+- **One product still (`image-to-video`):** Veo 3.1 Fast is the default, with sound, 4, 6, or 8 s at 720p or 1080p. Veo 3.1 is the higher tier. Kling 3.0 is an alternative with sound on or off. Grok Imagine video makes a low-cost draft.
+- **Several product photos (`reference-to-video`):** Seedance 2.0 keeps the product from several photos. Veo 3.1 Fast is an alternative; it takes 8 s only for this operation. Grok Imagine video makes low-cost reference drafts (1-10 s).
+- **Brief only, no photo (`text-to-video`):** Veo 3.1 Fast, then Seedance 2.0 as an alternative. Grok Imagine video makes a low-cost draft.
+- **Sound:** Veo always adds audio. For silent shots, pick a model whose contract lists `output_audio`.
 
 All video calls use `POST /v1/videos/generations` with an explicit `operation`. Send `output_audio` only when the operation lists it.
 
@@ -41,8 +60,10 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 4. Build one body per shot:
 
    ```json
-   {"model": "veo3.1-fast", "operation": "image-to-video", "image_url": "https://...", "prompt": "Slow push-in on the white ceramic mug on a walnut table. Soft morning light moves across the glaze. Coffee steam rises. Quiet room tone, a soft clink. The mug shape, color, and logo stay exactly the same.", "duration": 6, "resolution": "720p", "aspect_ratio": "9:16"}
+   {"model": "MODEL_ID", "operation": "image-to-video", "image_url": "https://...", "prompt": "Slow push-in on the white ceramic mug on a walnut table. Soft morning light moves across the glaze. Coffee steam rises. Quiet room tone, a soft clink. The mug shape, color, and logo stay exactly the same.", "duration": 6, "resolution": "720p", "aspect_ratio": "9:16"}
    ```
+
+   Take `MODEL_ID` from the Models list above for the shot's operation. Set `duration` and `resolution` to values its contract lists.
 
 5. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @shot1.json --wait`. Save each task ID. Poll every 5-10 s.
 6. If a wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.

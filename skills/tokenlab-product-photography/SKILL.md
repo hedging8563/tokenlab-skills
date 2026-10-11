@@ -20,14 +20,33 @@ Make catalog-, ad-, or hero-ready product images from a plain photo or a written
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Stage | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Restage an existing product photo (image-to-image) | `nano-banana-2` (`operation: "image-to-image"`, `image_urls`) | `seedream-5.0` (image-to-image on `/v1/images/edits`), `flux-2-pro` (image-edit) | `nano-banana-2-lite` |
-| Generate a shot from a brief (text-to-image) | `flux-2-pro` | `seedream-5.0`, `nano-banana-2`, `recraft-v4.1-utility` for flat catalog mockups | `p-image`, `flux-2-klein-9b` |
-| Cut out the background | `bria-rmbg-v2-0` (`operation: "image-edit"`) | | |
-| Replace the background in place | `ideogram-replace-background-v3-turbo` (`image_url` + `prompt`) | `ideogram-replace-background-v3` | |
+| `text-to-image` | `flux-2-pro` | default | Shot from a written brief |
+| `text-to-image` | `seedream-5.0` | alternative | Shot from a brief, alternative look |
+| `text-to-image` | `recraft-v4.1-utility` | alternative | Flat catalog mockup |
+| `text-to-image` | `p-image` | alternative | Low-cost draft |
+| `image-to-image` | `nano-banana-2` | default | Restage an existing product photo |
+| `image-to-image` | `seedream-5.0` | alternative | Restage, alternative look |
+| `image-to-image` | `nano-banana-2-lite` | alternative | Low-cost restage |
+| `image-edit` | `bria-rmbg-v2-0` | default | Cut out the background |
+| `image-edit` | `ideogram-replace-background-v3-turbo` | alternative | Replace the background in place |
+| `image-edit` | `ideogram-replace-background-v3` | alternative | Replace the background, higher tier |
+
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+How to choose, by stage:
+
+- **Shot from a brief** (`text-to-image`): FLUX.2 or Seedream for a photographic shot, a Recraft V4.1 utility model for a flat catalog mockup, a P-Image model for a low-cost draft.
+- **Restage a product photo** (`image-to-image`): Nano Banana or Seedream. The lite tier is the low-cost option.
+- **Cut out** (`image-edit`): Bria background removal. It needs only the image.
+- **Replace the background in place** (`image-edit`): Ideogram replace-background. The turbo tier is faster; the full tier is the higher tier.
+
+Exact fields come from each model's contract.
 
 ## Workflow
 
@@ -36,8 +55,8 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 1. Read the contract for each model you plan to use. Note the endpoint for the operation, the size fields (`aspect_ratio` + `resolution`, `size`, or `width` / `height`), and the image input field (`image_url`, `image_urls`, or `image`).
 2. **Stage 1: a clean subject.** If the user has a good product photo, keep it. Otherwise generate one with a text-to-image model. Brief it like a photographer (see Technique). Image responses can be sync or async; follow `poll_url` when `status` is `pending`.
 3. **Stage 2: the scene.**
-   - Studio on white or transparent: send the subject to `bria-rmbg-v2-0` with `operation: "image-edit"` and `image_url`.
-   - New background, same product: send the subject URL and a scene prompt to `ideogram-replace-background-v3-turbo`, or restage it with `nano-banana-2` image-to-image.
+   - Studio on white or transparent: send the subject to the Bria background removal model with `operation: "image-edit"` and `image_url`.
+   - New background, same product: send the subject URL and a scene prompt to an Ideogram replace-background model, or restage it with a Nano Banana model image-to-image.
 4. **Stage 3: variants.** Re-run only the weak stage, one aspect ratio per call. Keep the stage-1 URL as the anchor so the product stays the same.
 5. Check the result against the Quality bar. Return the result URLs, the model per stage, and the task IDs.
 

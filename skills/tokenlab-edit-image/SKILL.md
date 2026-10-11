@@ -20,24 +20,44 @@ Change one thing in an existing image and keep everything else. Pick the model b
 
 ## Models
 
-Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices and supply change.
+<!-- tokenlab:models:start -->
+<!-- Generated from the live catalog by scripts/sync_models.py. Do not edit; change preferredModels in catalog.json. -->
 
-| Edit | Default | Alternatives | Fast / low-cost |
+| Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
-| Prompt-only edit: add, remove, replace, recolor, restyle | `nano-banana-2` (`operation: "image-edit"`, `image_urls`, on `/v1/images/generations`) | `flux-kontext-pro` (`/v1/images/edits`), `qwen-image-edit-2511`, `gpt-image-2` (`/v1/images/edits`) | `p-image-edit` |
-| Masked edit (change only a marked area) | `ideogram-edit-v3-turbo` (`mask_url`) | `gpt-image-2` (`mask`), `stability-inpaint`, `flux-pro-1.0-fill` (both `/v1/images/edits`) | |
-| Cut out the subject (transparent PNG) | `bria-rmbg-v2-0` (`operation: "image-edit"`) | | |
-| New background, same subject | `ideogram-replace-background-v3-turbo` (`image_url` + `prompt`) | `ideogram-replace-background-v3` | |
-| Extend the frame to a new size (outpaint) | `ideogram-reframe-v3-turbo` (`size` from its list, no prompt) | | |
+| `image-edit` | `nano-banana-2` | default | Prompt-only edit: add, remove, replace, recolor |
+| `image-edit` | `flux-kontext-pro` | alternative | Prompt-only edit, alternative |
+| `image-edit` | `qwen-image-edit-2511` | alternative | Prompt-only edit, alternative |
+| `image-edit` | `gpt-image-2` | alternative | Edit with an optional mask |
+| `image-edit` | `p-image-edit` | alternative | Low-cost prompt-only edit |
+| `image-edit` | `ideogram-edit-v3-turbo` | alternative | Masked edit of a marked area |
+| `image-edit` | `stability-inpaint` | alternative | Masked edit, alternative |
+| `image-edit` | `bria-rmbg-v2-0` | alternative | Cut out the subject (transparent PNG) |
+| `image-edit` | `ideogram-replace-background-v3-turbo` | alternative | New background, same subject |
+| `image-edit` | `ideogram-reframe-v3-turbo` | alternative | Extend the frame (outpaint) |
+| `image-to-image` | `nano-banana-2` | default | New image from reference images |
+| `image-to-image` | `seedream-5.0` | alternative | New image from references, alternative |
 
-`references/request-bodies.md` has a tested body for each row.
+This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
+<!-- tokenlab:models:end -->
+
+How to choose, by type of edit:
+
+- **Prompt-only edit** (add, remove, replace, recolor): Nano Banana first. FLUX Kontext and Qwen Image Edit are alternatives. A P-Image edit model is the low-cost option.
+- **Masked edit:** Ideogram edit, the Stability inpaint model, or GPT Image with an optional mask (on `/v1/images/edits`).
+- **Cutout** (transparent PNG): Bria background removal.
+- **New background, same subject:** Ideogram replace-background.
+- **Wider frame** (outpaint): Ideogram reframe.
+- **New image from reference images** (`image-to-image`): Nano Banana or Seedream.
+
+Exact fields come from each model's contract. `references/request-bodies.md` has a body for each type of edit.
 
 ## Workflow
 
 Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
 
 1. Read the contract for the model. Use `request_endpoint_by_operation["image-edit"]` for the endpoint. Many edit models use `/v1/images/generations` with `operation: "image-edit"`; others use `/v1/images/edits`. Note the image field (`image_url`, `image_urls`, or `image`) and the size field.
-2. Estimate the cost from `GET /v1/models/{model}/pricing`: price per image times `n`. For `nano-banana-2` the price depends on `resolution`.
+2. Estimate the cost from `GET /v1/models/{model}/pricing`: price per image times `n`. For Nano Banana models the price depends on `resolution`.
 3. Write one edit instruction (see Technique). Send the source image URL in the field the contract lists. Send only listed fields.
 4. Read the response. A sync response has `data[].url`. A response with `status: "pending"` and `poll_url` is a task: poll it every 5–10 s until `completed` or `failed`. The same model can answer either way, so handle both.
 5. Compare the result with the source. If the change is wrong, rewrite the instruction and run again on the **original** source. If the change is right but incomplete, run the next edit on the **result** URL.
@@ -50,8 +70,8 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 - **One edit per call.** Chain edits on result URLs. Each call is a new charge, so batch only edits that touch the same area.
 - **Removals: say what fills the gap.** "Fill that area with the same walnut wood and wall."
 - **Recolor: give the target color and the parts that keep their color.** "Change the mug body to deep forest green. Keep the clay base and the handle shape."
-- **Use a mask when the area is small or the prompt-only edit drifts.** The mask convention is per model. For `gpt-image-2` on `/v1/images/edits`, fully transparent mask pixels mark the edit area, and the mask must have the same size as the image.
-- **Cutouts need no prompt.** Send only the image to `bria-rmbg-v2-0`. In tests it returned an RGBA PNG.
+- **Use a mask when the area is small or the prompt-only edit drifts.** The mask convention is per model. For GPT Image on `/v1/images/edits`, fully transparent mask pixels mark the edit area, and the mask must have the same size as the image.
+- **Cutouts need no prompt.** Send only the image to the Bria background removal model. In tests it returned an RGBA PNG.
 - **Do not edit text here.** Models can change or misspell letters. Route text changes to `tokenlab-text-in-image`.
 
 ## Quality bar
