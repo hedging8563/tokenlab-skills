@@ -207,9 +207,12 @@ class HermesParserSelectionTests(unittest.TestCase):
                 self.assertEqual(len(results), 1)
 
     def test_cli_selects_the_parser_shipped_by_the_detected_version(self):
+        # Keep HOME/USERPROFILE (Windows needs them); drop Hermes overrides only.
+        clean = {key: value for key, value in os.environ.items()
+                 if not key.startswith("HERMES_") and key != "WSL_DISTRO_NAME"}
         for version, parser in (("0.21.3", "PyYAML"), ("0.21.6", "ruamel.yaml")):
             with self.subTest(version=version), tempfile.TemporaryDirectory() as directory, \
-                    patch.dict(os.environ, {}, clear=True), patch.object(setup, "inspect_client", return_value=version), \
+                    patch.dict(os.environ, clean, clear=True), patch.object(setup, "inspect_client", return_value=version), \
                     patch.object(setup, "insert_provider", wraps=insert_provider) as wrapped, \
                     contextlib.redirect_stdout(io.StringIO()) as output, contextlib.redirect_stderr(io.StringIO()):
                 code = setup.main(["--hermes-home", directory, "--model", "gpt-5.6-luna"])
