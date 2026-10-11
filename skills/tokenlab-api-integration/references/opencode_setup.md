@@ -1,5 +1,7 @@
 # Configure an explicit TokenLab layer for OpenCode
 
+Replace `MODEL_ID` with the model the user chose: a model that declares `openai_chat_completions` in `GET /v1/models/{model}`. The Models list in `SKILL.md` has current examples.
+
 Requirements: Python 3.11+ and an installed OpenCode CLI, version 1.18.31 or newer. The installed-client check pins official `opencode-ai@1.18.31`; it does not establish compatibility with every later release. There are no Python package dependencies. See the official [custom provider](https://opencode.ai/docs/providers/#custom-provider) and [configuration layers](https://opencode.ai/docs/config/#custom-path) references.
 
 The helper creates a separate `tokenlab.jsonc` layer. OpenCode loads it only when that invocation selects it with `OPENCODE_CONFIG`. It does not edit your normal OpenCode configuration, account, permissions, or default model. This separation matters: putting the only configured provider into an automatically loaded file can change OpenCode's implicit default even without setting `model`.
@@ -9,8 +11,8 @@ The helper creates a separate `tokenlab.jsonc` layer. OpenCode loads it only whe
 Run from this repository root, or substitute the script's installed location:
 
 ```bash
-python3 skills/tokenlab-api-integration/scripts/configure_opencode.py --model gpt-5.6-luna
-python3 skills/tokenlab-api-integration/scripts/configure_opencode.py --model gpt-5.6-luna --apply
+python3 skills/tokenlab-api-integration/scripts/configure_opencode.py --model MODEL_ID
+python3 skills/tokenlab-api-integration/scripts/configure_opencode.py --model MODEL_ID --apply
 ```
 
 On Windows PowerShell, use `py -3` in place of `python3`. The preview prints the target path, provider/model, endpoint, and environment-variable reference.
@@ -29,7 +31,7 @@ macOS/Linux, using the default path when `XDG_CONFIG_HOME` is unset:
 
 ```bash
 OPENCODE_CONFIG="$HOME/.config/opencode/tokenlab.jsonc" opencode models tokenlab
-OPENCODE_CONFIG="$HOME/.config/opencode/tokenlab.jsonc" opencode --model tokenlab/gpt-5.6-luna
+OPENCODE_CONFIG="$HOME/.config/opencode/tokenlab.jsonc" opencode --model tokenlab/MODEL_ID
 ```
 
 Windows PowerShell, restoring the prior process environment afterward:
@@ -39,7 +41,7 @@ $previousConfig = $env:OPENCODE_CONFIG
 try {
   $env:OPENCODE_CONFIG = "$HOME\.config\opencode\tokenlab.jsonc"
   opencode models tokenlab
-  opencode --model tokenlab/gpt-5.6-luna
+  opencode --model tokenlab/MODEL_ID
 } finally {
   if ($null -eq $previousConfig) {
     Remove-Item Env:OPENCODE_CONFIG -ErrorAction SilentlyContinue

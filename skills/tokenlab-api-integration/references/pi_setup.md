@@ -1,5 +1,7 @@
 # Configure a TokenLab provider for Pi
 
+Replace `MODEL_ID` with the model the user chose: a model that declares `openai_chat_completions` in `GET /v1/models/{model}`. The Models list in `SKILL.md` has current examples.
+
 Requirements: Python 3.11+ and an installed Pi coding agent, version 0.85.1 or newer. The installed-client check pins official `@earendil-works/pi-coding-agent@0.85.1`; it does not establish compatibility with every later release. There are no Python package dependencies. See the versioned official [custom model configuration](https://github.com/earendil-works/pi/blob/v0.85.1/packages/coding-agent/docs/models.md) and [CLI documentation](https://github.com/earendil-works/pi/tree/v0.85.1/packages/coding-agent).
 
 The helper appends a separate `tokenlab` provider to `models.json`. It preserves existing provider ordering and values and leaves `settings.json`, accounts, default-provider/default-model fields, and tool settings unchanged. Select TokenLab explicitly when starting Pi. Installing an MCP connection or skill does not configure Pi's main model provider.
@@ -9,8 +11,8 @@ The helper appends a separate `tokenlab` provider to `models.json`. It preserves
 Run from this repository root, or substitute the installed script path:
 
 ```bash
-python3 skills/tokenlab-api-integration/scripts/configure_pi.py --model gpt-5.6-luna
-python3 skills/tokenlab-api-integration/scripts/configure_pi.py --model gpt-5.6-luna --apply
+python3 skills/tokenlab-api-integration/scripts/configure_pi.py --model MODEL_ID
+python3 skills/tokenlab-api-integration/scripts/configure_pi.py --model MODEL_ID --apply
 ```
 
 On Windows PowerShell, use `py -3` in place of `python3`. The preview prints the target path, provider/model, endpoint, and environment-variable reference.
@@ -25,7 +27,7 @@ Provide the complete `TOKENLAB_API_KEY` through your local secret manager or ses
 
 ```bash
 pi --list-models tokenlab
-pi --provider tokenlab --model gpt-5.6-luna
+pi --provider tokenlab --model MODEL_ID
 ```
 
 Use your chosen provider name in both commands. Pi lists only models with configured authentication; an unset environment key can make TokenLab absent from discovery even when `models.json` loaded correctly. Existing saved credentials with the same provider name cause this helper to stop, so it cannot silently replace that account's authentication source.

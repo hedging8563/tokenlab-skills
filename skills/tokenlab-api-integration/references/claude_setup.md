@@ -1,5 +1,7 @@
 # Start Claude Code with TokenLab for one session
 
+Replace `MODEL_ID` with the model the user chose: a model that declares `anthropic_messages` in `GET /v1/models/{model}`. The Models list in `SKILL.md` has current examples.
+
 This helper creates an explicit Python launcher beside your existing Claude configuration. Starting ordinary `claude` keeps your normal account and default model. The helper does not install Claude Code, change permission settings, log in or out, or put a key in a file.
 
 Requirements: Python 3.11+ and Claude Code 2.1.263+. No Python packages are needed. The CLI version and advertised session options are checked before creating or starting the launcher. Keep this installed Skill directory in place: the generated launcher imports its implementation from here.
@@ -21,11 +23,11 @@ macOS or Linux:
 ```bash
 python3 --version
 python3 skills/tokenlab-api-integration/scripts/configure_claude.py \
-  --model claude-sonnet-4-6
+  --model MODEL_ID
 
 # Review the preview, then explicitly apply it:
 python3 skills/tokenlab-api-integration/scripts/configure_claude.py \
-  --model claude-sonnet-4-6 --apply
+  --model MODEL_ID --apply
 
 # Supply TOKENLAB_API_KEY through your local secret manager or launch environment.
 python3 "$HOME/.claude/tokenlab-claude.py" --auth-status
@@ -37,10 +39,10 @@ Windows PowerShell, with Python 3.11+:
 ```powershell
 py -3 --version
 py -3 skills/tokenlab-api-integration/scripts/configure_claude.py `
-  --model claude-sonnet-4-6
+  --model MODEL_ID
 
 py -3 skills/tokenlab-api-integration/scripts/configure_claude.py `
-  --model claude-sonnet-4-6 --apply
+  --model MODEL_ID --apply
 
 py -3 "$HOME\.claude\tokenlab-claude.py" --auth-status
 py -3 "$HOME\.claude\tokenlab-claude.py"

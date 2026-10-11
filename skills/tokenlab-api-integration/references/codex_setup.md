@@ -1,5 +1,7 @@
 # Configure a TokenLab profile for Codex
 
+Replace `MODEL_ID` with the model the user chose: a model that declares `openai_responses` in `GET /v1/models/{model}`. The Models list in `SKILL.md` has current examples.
+
 This helper adds a separate Codex profile. It does not install Codex, store an API key, change your default model, or configure MCP and other clients.
 
 Requirements: Python 3.11 or newer and an installed Codex CLI that supports separate profile files. There are no Python package dependencies. The helper checks the CLI version and `--help` before creating or updating a profile.
@@ -15,11 +17,11 @@ macOS, Linux or WSL:
 ```bash
 python3 --version
 python3 skills/tokenlab-api-integration/scripts/configure_codex.py \
-  --model gpt-5.6-sol --reasoning-effort xhigh
+  --model MODEL_ID --reasoning-effort xhigh
 
 # After reviewing the preview, repeat with --apply:
 python3 skills/tokenlab-api-integration/scripts/configure_codex.py \
-  --model gpt-5.6-sol --reasoning-effort xhigh --apply
+  --model MODEL_ID --reasoning-effort xhigh --apply
 ```
 
 Windows PowerShell, with Python 3.11+ installed:
@@ -27,10 +29,10 @@ Windows PowerShell, with Python 3.11+ installed:
 ```powershell
 py -3 --version
 py -3 skills/tokenlab-api-integration/scripts/configure_codex.py `
-  --model gpt-5.6-sol --reasoning-effort xhigh
+  --model MODEL_ID --reasoning-effort xhigh
 
 py -3 skills/tokenlab-api-integration/scripts/configure_codex.py `
-  --model gpt-5.6-sol --reasoning-effort xhigh --apply
+  --model MODEL_ID --reasoning-effort xhigh --apply
 ```
 
 The default directory is `CODEX_HOME`, or `~/.codex` if unset. Pass `--codex-home <directory>` to select a test directory or another existing Codex home. Native Windows and WSL have separate installations and homes. Use `--codex-bin <path>` when the desired CLI is not on `PATH`.

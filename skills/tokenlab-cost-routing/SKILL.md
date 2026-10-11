@@ -1,6 +1,6 @@
 ---
 name: tokenlab-cost-routing
-description: Choose TokenLab models and fallback chains using public pricing, task fit, latency expectations, and native endpoint needs before writing production routing code.
+description: "Design cost, latency, and fallback policy for TokenLab requests in production: a primary, balanced, fast, and budget route per workload, per-request cost estimates from live pricing, Verified or Official delivery choices, and rules for when a fallback is allowed. Use when the user asks \"how do I cut my TokenLab bill\", \"build a fallback chain\", \"route cheap vs quality\", or \"what will this workload cost per month\". To find which models fit a task, use tokenlab-model-picker. To run one request, use tokenlab-run."
 license: MIT
 metadata:
   category: coding
@@ -8,55 +8,63 @@ metadata:
 
 # TokenLab Cost Routing
 
-Use this skill when a user asks how to reduce TokenLab cost, compare model prices, pick fallbacks, or route requests by quality, latency, and budget.
+Turn a workload into a routing policy: which route serves which request, what each request costs, and when a fallback may run. Model discovery belongs to `tokenlab-model-picker`; this skill decides cost, latency, and fallback rules on top of its shortlist.
 
-## What this skill should deliver
+## What this skill delivers
 
-- A compact routing recommendation with exact public TokenLab model IDs.
-- A cost-aware fallback chain for the user's workload.
-- A catalog/pricing lookup path that can be rerun.
-- A note on which endpoint family each model should use.
-- Guardrails for when not to switch models because doing so would change output, safety, or request semantics.
+- One sentence with the workload, volume, and assumptions.
+- A route table with roles: primary, balanced, fast, budget.
+- A cost estimate per request and per month from live pricing, with units shown.
+- A delivery choice per route (Auto, Verified, or Official).
+- Fallback rules: which errors trigger a fallback, and which changes need user approval.
 
-## Preferred approach
+## Inputs to collect
 
-1. Identify the workload and constraints:
-   - chat, coding, agent loop, image, video, audio, embedding, rerank, translation, decisions, or multimodal
-   - quality floor
-   - latency target
-   - budget or cost ceiling
-   - native endpoint requirement
-2. Read live public catalog signals before recommending:
-   - `GET https://api.tokenlab.sh/v1/models`
-   - `GET https://api.tokenlab.sh/v1/models?recommended_for=<scene>`
-   - `GET https://api.tokenlab.sh/v1/models/:model`
-   - `GET https://api.tokenlab.sh/v1/models/:model/pricing`
-3. Build a chain with roles:
-   - primary quality model
-   - balanced default
-   - fast fallback
-   - budget fallback
-4. If the user asks for exact cost, compute from live pricing and their estimated token/media volume. State units and assumptions.
-5. For non-chat requests, inspect model details before changing parameters or endpoint family.
-6. For bounded semantic decisions, discover `category=decision` and the System One operation. Compare live pricing and measured task errors; a zero output price does not imply zero output tokens. Never insert a decision model into a chat fallback chain or replace typed answers with free text silently. Escalation and action authorization remain application decisions.
+- Workload: chat, coding agent, image, video, audio, embedding, rerank, translation, or decisions.
+- Volume and size: requests per day, tokens, images, seconds, or characters per request.
+- Quality floor, latency target, and budget ceiling.
+- Hard requirements: native protocol, tools, structured output, media inputs, audio, resolution.
+
+## Workflow
+
+1. Get the candidates from `tokenlab-model-picker` for the workload's operation or protocol. Keep only models that meet the hard requirements.
+2. Read `GET /v1/models/{model}/pricing` for each candidate. Note `pricing_unit` and the price structure (entries, formulas, unit variants, minimum units, credits). `platform` is the Verified price; `official` is the Official price; a missing Verified price means no Verified supply, not free.
+3. Estimate cost per request: quantity × unit price. For chat, include input, output, and cache reads or writes. For media, use the seconds, images, or characters the workload really sends. Show the formula.
+4. Assign roles: primary (meets the quality floor), balanced, fast (lowest latency that still meets the floor), and budget.
+5. Choose delivery per route. `Auto` (default) tries Verified, then runs Official once if Verified has no supply or fails before output, and holds the higher price until the run ends. `X-TokenLab-Delivery-Policy: verified` or `official` pins one option; that request fails with no charge when the option has no supply.
+6. Write the fallback rules (below) and the refresh plan: when the table was checked and how to re-check it.
+
+## Fallback rules
+
+- Fall back on `429` after `Retry-After`, on retryable `5xx`, and on `503 all_channels_failed` / `delivery_tier_unavailable` with `retryable: false` (do not repeat the same request; move to the next route).
+- Do not fall back on `400` contract errors, `401`/`403`, or `402 insufficient_balance`; fix the request, key, or balance.
+- Never fall back after streaming output started or after an async task was accepted. That would duplicate the work and the charge.
+- A fallback must keep the request semantics: protocol, tools, structured output, media inputs, safety settings. If the next route cannot, stop and ask.
+- Paid media (video, 3D, worlds, music) fallbacks need explicit user approval; each retry is a new charge.
+- Decision models (`systemone`) are never in a chat fallback chain. Compare decision routes on measured task error on the user's labeled cases; a zero output price does not mean zero output tokens.
 
 ## Output format
 
-- One sentence stating workload and assumptions.
-- A table with `Route role`, `Model ID`, `Endpoint`, `Why`, and `When to fall back`.
-- One catalog command and one pricing command.
-- A short implementation note for retries, rate limits, and user approval when quality would drop.
+| Route role | Model ID | Endpoint | Est. cost per request | Delivery | Fall back when |
+| --- | --- | --- | --- | --- | --- |
+
+Then: the pricing commands used, the monthly estimate with assumptions, and one implementation note on retries, rate limits, and approval when quality drops.
+
+## Quality bar
+
+- Every price comes from the pricing API at a stated time, with units and the formula shown.
+- No route drops a hard requirement; each trade-off (quality, latency, features) is named.
+- Fallback triggers are specific error codes, and no rule can duplicate a paid generation.
+- The table says how to refresh it; nothing is presented as permanent.
 
 ## Avoid
 
 - Do not invent prices, discounts, or model counts.
-- Do not choose a cheaper model if that would silently remove required native behavior, tools, media support, safety constraints, or structured output guarantees.
-- Do not expose TokenLab internal channel, physical provider, or routing details.
-- Do not turn a user-provided model into a different model without saying why.
-- Do not hardcode a fallback list without saying when it was checked or how to refresh it.
+- Do not expose TokenLab internal routing or supplier details.
+- Do not switch a user's chosen model without saying why.
 
-## Edge Cases
+## Related skills
 
-- If catalog or pricing endpoints are unavailable, say that routing cannot be price-verified and provide only an example pattern.
-- If the user asks for "cheapest", include capability and reliability tradeoffs.
-- If billing risk is high, require explicit user approval before adding automatic fallback to paid media/video generation.
+- `tokenlab-model-picker`: the candidate shortlist.
+- `tokenlab-run`: estimate and run one request.
+- `tokenlab-api-integration`: put the routing policy into code.

@@ -10,7 +10,7 @@ metadata:
 
 Turn an outcome into a short list of live TokenLab model IDs. Work in three steps: outcome → operation → model. Read live catalog signals every time; never answer from memory.
 
-## What this skill should deliver
+## What this skill delivers
 
 - The operation the outcome needs, and the endpoint for it.
 - A shortlist with exact public model IDs: a default, an alternative, and a fast or low-cost option.
@@ -18,7 +18,16 @@ Turn an outcome into a short list of live TokenLab model IDs. Work in three step
 - One command the user can rerun to refresh the list.
 - A caveat for anything volatile: price, supply, or a benchmark claim.
 
-## Step 1: outcome → operation
+## Inputs to collect
+
+- The outcome in the user's words, and the inputs they already have (text, image, video, audio).
+- Limits that matter: length, resolution, aspect ratio, voice, language, format.
+- Priority: quality, speed, or cost, and any budget.
+- For chat and coding: the client and the protocol it speaks.
+
+## Workflow
+
+### Step 1: outcome → operation
 
 | Outcome | Operation | Outcome skill |
 | --- | --- | --- |
@@ -37,7 +46,7 @@ Turn an outcome into a short list of live TokenLab model IDs. Work in three step
 | Text translation | `translation` | `tokenlab-transcribe-and-subtitle` |
 | Chat, coding, agent loop | chat formats | `tokenlab-api-integration`, `tokenlab-native-endpoints` |
 
-## Step 2: operation → candidates
+### Step 2: operation → candidates
 
 - Scene shortlist: `GET https://api.tokenlab.sh/v1/models?recommended_for=<scene>`. Scenes: `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank`, `translation`, `decision`. If the API rejects a scene with `invalid_recommended_for`, use the category filter instead.
 - Category filter: `GET /v1/models?category=<category>` (for example `category=decision`).
@@ -45,18 +54,18 @@ Turn an outcome into a short list of live TokenLab model IDs. Work in three step
 - A scene ranks models by their measured success rate in the last 24 hours, not by output quality. Read `tokenlab.agent_preferences.<scene>`: `preferred_rank`, `success_rate_24h`, `sample_count_24h`, and `status`. `status: "insufficient_samples"` means no ranking signal yet, not a bad model.
 - Check supply per operation: `tokenlab.deliveryAvailability.operations[<op>]` shows whether Verified and Official supply exist.
 
-## Step 3: candidates → shortlist
+### Step 3: candidates → shortlist
 
 1. For each candidate, read `GET /v1/models/{model}` and confirm:
    - `lifecycle.stage` is `active`;
    - the operation, its endpoint in `request_endpoint_by_operation`, and the inputs the user has (image, video, audio, reference count);
    - the size, duration, and resolution limits the user needs, from `operation_constraints`.
 2. Read `GET /v1/models/{model}/pricing` and compare cost per output unit (image, second, character, token, or request).
-3. Pick the default for fit and reliability, an alternative with a different strength (quality, speed, or input type), and a fast or low-cost option. Use the outcome skill's model table as the starting list, then confirm it live.
+3. Pick the default for fit and reliability, an alternative with a different strength (quality, speed, or input type), and a fast or low-cost option. Start from the outcome skill's generated Models list (refreshed daily from the live catalog), then confirm it live.
 4. Chat and coding: read `tokenlab.accepted_request_formats` to match the client's protocol (`openai_chat_completions`, `openai_responses`, `anthropic_messages`, `gemini_generate_content`).
 5. Decisions: discover `category=decision` and confirm the `systemone` operation. A decision model returns typed answers; never select it as a chat model.
 
-MCP equivalents: `list_models`, `get_model`, `get_model_pricing`, `compare_models`.
+MCP equivalents: `list_models`, `get_model`, `get_model_pricing`, `compare_models` (in every tool profile; the default profile is `core`).
 
 ## Output format
 
@@ -72,6 +81,12 @@ MCP equivalents: `list_models`, `get_model`, `get_model_pricing`, `compare_model
 - Do not infer an endpoint, field, or capability from a model name; read the contract.
 - Do not invent prices, model counts, or benchmark results. A benchmark claim needs a cited source and date.
 - Do not use physical route names or provider-prefixed names as model IDs.
+
+## Quality bar
+
+- Every listed model is live, publishes the operation, and fits the user's inputs and limits.
+- Each pick has a reason from catalog or contract data, not from the model name.
+- The answer says when the list was checked and how to refresh it.
 
 ## Edge cases
 

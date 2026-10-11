@@ -429,13 +429,14 @@ Success means the requested semantic result was delivered: text/tool calls prese
 
 ## System One decisions
 
-Discover `/v1/models?category=decision` and inspect the selected model first. This example uses `jev-1.13` only when its current contract declares `/v1/systemone`. Reuse the shared JavaScript client above.
+Discover `/v1/models?category=decision` and inspect the selected model first. Set `TOKENLAB_DECISION_MODEL` to a model whose current contract declares `/v1/systemone`. Reuse the shared JavaScript client above.
 
 ```javascript
+const decisionModel = process.env.TOKENLAB_DECISION_MODEL; // from GET /v1/models?category=decision
 const decision = await tokenlabRequest('/v1/systemone', {
   method: 'POST',
   body: JSON.stringify({
-    model: 'jev-1.13',
+    model: decisionModel,
     state: { ticket: 'I was charged twice. Please refund the duplicate payment.' },
     questions: {
       refund_requested: { type: 'noul', instructions: 'Is a refund explicitly requested?' },

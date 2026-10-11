@@ -1,5 +1,7 @@
 # Add TokenLab to Hermes without changing the existing default
 
+Replace `MODEL_ID` with the model the user chose: a model that declares `openai_chat_completions` in `GET /v1/models/{model}`. The Models list in `SKILL.md` has current examples.
+
 This helper targets official Hermes **0.21.3** (`v2026.9.14`, source `345cd2b057a452236de401d3534b8502a7465e8d`). It adds one named provider to the active `config.yaml`. It preserves other settings and their comments, saved accounts, the active account and the default model. It never asks for, prints or stores a new TokenLab key. Existing credential files stay unchanged, and the helper never requests inference.
 
 Use the existing Hermes installation. The helper does not install or upgrade Hermes, change permissions, or run `hermes model`: that wizard changes the default model and active account. Native `hermes config set` rewrites YAML without preserving comments, so it is not used for this change. See the official [named provider contract](https://hermes-agent.nousresearch.com/docs/integrations/providers#named-custom-providers).
@@ -19,15 +21,15 @@ Run from the installed `tokenlab-api-integration` Skill folder. Set `HERMES_PYTH
 macOS/Linux:
 
 ```bash
-"$HERMES_PYTHON" scripts/configure_hermes.py --model gpt-5.6-luna
-"$HERMES_PYTHON" scripts/configure_hermes.py --model gpt-5.6-luna --apply
+"$HERMES_PYTHON" scripts/configure_hermes.py --model MODEL_ID
+"$HERMES_PYTHON" scripts/configure_hermes.py --model MODEL_ID --apply
 ```
 
 Windows PowerShell:
 
 ```powershell
-& $HermesPython scripts/configure_hermes.py --model gpt-5.6-luna
-& $HermesPython scripts/configure_hermes.py --model gpt-5.6-luna --apply
+& $HermesPython scripts/configure_hermes.py --model MODEL_ID
+& $HermesPython scripts/configure_hermes.py --model MODEL_ID --apply
 ```
 
 Choose a current public model whose detail contract supports Chat Completions and tools. Use `--provider tokenlab-personal` when the default name is already owned by another configuration. Use `--hermes-bin` if the intended Hermes executable is not on PATH. The helper requires an explicit model and stores only `key_env: TOKENLAB_API_KEY`.
@@ -49,7 +51,7 @@ For a root configuration, after selecting that home for the current process:
 
 ```bash
 hermes --profile default config get providers.tokenlab.api
-hermes --profile default chat --provider custom:tokenlab --model gpt-5.6-luna
+hermes --profile default chat --provider custom:tokenlab --model MODEL_ID
 ```
 
 Use process-scoped environment changes and restore their prior values afterward. Normal launches retain the prior model and account. Inspecting the provider only verifies configuration loading, not key validity. Only when the user chooses a billable test should the client send a small task; inspect the complete response and matching TokenLab request record. A tool round trip and continuation are separate from configuration inspection.
