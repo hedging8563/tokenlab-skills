@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Voiceover"
+  short_description: "Script to speech audio with a chosen voice"
+  default_prompt: "Use $tokenlab-voiceover to read this script aloud in a calm, warm voice and save it as an MP3."

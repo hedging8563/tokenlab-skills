@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Decisions"
+  short_description: "Typed yes/no, choice, and score answers"
+  default_prompt: "Use $tokenlab-decisions to route each support ticket to billing, technical, or sales and score its urgency."

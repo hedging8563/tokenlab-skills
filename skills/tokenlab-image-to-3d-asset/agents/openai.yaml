@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Image to 3D Asset"
+  short_description: "Photo or text to a downloadable 3D model"
+  default_prompt: "Use $tokenlab-image-to-3d-asset to turn this product photo into a GLB model I can show on my web store."

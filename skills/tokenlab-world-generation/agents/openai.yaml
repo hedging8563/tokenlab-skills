@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab World Generation"
+  short_description: "Text, image, or video to an explorable 3D world"
+  default_prompt: "Use $tokenlab-world-generation to draft an explorable 3D world of a small Japanese tea room at dusk."

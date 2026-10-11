@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Music"
+  short_description: "Songs, instrumentals, loops, and sound effects"
+  default_prompt: "Use $tokenlab-music to make a 30-second warm lo-fi instrumental loop for my video background."

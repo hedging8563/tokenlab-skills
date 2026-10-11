@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Transcribe and Subtitle"
+  short_description: "Transcripts, SRT/VTT subtitles, and translations"
+  default_prompt: "Use $tokenlab-transcribe-and-subtitle to transcribe this audio, make an English SRT file, and translate it into Spanish."
