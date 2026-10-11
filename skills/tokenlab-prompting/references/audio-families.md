@@ -5,7 +5,7 @@ Each section starts with the source. The "Models" line gives the family and its 
 ## Suno
 
 Sources:
-- https://help.suno.com/en/articles/5782977 (V4.5 prompts and the lyrics box; I saw only a search excerpt of this page)
+- https://help.suno.com/en/articles/5782977 (V4.5 prompts and the lyrics box)
 - https://suno.com/hub/how-to-make-a-song and https://suno.com/hub/how-to-make-beats (maker hub pages; style prompt examples and structure tags)
 
 No full official prompt manual was read. Treat the points below as maker hints from those pages.

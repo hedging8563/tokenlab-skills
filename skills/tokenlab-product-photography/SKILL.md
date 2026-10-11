@@ -26,15 +26,15 @@ Make catalog-, ad-, or hero-ready product images from a plain photo or a written
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `text-to-image` | `flux-2-pro` | default | Shot from a written brief |
-| `text-to-image` | `seedream-5.0` | alternative | Shot from a brief, alternative look |
-| `text-to-image` | `recraft-v4.1-utility` | alternative | Flat catalog mockup |
+| `text-to-image` | `seedream-5.0` | alternative | Shot from a brief, alternative look (not live-tested) |
+| `text-to-image` | `recraft-v4.1-utility` | alternative | Flat catalog mockup (not live-tested) |
 | `text-to-image` | `p-image` | alternative | Low-cost draft |
 | `image-to-image` | `nano-banana-2` | default | Restage an existing product photo |
-| `image-to-image` | `seedream-5.0` | alternative | Restage, alternative look |
-| `image-to-image` | `nano-banana-2-lite` | alternative | Low-cost restage |
+| `image-to-image` | `seedream-5.0` | alternative | Restage, alternative look (not live-tested) |
+| `image-to-image` | `nano-banana-2-lite` | alternative | Low-cost restage (not live-tested) |
 | `image-edit` | `bria-rmbg-v2-0` | default | Cut out the background |
-| `image-edit` | `ideogram-replace-background-v3-turbo` | alternative | Replace the background in place |
-| `image-edit` | `ideogram-replace-background-v3` | alternative | Replace the background, higher tier |
+| `image-edit` | `ideogram-replace-background-v3-turbo` | alternative | Replace the background in place (not live-tested) |
+| `image-edit` | `ideogram-replace-background-v3` | alternative | Replace the background, higher tier (not live-tested) |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
 <!-- tokenlab:models:end -->
@@ -50,7 +50,7 @@ Exact fields come from each model's contract.
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
 1. Read the contract for each model you plan to use. Note the endpoint for the operation, the size fields (`aspect_ratio` + `resolution`, `size`, or `width` / `height`), and the image input field (`image_url`, `image_urls`, or `image`).
 2. **Stage 1: a clean subject.** If the user has a good product photo, keep it. Otherwise generate one with a text-to-image model. Brief it like a photographer (see Technique). Image responses can be sync or async; follow `poll_url` when `status` is `pending`.

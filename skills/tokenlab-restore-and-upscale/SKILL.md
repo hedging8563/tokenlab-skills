@@ -25,9 +25,9 @@ Make a photo bigger and cleaner without changing what it shows. Upscale and repa
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `image-edit` | `stability-upscale-fast` | default | Upscale |
-| `image-edit` | `topaz-labs-wonder-3-5` | alternative | Upscale, alternative |
-| `image-edit` | `bria-image-increase-resolution` | alternative | Upscale, alternative |
-| `image-edit` | `stability-upscale-conservative` | alternative | Upscale with a guiding prompt |
+| `image-edit` | `topaz-labs-wonder-3-5` | alternative | Upscale, alternative (not live-tested) |
+| `image-edit` | `bria-image-increase-resolution` | alternative | Upscale, alternative (not live-tested) |
+| `image-edit` | `stability-upscale-conservative` | alternative | Upscale with a guiding prompt (not live-tested) |
 | `image-edit` | `p-image-upscale` | alternative | Low-cost upscale |
 | `image-edit` | `nano-banana-2` | alternative | Repair damage, fading, or blur before the upscale |
 | `image-edit` | `p-image-edit` | alternative | Low-cost repair |
@@ -45,7 +45,7 @@ Observed on 2026-10-12 with a 1024 × 1024 input: the Stability fast upscaler re
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
 1. Read the contract for each model. Use `request_endpoint_by_operation["image-edit"]` for the endpoint. Send only the listed fields. The upscale models have no prompt, except the Stability conservative upscaler.
 2. Estimate the cost from `GET /v1/models/{model}/pricing`. Upscalers here are priced per image. Add the repair step if you run one.

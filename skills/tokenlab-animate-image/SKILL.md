@@ -26,9 +26,9 @@ Turn one still into a short clip. The image is the first frame. The prompt says 
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `image-to-video` | `veo3.1-fast` | default | General image-to-video with sound |
-| `image-to-video` | `kling-v3.0` | alternative | Alternative; sound on or off |
-| `image-to-video` | `hailuo-h3` | alternative | Alternative with native audio |
-| `image-to-video` | `seedance-2.0` | alternative | Alternative; long clips and high resolution |
+| `image-to-video` | `kling-v3.0` | alternative | Alternative; sound on or off (not live-tested) |
+| `image-to-video` | `hailuo-h3` | alternative | Alternative with native audio (not live-tested) |
+| `image-to-video` | `seedance-2.0` | alternative | Alternative; long clips and high resolution (not live-tested) |
 | `image-to-video` | `pixverse-v6` | alternative | Silent loop or background plate |
 | `image-to-video` | `grok-imagine-video` | alternative | Low-cost draft |
 
@@ -50,10 +50,10 @@ All of these use `POST /v1/videos/generations` with `operation: "image-to-video"
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
-1. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation image-to-video`. Note `supported_parameters`, `allowed_durations`, `allowed_resolutions`, and `delivery`. Use only listed fields and values.
-2. Estimate the cost: `python scripts/tokenlab_run.py price MODEL`. Most video models price per second, so multiply the per-second price for your resolution (and audio setting, if the price depends on it) by `duration`. Use the Official price as the upper bound. Tell the user the estimate before you start the job.
+1. Read the contract: `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL --operation image-to-video`. Note `supported_parameters`, `allowed_durations`, `allowed_resolutions`, and `delivery`. Use only listed fields and values.
+2. Estimate the cost: `python ../tokenlab-run/scripts/tokenlab_run.py price MODEL`. Most video models price per second, so multiply the per-second price for your resolution (and audio setting, if the price depends on it) by `duration`. Use the Official price as the upper bound. Tell the user the estimate before you start the job.
 3. Write the prompt (see Technique) and build the body:
 
    ```json
@@ -62,8 +62,8 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 
    Take `MODEL_ID` from the Models list above for `image-to-video`. Set `duration` and `resolution` to values its contract lists.
 
-4. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID before you poll. The helper polls every 5 s; keep the interval at 5-10 s.
-5. If your wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a second task for the same request.
+4. Call and wait: `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID before you poll. The helper polls every 5 s; keep the interval at 5-10 s.
+5. If your wait times out, resume with `python ../tokenlab-run/scripts/tokenlab_run.py poll TASK_ID`. Never create a second task for the same request.
 6. On `failed`, read `error_details.code` and `param`, fix the body, and ask the user before a paid retry.
 7. Return the video URL (`video_url`, `video.url`, or `videos[]`), the model, the task ID, and the estimate.
 

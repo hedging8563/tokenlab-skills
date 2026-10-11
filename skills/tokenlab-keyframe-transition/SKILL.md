@@ -27,9 +27,9 @@ If the user has only the start image, make the end image by editing it with `tok
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `start-end-to-video` | `veo3.1-fast` | default | First and last frame |
-| `start-end-to-video` | `seedance-2.0` | alternative | Alternative; long clips |
-| `start-end-to-video` | `wan-3.0` | alternative | Alternative |
-| `start-end-to-video` | `hailuo-h3-max` | alternative | Alternative; prompt required |
+| `start-end-to-video` | `seedance-2.0` | alternative | Alternative; long clips (not live-tested) |
+| `start-end-to-video` | `wan-3.0` | alternative | Alternative (not live-tested) |
+| `start-end-to-video` | `hailuo-h3-max` | alternative | Alternative; prompt required (not live-tested) |
 | `start-end-to-video` | `viduq3-turbo` | alternative | Low-cost draft |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
@@ -49,11 +49,11 @@ All use `POST /v1/videos/generations` with `operation: "start-end-to-video"`, `s
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
-1. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation start-end-to-video`. Note durations, resolutions, aspect ratios, and `delivery`. If `delivery` shows only `verified`, a request pinned to Official cannot run.
+1. Read the contract: `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL --operation start-end-to-video`. Note durations, resolutions, aspect ratios, and `delivery`. If `delivery` shows only `verified`, a request pinned to Official cannot run.
 2. Check the two frames: same aspect ratio and close in size. Fix them before you pay for a video.
-3. Estimate the cost: `python scripts/tokenlab_run.py price MODEL`, then per-second price × `duration`. Use the Official price as the upper bound. Tell the user the estimate.
+3. Estimate the cost: `python ../tokenlab-run/scripts/tokenlab_run.py price MODEL`, then per-second price × `duration`. Use the Official price as the upper bound. Tell the user the estimate.
 4. Build the body:
 
    ```json
@@ -62,8 +62,8 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 
    Take `MODEL_ID` from the Models list above for `start-end-to-video`. Set `duration` and `resolution` to values its contract lists, and send `output_audio` only when it is listed.
 
-5. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID. Poll every 5-10 s.
-6. If a wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
+5. Call and wait: `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID. Poll every 5-10 s.
+6. If a wait times out, resume with `python ../tokenlab-run/scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
 7. Return the video URL, the model, the task ID, and the estimate.
 
 ## Technique

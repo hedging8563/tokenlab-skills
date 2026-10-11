@@ -26,7 +26,7 @@ Make a simple mark or icon and deliver it as an SVG. The text-to-image models he
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `text-to-image` | `recraft-v4.1` | default | Mark or icon (raster) |
-| `text-to-image` | `recraft-v4.1-pro` | alternative | Mark at a larger size |
+| `text-to-image` | `recraft-v4.1-pro` | alternative | Mark at a larger size (not live-tested) |
 | `text-to-image` | `ideogram-4-5` | alternative | Mark with words |
 | `text-to-image` | `recraft-v4.1-flash` | alternative | Low-cost draft |
 | `image-edit` | `recraft-vectorize` | default | Raster to SVG |
@@ -44,7 +44,7 @@ All use `/v1/images/generations`. Exact fields come from each model's contract.
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
 1. Read the contract for each model. Each Recraft V4.1 text-to-image model lists one `size` value and `n` `1` only: `1024x1024` for the base and Flash tiers, `2048x2048` for the Pro tier.
 2. Estimate the cost from `GET /v1/models/{model}/pricing`: marks times the price per image, plus one vectorize call per chosen mark.

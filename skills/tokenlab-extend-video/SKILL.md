@@ -25,11 +25,11 @@ Add new footage after the last frame of a clip. There are two kinds of input: a 
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `video-extension` | `seedance-2.0` | default | Continue any public clip from its video_url |
-| `video-extension` | `seedance-2.0-fast` | alternative | Faster, up to 720p |
-| `video-extension` | `seedance-2.5` | alternative | Newer tier, up to 720p |
+| `video-extension` | `seedance-2.0-fast` | alternative | Faster, up to 720p (not live-tested) |
+| `video-extension` | `seedance-2.5` | alternative | Newer tier, up to 720p (not live-tested) |
 | `video-extension` | `seedance-2.0-mini` | alternative | Low-cost, up to 720p |
-| `video-extension` | `veo3.1-fast` | alternative | Only a clip this model made (task_id) |
-| `video-extension` | `grok-imagine-video` | alternative | Only a clip this model made (task_id) |
+| `video-extension` | `veo3.1-fast` | alternative | Known limit: task_id extension of a clip this model made returned 400 in live tests; prefer Seedance |
+| `video-extension` | `grok-imagine-video` | alternative | Known limit: task_id extension of a clip this model made returned 400 in live tests; prefer Seedance |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
 <!-- tokenlab:models:end -->
@@ -42,17 +42,17 @@ Exact fields and values come from each model's contract.
 - **Seedance 2.0 Fast:** faster, up to 720p.
 - **Seedance 2.5:** the newer tier, up to 720p. Adds up to 30 s.
 - **Seedance 2.0 Mini:** low cost, up to 720p.
-- **Veo 3.1 Fast and Grok Imagine video:** extend only a clip that the same model made, by `task_id`.
+- **Veo 3.1 Fast and Grok Imagine video:** extend only a clip that the same model made, by `task_id`. Known limit: every live test of this path returned `400`, so treat it as unreliable and prefer Seedance.
 
 All use `POST /v1/videos/generations` with `operation: "video-extension"`. Veo and Grok extension have Verified supply only, and they need the task ID of a clip from the same model. If TokenLab rejects the task ID with a `400` (for example `record not found` or `cannot currently honor these request parameters`), that clip cannot be extended on that model. Use the Seedance path with the clip's `video_url`.
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
-1. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation video-extension`. Note the input fields (`video_url` or `task_id`), durations, resolutions, and `delivery`.
+1. Read the contract: `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL --operation video-extension`. Note the input fields (`video_url` or `task_id`), durations, resolutions, and `delivery`.
 2. Check the source clip (Seedance path): it shows no realistic human face, and each frame has at least 407,696 pixels (for example 640×640 or 1280×720). Clips that break either rule fail with `400` when you create the task. Use `ffprobe` to read the size.
-3. Estimate the cost: `python scripts/tokenlab_run.py price MODEL`.
+3. Estimate the cost: `python ../tokenlab-run/scripts/tokenlab_run.py price MODEL`.
    - Seedance prices per million video tokens, with a separate price when the request has video input. The task result reports `usage.total_tokens`; the charge is tokens × that price. For scale, a 4 s 480p extension of a 2 s 720×720 clip reported 67,600 tokens.
    - Per-second models: per-second price × added seconds.
    Use the Official price as the upper bound. Tell the user the estimate.
@@ -64,8 +64,8 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 
    Take a Seedance `MODEL_ID` (`seedance-2*`) from the Models list above for `video-extension`. Set `duration` and `resolution` to values its contract lists.
 
-5. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID. Poll every 5-10 s.
-6. If a wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
+5. Call and wait: `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID. Poll every 5-10 s.
+6. If a wait times out, resume with `python ../tokenlab-run/scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
 7. The Seedance result is the new part only, starting from the source's last frame. Join the source and the new part in an editor or with `ffmpeg` (see Technique).
 8. Return the new video URL, the model, the task ID, the estimate, and the joined file if you made one.
 

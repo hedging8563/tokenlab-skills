@@ -159,12 +159,12 @@
         {
           "id": "seedream-5.0",
           "operation": "image-to-image",
-          "use": "Restage, alternative look"
+          "use": "Restage, alternative look (not live-tested)"
         },
         {
           "id": "nano-banana-2-lite",
           "operation": "image-to-image",
-          "use": "Low-cost restage"
+          "use": "Low-cost restage (not live-tested)"
         },
         {
           "id": "flux-2-pro",
@@ -174,12 +174,12 @@
         {
           "id": "seedream-5.0",
           "operation": "text-to-image",
-          "use": "Shot from a brief, alternative look"
+          "use": "Shot from a brief, alternative look (not live-tested)"
         },
         {
           "id": "recraft-v4.1-utility",
           "operation": "text-to-image",
-          "use": "Flat catalog mockup"
+          "use": "Flat catalog mockup (not live-tested)"
         },
         {
           "id": "p-image",
@@ -194,14 +194,17 @@
         {
           "id": "ideogram-replace-background-v3-turbo",
           "operation": "image-edit",
-          "use": "Replace the background in place"
+          "use": "Replace the background in place (not live-tested)"
         },
         {
           "id": "ideogram-replace-background-v3",
           "operation": "image-edit",
-          "use": "Replace the background, higher tier"
+          "use": "Replace the background, higher tier (not live-tested)"
         }
-      ]
+      ],
+      "rankedFallback": {
+        "image-edit": false
+      }
     },
     {
       "id": "tokenlab-edit-image",
@@ -237,12 +240,12 @@
         {
           "id": "qwen-image-edit-2511",
           "operation": "image-edit",
-          "use": "Prompt-only edit, alternative"
+          "use": "Prompt-only edit, alternative (not live-tested)"
         },
         {
           "id": "gpt-image-2",
           "operation": "image-edit",
-          "use": "Edit with an optional mask"
+          "use": "Edit with an optional mask (not live-tested)"
         },
         {
           "id": "p-image-edit",
@@ -252,12 +255,12 @@
         {
           "id": "ideogram-edit-v3-turbo",
           "operation": "image-edit",
-          "use": "Masked edit of a marked area"
+          "use": "Masked edit of a marked area (not live-tested)"
         },
         {
           "id": "stability-inpaint",
           "operation": "image-edit",
-          "use": "Masked edit, alternative"
+          "use": "Masked edit, alternative (not live-tested)"
         },
         {
           "id": "bria-rmbg-v2-0",
@@ -267,12 +270,12 @@
         {
           "id": "ideogram-replace-background-v3-turbo",
           "operation": "image-edit",
-          "use": "New background, same subject"
+          "use": "New background, same subject (not live-tested)"
         },
         {
           "id": "ideogram-reframe-v3-turbo",
           "operation": "image-edit",
-          "use": "Extend the frame (outpaint)"
+          "use": "Extend the frame (outpaint) (not live-tested)"
         },
         {
           "id": "nano-banana-2",
@@ -282,7 +285,7 @@
         {
           "id": "seedream-5.0",
           "operation": "image-to-image",
-          "use": "New image from references, alternative"
+          "use": "New image from references, alternative (not live-tested)"
         }
       ]
     },
@@ -310,15 +313,15 @@
         },
         {
           "id": "topaz-labs-wonder-3-5",
-          "use": "Upscale, alternative"
+          "use": "Upscale, alternative (not live-tested)"
         },
         {
           "id": "bria-image-increase-resolution",
-          "use": "Upscale, alternative"
+          "use": "Upscale, alternative (not live-tested)"
         },
         {
           "id": "stability-upscale-conservative",
-          "use": "Upscale with a guiding prompt"
+          "use": "Upscale with a guiding prompt (not live-tested)"
         },
         {
           "id": "p-image-upscale",
@@ -332,7 +335,8 @@
           "id": "p-image-edit",
           "use": "Low-cost repair"
         }
-      ]
+      ],
+      "rankedFallback": false
     },
     {
       "id": "tokenlab-text-in-image",
@@ -366,12 +370,12 @@
         {
           "id": "nano-banana-pro",
           "operation": "text-to-image",
-          "use": "Design with text, alternative"
+          "use": "Design with text, alternative (not live-tested)"
         },
         {
           "id": "gpt-image-2",
           "operation": "text-to-image",
-          "use": "Design with text, alternative"
+          "use": "Design with text, alternative (not live-tested)"
         },
         {
           "id": "p-image-ideogram",
@@ -391,7 +395,7 @@
         {
           "id": "gpt-image-2",
           "operation": "image-edit",
-          "use": "Fix text with a mask"
+          "use": "Fix text with a mask (not live-tested)"
         }
       ]
     },
@@ -430,7 +434,7 @@
         {
           "id": "ideogram-character-v3",
           "operation": "text-to-image",
-          "use": "New image from one face reference"
+          "use": "New image from one face reference (not live-tested)"
         },
         {
           "id": "p-image",
@@ -445,17 +449,17 @@
         {
           "id": "ideogram-character-remix-v3",
           "operation": "image-to-image",
-          "use": "New scene, alternative"
+          "use": "New scene, alternative (not live-tested)"
         },
         {
           "id": "seedream-5.0",
           "operation": "image-to-image",
-          "use": "New scene, alternative"
+          "use": "New scene, alternative (not live-tested)"
         },
         {
           "id": "nano-banana-2-lite",
           "operation": "image-to-image",
-          "use": "Low-cost new scene"
+          "use": "Low-cost new scene (not live-tested)"
         },
         {
           "id": "grok-imagine-video",
@@ -465,7 +469,7 @@
         {
           "id": "kling-omni-video",
           "operation": "reference-to-video",
-          "use": "Clip, alternative"
+          "use": "Clip, alternative (not live-tested)"
         },
         {
           "id": "seedance-2.0",
@@ -496,19 +500,19 @@
         },
         {
           "id": "flux-2-max",
-          "use": "Highest-detail hero image"
+          "use": "Highest-detail hero image (not live-tested)"
         },
         {
           "id": "seedream-5.0-pro",
-          "use": "Photoreal, alternative look"
+          "use": "Photoreal, alternative look (not live-tested)"
         },
         {
           "id": "krea-2-large",
-          "use": "Photoreal, alternative look"
+          "use": "Photoreal, alternative look (not live-tested)"
         },
         {
           "id": "stable-image-ultra",
-          "use": "Photoreal, alternative look"
+          "use": "Photoreal, alternative look (not live-tested)"
         },
         {
           "id": "flux-2-klein-9b",
@@ -541,7 +545,7 @@
         {
           "id": "recraft-v4.1-pro",
           "operation": "text-to-image",
-          "use": "Mark at a larger size"
+          "use": "Mark at a larger size (not live-tested)"
         },
         {
           "id": "ideogram-4-5",
@@ -563,7 +567,10 @@
           "operation": "image-edit",
           "use": "Raster to SVG, alternative"
         }
-      ]
+      ],
+      "rankedFallback": {
+        "image-edit": false
+      }
     },
     {
       "id": "tokenlab-animate-image",
@@ -587,15 +594,15 @@
         },
         {
           "id": "kling-v3.0",
-          "use": "Alternative; sound on or off"
+          "use": "Alternative; sound on or off (not live-tested)"
         },
         {
           "id": "hailuo-h3",
-          "use": "Alternative with native audio"
+          "use": "Alternative with native audio (not live-tested)"
         },
         {
           "id": "seedance-2.0",
-          "use": "Alternative; long clips and high resolution"
+          "use": "Alternative; long clips and high resolution (not live-tested)"
         },
         {
           "id": "pixverse-v6",
@@ -634,12 +641,12 @@
         {
           "id": "veo3.1",
           "operation": "image-to-video",
-          "use": "Higher tier"
+          "use": "Higher tier (not live-tested)"
         },
         {
           "id": "kling-v3.0",
           "operation": "image-to-video",
-          "use": "Alternative; sound on or off"
+          "use": "Alternative; sound on or off (not live-tested)"
         },
         {
           "id": "grok-imagine-video",
@@ -654,7 +661,7 @@
         {
           "id": "veo3.1-fast",
           "operation": "reference-to-video",
-          "use": "References, alternative"
+          "use": "References, alternative (not live-tested)"
         },
         {
           "id": "grok-imagine-video",
@@ -669,7 +676,7 @@
         {
           "id": "seedance-2.0",
           "operation": "text-to-video",
-          "use": "Brief only, alternative"
+          "use": "Brief only, alternative (not live-tested)"
         },
         {
           "id": "grok-imagine-video",
@@ -700,15 +707,15 @@
         },
         {
           "id": "seedance-2.0",
-          "use": "Alternative; long clips"
+          "use": "Alternative; long clips (not live-tested)"
         },
         {
           "id": "wan-3.0",
-          "use": "Alternative"
+          "use": "Alternative (not live-tested)"
         },
         {
           "id": "hailuo-h3-max",
-          "use": "Alternative; prompt required"
+          "use": "Alternative; prompt required (not live-tested)"
         },
         {
           "id": "viduq3-turbo",
@@ -738,11 +745,11 @@
         },
         {
           "id": "seedance-2.0-fast",
-          "use": "Faster, up to 720p"
+          "use": "Faster, up to 720p (not live-tested)"
         },
         {
           "id": "seedance-2.5",
-          "use": "Newer tier, up to 720p"
+          "use": "Newer tier, up to 720p (not live-tested)"
         },
         {
           "id": "seedance-2.0-mini",
@@ -750,11 +757,11 @@
         },
         {
           "id": "veo3.1-fast",
-          "use": "Only a clip this model made (task_id)"
+          "use": "Known limit: task_id extension of a clip this model made returned 400 in live tests; prefer Seedance"
         },
         {
           "id": "grok-imagine-video",
-          "use": "Only a clip this model made (task_id)"
+          "use": "Known limit: task_id extension of a clip this model made returned 400 in live tests; prefer Seedance"
         }
       ]
     },
@@ -780,7 +787,7 @@
         },
         {
           "id": "kling-omni-video",
-          "use": "Change guided by reference images"
+          "use": "Change guided by reference images (not live-tested)"
         },
         {
           "id": "flux-video-edit",
@@ -788,11 +795,11 @@
         },
         {
           "id": "happyhorse-1.0",
-          "use": "References, alternative"
+          "use": "References, alternative (not live-tested)"
         },
         {
           "id": "seedance-2.0",
-          "use": "Alternative"
+          "use": "Alternative (not live-tested)"
         }
       ]
     },
@@ -818,9 +825,10 @@
         },
         {
           "id": "kling-3.0-motion-control",
-          "use": "Newer tier"
+          "use": "Newer tier (not live-tested)"
         }
-      ]
+      ],
+      "rankedFallback": false
     },
     {
       "id": "tokenlab-talking-avatar",
@@ -849,7 +857,7 @@
         {
           "id": "veed-fabric-1-0",
           "operation": "image-to-video",
-          "use": "Portrait plus speech, alternative"
+          "use": "Portrait plus speech, alternative (not live-tested)"
         },
         {
           "id": "p-video-avatar",
@@ -866,7 +874,10 @@
           "operation": "tts",
           "use": "Script to speech audio"
         }
-      ]
+      ],
+      "rankedFallback": {
+        "image-to-video": false
+      }
     },
     {
       "id": "tokenlab-cinematic-video",
@@ -887,23 +898,34 @@
       "preferredModels": [
         {
           "id": "veo3.1",
+          "operation": "text-to-video",
           "use": "Cinematic shot with sound"
         },
         {
+          "id": "veo3.1-fast",
+          "operation": "image-to-video",
+          "use": "Still to shot with sound"
+        },
+        {
+          "id": "veo3.1",
+          "operation": "image-to-video",
+          "use": "Higher tier (not live-tested)"
+        },
+        {
           "id": "seedance-2.0",
-          "use": "Alternative; long clips, 21:9"
+          "use": "Alternative; long clips, 21:9 (not live-tested)"
         },
         {
           "id": "kling-v3.0",
-          "use": "Alternative"
+          "use": "Alternative (not live-tested)"
         },
         {
           "id": "hailuo-h3",
-          "use": "Alternative; negative prompt"
+          "use": "Alternative; negative prompt (not live-tested)"
         },
         {
           "id": "wan-3.0",
-          "use": "Alternative; long clips"
+          "use": "Alternative; long clips (not live-tested)"
         },
         {
           "id": "grok-imagine-video",
@@ -932,27 +954,27 @@
         },
         {
           "id": "eleven-v4-turbo",
-          "use": "Alternative voices"
+          "use": "Alternative voices (not live-tested)"
         },
         {
           "id": "speech-2.8-hd",
-          "use": "Large voice library, speed control"
+          "use": "Large voice library, speed control (not live-tested)"
         },
         {
           "id": "speech-2.8-turbo",
-          "use": "Faster tier of the large library"
+          "use": "Faster tier of the large library (not live-tested)"
         },
         {
           "id": "cosyvoice-v3.5-plus",
-          "use": "Alternative"
+          "use": "Alternative (not live-tested)"
         },
         {
           "id": "kling-tts",
-          "use": "Many short lines at a flat per-request price"
+          "use": "Many short lines at a flat per-request price (not live-tested)"
         },
         {
           "id": "qwen3-tts-flash",
-          "use": "Low-cost named voices"
+          "use": "Low-cost named voices (not live-tested)"
         }
       ]
     },
@@ -983,7 +1005,7 @@
         {
           "id": "whisper-large-v3",
           "operation": "stt",
-          "use": "Timed transcript, alternative"
+          "use": "Timed transcript, alternative (not live-tested)"
         },
         {
           "id": "qwen3-asr-flash",
@@ -993,7 +1015,7 @@
         {
           "id": "fun-asr",
           "operation": "stt",
-          "use": "Plain transcript, alternative"
+          "use": "Plain transcript, alternative (not live-tested)"
         },
         {
           "id": "doubao-seed-translation",
@@ -1024,11 +1046,11 @@
         },
         {
           "id": "minimax-music-2.6",
-          "use": "Song, alternative"
+          "use": "Song, alternative (not live-tested)"
         },
         {
           "id": "stable-audio-3",
-          "use": "Instrumental with length control"
+          "use": "Instrumental with length control (not live-tested)"
         },
         {
           "id": "stable-audio-3-small-music-text-to-audio",
@@ -1036,11 +1058,11 @@
         },
         {
           "id": "stable-audio-3-small-sfx-text-to-audio",
-          "use": "Sound effect"
+          "use": "Sound effect (not live-tested)"
         },
         {
           "id": "stable-audio-3-small-sfx-base-text-to-audio",
-          "use": "Sound effect, alternative"
+          "use": "Sound effect, alternative (not live-tested)"
         }
       ]
     },
@@ -1072,20 +1094,20 @@
         {
           "id": "seed3d-2.0",
           "operation": "image-to-3d",
-          "use": "Photo to 3D, alternative"
+          "use": "Photo to 3D, alternative (not live-tested)"
         },
         {
           "id": "tripo-3d-v3-1",
           "operation": "text-to-3d",
-          "use": "Text to 3D, alternative"
+          "use": "Text to 3D, alternative (not live-tested)"
         },
         {
           "id": "tripo-p1.0",
-          "use": "Alternative"
+          "use": "Alternative (not live-tested)"
         },
         {
           "id": "meshy-6",
-          "use": "Alternative"
+          "use": "Alternative (not live-tested)"
         }
       ]
     },
@@ -1112,15 +1134,15 @@
         },
         {
           "id": "marble-1.1",
-          "use": "Final world"
+          "use": "Final world (not live-tested)"
         },
         {
           "id": "marble-1.1-plus",
-          "use": "Large outdoor or indoor space"
+          "use": "Large outdoor or indoor space (not live-tested)"
         },
         {
           "id": "marble-1.0",
-          "use": "Final world, earlier tier"
+          "use": "Final world, earlier tier (not live-tested)"
         }
       ]
     },

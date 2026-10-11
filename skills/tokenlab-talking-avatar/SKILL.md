@@ -30,7 +30,7 @@ TokenLab does not offer lip-sync onto an existing video. Every path starts from 
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `image-to-video` | `omnihuman-1-5` | default | Portrait plus speech audio |
-| `image-to-video` | `veed-fabric-1-0` | alternative | Portrait plus speech, alternative |
+| `image-to-video` | `veed-fabric-1-0` | alternative | Portrait plus speech, alternative (not live-tested) |
 | `image-to-video` | `p-video-avatar` | alternative | Low-cost portrait plus speech |
 | `image-to-video` | `veo3.1-fast` | alternative | Portrait plus a short quoted line, no audio file |
 | `tts` | `grok-tts` | default | Script to speech audio |
@@ -52,20 +52,20 @@ The avatar models price per second of output, and the output follows the audio l
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
 ### Path A: speech audio drives an avatar model
 
 1. **Get the audio.** If the user has a recording, use its public `https` URL. If the user has a script, make speech:
 
    ```bash
-   python scripts/tokenlab_run.py run /v1/audio/speech --json '{"model": "MODEL_ID", "input": "Hi, I am Mia. This mug keeps my coffee hot all morning.", "voice": "VOICE", "response_format": "mp3"}' --out line.mp3
+   python ../tokenlab-run/scripts/tokenlab_run.py run /v1/audio/speech --json '{"model": "MODEL_ID", "input": "Hi, I am Mia. This mug keeps my coffee hot all morning.", "voice": "VOICE", "response_format": "mp3"}' --out line.mp3
    ```
 
    Take the TTS `MODEL_ID` from the Models list above (operation `tts`) and a voice that model lists (for example `eve` on Grok TTS).
 
    TTS returns audio bytes, not a URL. Put the file on storage the user controls with a public `https` URL that stays valid until the task starts (for example a public bucket or CDN path). A `data:` URL does not work for speech: `audio_url` is capped at 8192 characters, which holds well under one second of audio. `POST /v1/files` is not a general audio host.
-2. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation image-to-video`. Send only listed fields.
+2. Read the contract: `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL --operation image-to-video`. Send only listed fields.
 3. Estimate: per-second price × audio seconds (`ffprobe line.mp3`). Add the TTS cost (price per character × script length). Tell the user.
 4. Build the body and call:
 
@@ -75,11 +75,11 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 
    Take an avatar `MODEL_ID` (one that takes `audio_url`) from the Models list above for `image-to-video`. Send `resolution` only when its contract lists it.
 
-   `python scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID. Poll every 5-10 s.
+   `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID. Poll every 5-10 s.
 
 ### Path B: the video model speaks the line
 
-1. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation image-to-video`, with the Veo 3.1 Fast model from the Models list.
+1. Read the contract: `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL --operation image-to-video`, with the Veo 3.1 Fast model from the Models list.
 2. Estimate: per-second price (audio is always on) × `duration`. Tell the user.
 3. Put the line in quotes inside the prompt. Keep it short enough to say in the clip length (about 2-3 words per second):
 
@@ -93,7 +93,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 
 ### Both paths
 
-- If a wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
+- If a wait times out, resume with `python ../tokenlab-run/scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
 - Check the lips against the words. To check Path B without listening, transcribe the result's audio with `tokenlab-transcribe-and-subtitle` and compare the text with the script.
 - Return the video URL, the model, the task ID, and the estimate.
 

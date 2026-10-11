@@ -26,9 +26,9 @@ Turn speech into text you can ship: a clean transcript, timed SRT or VTT subtitl
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `stt` | `whisper-large-v3-turbo` | default | Timed transcript for subtitles |
-| `stt` | `whisper-large-v3` | alternative | Timed transcript, alternative |
+| `stt` | `whisper-large-v3` | alternative | Timed transcript, alternative (not live-tested) |
 | `stt` | `qwen3-asr-flash` | alternative | Plain transcript |
-| `stt` | `fun-asr` | alternative | Plain transcript, alternative |
+| `stt` | `fun-asr` | alternative | Plain transcript, alternative (not live-tested) |
 | `translation` | `doubao-seed-translation` | default | Translate transcript or cue text |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
@@ -46,15 +46,15 @@ Do not use `/v1/audio/translations` for this skill. Translate the text with `/v1
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
-1. Read the contracts: `python scripts/tokenlab_run.py contract MODEL_ID --operation stt` for the speech-to-text model and `contract MODEL_ID --operation translation` for the translation model. Take `MODEL_ID` from the Models list above.
+1. Read the contracts: `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL_ID --operation stt` for the speech-to-text model and `contract MODEL_ID --operation translation` for the translation model. Take `MODEL_ID` from the Models list above.
 2. Check the file. If it is over 25 MB, cut it into parts at silences, or extract a mono audio track from the video (for example `ffmpeg -i in.mp4 -vn -ac 1 -b:a 64k out.mp3`). Keep each part's start offset.
 3. Estimate. Speech-to-text prices per second of audio; some models bill a minimum length per request (read `minimumUnitCount` in `GET /v1/models/{model}/pricing`). Example: a 5.5 s clip on a 10 s minimum is billed as 10 s × (price per second). Translation prices per token.
 4. Transcribe with timings. Multipart upload:
-   `python scripts/tokenlab_run.py run /v1/audio/transcriptions --form model=MODEL_ID --form response_format=verbose_json --form 'timestamp_granularities[]=word' --form language=en --file file=@clip.mp3 > transcript.json`
-   The response can be the transcript or a task (`status` + `poll_url`). If it is a task, poll it.
-5. Build subtitles from the timings: `python scripts/subtitles.py transcript.json --format srt --max-chars 42 > clip.en.srt` (or `--format vtt`). This works even when a model cannot return SRT or VTT itself. Add each part's start offset if you split the file.
+   `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/audio/transcriptions --form model=MODEL_ID --form response_format=verbose_json --form 'timestamp_granularities[]=word' --form language=en --file file=@clip.mp3 --wait > transcript.json`
+   The response can be the transcript or a task (`status` + `poll_url`); `--wait` polls a task for you.
+5. Build subtitles from the timings with this skill's own helper, `scripts/subtitles.py` (relative to this skill's folder; standard library only, no API calls, and it reads the helper's output directly): `python scripts/subtitles.py transcript.json --format srt --max-chars 42 > clip.en.srt` (or `--format vtt`). This works even when a model cannot return SRT or VTT itself. Add each part's start offset if you split the file.
 6. Translate cue by cue, so each cue keeps its time:
    - `python scripts/subtitles.py transcript.json --max-chars 42 --text-only > cues.en.txt`
    - Send the lines as `text` to `/v1/translations` with `target_language`. Write the returned `text` to `cues.es.txt`.

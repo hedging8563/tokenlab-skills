@@ -26,10 +26,10 @@ Make images that look like real photographs. The prompt does most of the work: s
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `text-to-image` | `flux-2-pro` | default | General photoreal |
-| `text-to-image` | `flux-2-max` | alternative | Highest-detail hero image |
-| `text-to-image` | `seedream-5.0-pro` | alternative | Photoreal, alternative look |
-| `text-to-image` | `krea-2-large` | alternative | Photoreal, alternative look |
-| `text-to-image` | `stable-image-ultra` | alternative | Photoreal, alternative look |
+| `text-to-image` | `flux-2-max` | alternative | Highest-detail hero image (not live-tested) |
+| `text-to-image` | `seedream-5.0-pro` | alternative | Photoreal, alternative look (not live-tested) |
+| `text-to-image` | `krea-2-large` | alternative | Photoreal, alternative look (not live-tested) |
+| `text-to-image` | `stable-image-ultra` | alternative | Photoreal, alternative look (not live-tested) |
 | `text-to-image` | `flux-2-klein-9b` | alternative | Low-cost draft |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
@@ -45,7 +45,7 @@ All use `/v1/images/generations`. Send `operation: "text-to-image"` when the con
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
 1. Read the contract. Note the size field: `resolution` as `WIDTHxHEIGHT`, `aspect_ratio`, `width` / `height`, or none. Send only listed fields.
 2. Estimate the cost from `GET /v1/models/{model}/pricing`: price per image times the image count.

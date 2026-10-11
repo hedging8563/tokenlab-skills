@@ -25,10 +25,10 @@ Change an existing clip with a prompt. The source keeps the motion, timing, and 
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `video-to-video` | `grok-imagine-video` | default | Prompt-only restyle of a short clip |
-| `video-to-video` | `kling-omni-video` | alternative | Change guided by reference images |
+| `video-to-video` | `kling-omni-video` | alternative | Change guided by reference images (not live-tested) |
 | `video-to-video` | `flux-video-edit` | alternative | Prompt-only edit, alternative |
-| `video-to-video` | `happyhorse-1.0` | alternative | References, alternative |
-| `video-to-video` | `seedance-2.0` | alternative | Alternative |
+| `video-to-video` | `happyhorse-1.0` | alternative | References, alternative (not live-tested) |
+| `video-to-video` | `seedance-2.0` | alternative | Alternative (not live-tested) |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
 <!-- tokenlab:models:end -->
@@ -47,11 +47,11 @@ All use `POST /v1/videos/generations` with `operation: "video-to-video"`. Seedan
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
-1. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation video-to-video`. Note `supported_parameters`, `notes`, and `delivery`. Send only listed fields. Grok Imagine video does not use `duration`, `resolution`, or `aspect_ratio` for this operation; leave them out.
+1. Read the contract: `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL --operation video-to-video`. Note `supported_parameters`, `notes`, and `delivery`. Send only listed fields. Grok Imagine video does not use `duration`, `resolution`, or `aspect_ratio` for this operation; leave them out.
 2. Check the source against the model's limits (Grok Imagine video: 8.7 s output cap; FLUX video edit: 15 s, 720p, 50 MiB; HappyHorse: 15 s output cap). Trim the clip to the shot you need first.
-3. Estimate the cost: `python scripts/tokenlab_run.py price MODEL`, then per-second price × output seconds. On these models the output length follows the source. Grok Imagine video holds the cost of its 8.7 s maximum up front and charges the delivered length. Use the Official price as the upper bound. Tell the user the estimate.
+3. Estimate the cost: `python ../tokenlab-run/scripts/tokenlab_run.py price MODEL`, then per-second price × output seconds. On these models the output length follows the source. Grok Imagine video holds the cost of its 8.7 s maximum up front and charges the delivered length. Use the Official price as the upper bound. Tell the user the estimate.
 4. Build the body. A prompt-only model with no length field (Grok Imagine video):
 
    ```json
@@ -66,8 +66,8 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 
    Take `MODEL_ID` from the Models list above for `video-to-video`, and send only the fields its contract lists.
 
-5. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID. Poll every 5-10 s.
-6. If a wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
+5. Call and wait: `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait`. Save the task ID. Poll every 5-10 s.
+6. If a wait times out, resume with `python ../tokenlab-run/scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
 7. Compare the result with the source (first frame, last frame, and one middle frame). Return the video URL, the model, the task ID, and the estimate.
 
 ## Technique

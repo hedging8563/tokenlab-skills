@@ -26,14 +26,14 @@ Make one downloadable 3D object from an image or a short description. 3D jobs ar
 | --- | --- | --- | --- |
 | `image-to-3d` | `tripo-h3.1` | default | Photo or text to a 3D object |
 | `image-to-3d` | `rodin-gen-2` | alternative | Lighter mesh for games or the web |
-| `image-to-3d` | `seed3d-2.0` | alternative | Photo to 3D, alternative |
-| `image-to-3d` | `tripo-p1.0` | alternative | Alternative |
-| `image-to-3d` | `meshy-6` | alternative | Alternative |
+| `image-to-3d` | `seed3d-2.0` | alternative | Photo to 3D, alternative (not live-tested) |
+| `image-to-3d` | `tripo-p1.0` | alternative | Alternative (not live-tested) |
+| `image-to-3d` | `meshy-6` | alternative | Alternative (not live-tested) |
 | `text-to-3d` | `tripo-h3.1` | default | Photo or text to a 3D object |
 | `text-to-3d` | `rodin-gen-2` | alternative | Lighter mesh for games or the web |
-| `text-to-3d` | `tripo-3d-v3-1` | alternative | Text to 3D, alternative |
-| `text-to-3d` | `tripo-p1.0` | alternative | Alternative |
-| `text-to-3d` | `meshy-6` | alternative | Alternative |
+| `text-to-3d` | `tripo-3d-v3-1` | alternative | Text to 3D, alternative (not live-tested) |
+| `text-to-3d` | `tripo-p1.0` | alternative | Alternative (not live-tested) |
+| `text-to-3d` | `meshy-6` | alternative | Alternative (not live-tested) |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
 <!-- tokenlab:models:end -->
@@ -50,12 +50,12 @@ In a 2026-10-12 check on the same mug photo, Tripo (H3.1) returned a 43 MB GLB w
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
-1. Read the contract: `python scripts/tokenlab_run.py contract MODEL_ID --operation image-to-3d`. Take `MODEL_ID` from the Models list above. Confirm the model publishes the operation you need (`image-to-3d` or `text-to-3d`). Send only fields in `supported_parameters`.
+1. Read the contract: `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL_ID --operation image-to-3d`. Take `MODEL_ID` from the Models list above. Confirm the model publishes the operation you need (`image-to-3d` or `text-to-3d`). Send only fields in `supported_parameters`.
 2. Do not send `operation`. `/v1/3d/generations` infers it: `prompt` alone is text-to-3d; `image` or `image_url` makes it image-to-3d. Some contracts list `operation`; requests without it still work.
 3. Estimate with `GET /v1/models/{model}/pricing`. Prices are per request and can differ by operation and option. Read the entry that matches your operation and the `default_selection`. Example: for Tripo (H3.1) image-to-3d, read the entry for the default `texture: none` selection; that is the price per model. Tell the user before you start.
-4. Check the input URL opens without login. Then call and wait: `python scripts/tokenlab_run.py run /v1/3d/generations --json @body.json --wait --interval 8`. Save the task `id` and `poll_url` first. Jobs took about 2–4 minutes in testing. On a timeout, resume with `poll TASK_ID`.
+4. Check the input URL opens without login. Then call and wait: `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/3d/generations --json @body.json --wait --interval 8`. Save the task `id` and `poll_url` first. Jobs took about 2–4 minutes in testing. On a timeout, resume with `poll TASK_ID`.
 5. Read the result: `model_url` always; `glb_url`, `fbx_url`, `obj_url`, `usdz_url` when the model returns them. Some models also return a preview render in `output`. URLs stay valid for 30 days.
 6. Download the file. Check it is a real model file (a GLB starts with the bytes `glTF`), its size, and a preview. Return the URLs, model, and task ID.
 

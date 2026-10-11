@@ -27,12 +27,12 @@ Make posters, signs, packaging, and mockups with words that are spelled right an
 | --- | --- | --- | --- |
 | `text-to-image` | `ideogram-4-5` | default | New design with exact text |
 | `text-to-image` | `ideogram-generate-v3-turbo` | alternative | Design with text, alternative |
-| `text-to-image` | `nano-banana-pro` | alternative | Design with text, alternative |
-| `text-to-image` | `gpt-image-2` | alternative | Design with text, alternative |
+| `text-to-image` | `nano-banana-pro` | alternative | Design with text, alternative (not live-tested) |
+| `text-to-image` | `gpt-image-2` | alternative | Design with text, alternative (not live-tested) |
 | `text-to-image` | `p-image-ideogram` | alternative | Low-cost draft |
 | `image-edit` | `ideogram-4-5` | default | Fix or replace text in an image |
 | `image-edit` | `nano-banana-2` | alternative | Fix text, alternative |
-| `image-edit` | `gpt-image-2` | alternative | Fix text with a mask |
+| `image-edit` | `gpt-image-2` | alternative | Fix text with a mask (not live-tested) |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
 <!-- tokenlab:models:end -->
@@ -46,7 +46,7 @@ All of these use `/v1/images/generations` for the operation shown, except GPT Im
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
 1. Read the contract for the model and operation. Note the size fields and the allowed values. On Ideogram 4.5, `quality` has different allowed values for text-to-image and image-edit.
 2. Estimate the cost from `GET /v1/models/{model}/pricing`. On Ideogram 4.5 the price changes with `operation` and `quality`. Multiply by `n`.

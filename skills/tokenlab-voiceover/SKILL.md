@@ -26,12 +26,12 @@ Turn a written script into clean speech audio. The speech endpoint is synchronou
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `tts` | `grok-tts` | default | General narration and app voice |
-| `tts` | `eleven-v4-turbo` | alternative | Alternative voices |
-| `tts` | `speech-2.8-hd` | alternative | Large voice library, speed control |
-| `tts` | `speech-2.8-turbo` | alternative | Faster tier of the large library |
-| `tts` | `cosyvoice-v3.5-plus` | alternative | Alternative |
-| `tts` | `kling-tts` | alternative | Many short lines at a flat per-request price |
-| `tts` | `qwen3-tts-flash` | alternative | Low-cost named voices |
+| `tts` | `eleven-v4-turbo` | alternative | Alternative voices (not live-tested) |
+| `tts` | `speech-2.8-hd` | alternative | Large voice library, speed control (not live-tested) |
+| `tts` | `speech-2.8-turbo` | alternative | Faster tier of the large library (not live-tested) |
+| `tts` | `cosyvoice-v3.5-plus` | alternative | Alternative (not live-tested) |
+| `tts` | `kling-tts` | alternative | Many short lines at a flat per-request price (not live-tested) |
+| `tts` | `qwen3-tts-flash` | alternative | Low-cost named voices (not live-tested) |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
 <!-- tokenlab:models:end -->
@@ -49,13 +49,13 @@ Exact fields, voice lists, and formats come from the model contract. Most speech
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
-1. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation tts`. Note `supported_parameters` and `parameter_options` (voice names, `response_format` values). Send only listed fields. Grok TTS takes `input`, `voice`, `response_format`.
+1. Read the contract: `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL --operation tts`. Note `supported_parameters` and `parameter_options` (voice names, `response_format` values). Send only listed fields. Grok TTS takes `input`, `voice`, `response_format`.
 2. Pick the voice from `parameter_options.voice`. If the model lists no voice options, use the voice from `recommended_request`, or ask the user for a `voice_id`. Do not invent voice names.
 3. Estimate: count the characters in `input` and multiply by the per-character price from `GET /v1/models/{model}/pricing`. Per-character prices are quoted per 1M characters. Example: 78 characters × (price per 1M characters) / 1,000,000.
 4. Split scripts longer than 4,096 characters (the endpoint limit) at paragraph or sentence breaks. Use one voice and the same settings for every part. Join the files in order.
-5. Call `POST /v1/audio/speech` and save the bytes: `python scripts/tokenlab_run.py run /v1/audio/speech --json @body.json --out line01.mp3`. Allow a client timeout of at least 120 s for long input. Keep the `x-request-id`.
+5. Call `POST /v1/audio/speech` and save the bytes: `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/audio/speech --json @body.json --out line01.mp3`. Allow a client timeout of at least 120 s for long input. Keep the `x-request-id`.
 6. Check the file: it plays, its length fits the script, and the format is what you asked for. Some models return one fixed format; trust the response `Content-Type` over the requested format.
 7. Return the file paths, model, voice, and character count. TTS has no result URL; store the files yourself.
 

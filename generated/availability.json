@@ -195,9 +195,10 @@
       "kling-v3.0",
       "hailuo-h3",
       "wan-3.0",
-      "grok-imagine-video"
+      "grok-imagine-video",
+      "veo3.1-fast"
     ],
-    "checkedAt": "2026-10-11T21:14:40Z"
+    "checkedAt": "2026-10-11T21:40:47Z"
   },
   "tokenlab-voiceover": {
     "status": "available",

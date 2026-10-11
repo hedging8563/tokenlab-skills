@@ -27,16 +27,16 @@ Change one thing in an existing image and keep everything else. Pick the model b
 | --- | --- | --- | --- |
 | `image-edit` | `nano-banana-2` | default | Prompt-only edit: add, remove, replace, recolor |
 | `image-edit` | `flux-kontext-pro` | alternative | Prompt-only edit, alternative |
-| `image-edit` | `qwen-image-edit-2511` | alternative | Prompt-only edit, alternative |
-| `image-edit` | `gpt-image-2` | alternative | Edit with an optional mask |
+| `image-edit` | `qwen-image-edit-2511` | alternative | Prompt-only edit, alternative (not live-tested) |
+| `image-edit` | `gpt-image-2` | alternative | Edit with an optional mask (not live-tested) |
 | `image-edit` | `p-image-edit` | alternative | Low-cost prompt-only edit |
-| `image-edit` | `ideogram-edit-v3-turbo` | alternative | Masked edit of a marked area |
-| `image-edit` | `stability-inpaint` | alternative | Masked edit, alternative |
+| `image-edit` | `ideogram-edit-v3-turbo` | alternative | Masked edit of a marked area (not live-tested) |
+| `image-edit` | `stability-inpaint` | alternative | Masked edit, alternative (not live-tested) |
 | `image-edit` | `bria-rmbg-v2-0` | alternative | Cut out the subject (transparent PNG) |
-| `image-edit` | `ideogram-replace-background-v3-turbo` | alternative | New background, same subject |
-| `image-edit` | `ideogram-reframe-v3-turbo` | alternative | Extend the frame (outpaint) |
+| `image-edit` | `ideogram-replace-background-v3-turbo` | alternative | New background, same subject (not live-tested) |
+| `image-edit` | `ideogram-reframe-v3-turbo` | alternative | Extend the frame (outpaint) (not live-tested) |
 | `image-to-image` | `nano-banana-2` | default | New image from reference images |
-| `image-to-image` | `seedream-5.0` | alternative | New image from references, alternative |
+| `image-to-image` | `seedream-5.0` | alternative | New image from references, alternative (not live-tested) |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
 <!-- tokenlab:models:end -->
@@ -54,7 +54,7 @@ Exact fields come from each model's contract. `references/request-bodies.md` has
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
 1. Read the contract for the model. Use `request_endpoint_by_operation["image-edit"]` for the endpoint. Many edit models use `/v1/images/generations` with `operation: "image-edit"`; others use `/v1/images/edits`. Note the image field (`image_url`, `image_urls`, or `image`) and the size field.
 2. Estimate the cost from `GET /v1/models/{model}/pricing`: price per image times `n`. For Nano Banana models the price depends on `resolution`.

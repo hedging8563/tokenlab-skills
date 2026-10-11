@@ -50,12 +50,12 @@ The decision endpoint takes only `model`, `state`, and `questions`. It has no me
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
-1. Discover and read the contract: `GET /v1/models?category=decision`, then `python scripts/tokenlab_run.py contract MODEL_ID --operation systemone`. Take `MODEL_ID` from the Models list above or from that discovery call. The contract lists `state` and `questions`.
+1. Discover and read the contract: `GET /v1/models?category=decision`, then `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL_ID --operation systemone`. Take `MODEL_ID` from the Models list above or from that discovery call. The contract lists `state` and `questions`.
 2. Write the questions (see Technique and `references/question-design.md`). Give each a stable name; the response uses the same names.
 3. Estimate with `GET /v1/models/{model}/pricing`. Jev prices per input token. Example: 469 input tokens × (input price per 1M tokens) / 1,000,000. Estimate a batch from one real call's `usage.input_tokens`.
-4. Call `POST /v1/systemone`: `python scripts/tokenlab_run.py run /v1/systemone --json @body.json`. Keep the `x-request-id`. There is no task to poll.
+4. Call `POST /v1/systemone`: `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/systemone --json @body.json`. Keep the `x-request-id`. There is no task to poll.
 5. Read `answers.<name>` and `usage`. Keep `noul`, `probabilities`, `confidence`, and `usage` exactly as returned. Do not round a probability into a Boolean in storage.
 6. Apply your thresholds in code (see below). Log the request ID, the answers, and the action taken.
 7. Before the answers drive real actions, run them on the user's labeled cases and tune the thresholds.

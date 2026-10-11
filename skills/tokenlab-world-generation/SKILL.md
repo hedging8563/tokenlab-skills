@@ -25,9 +25,9 @@ Make an explorable 3D place from a description, images, or a video. The result i
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `world-generation` | `marble-1.0-draft` | default | Draft a layout or idea |
-| `world-generation` | `marble-1.1` | alternative | Final world |
-| `world-generation` | `marble-1.1-plus` | alternative | Large outdoor or indoor space |
-| `world-generation` | `marble-1.0` | alternative | Final world, earlier tier |
+| `world-generation` | `marble-1.1` | alternative | Final world (not live-tested) |
+| `world-generation` | `marble-1.1-plus` | alternative | Large outdoor or indoor space (not live-tested) |
+| `world-generation` | `marble-1.0` | alternative | Final world, earlier tier (not live-tested) |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
 <!-- tokenlab:models:end -->
@@ -43,13 +43,13 @@ Exact fields come from the model contract; credits per input type come from the 
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
-1. Read the contract: `python scripts/tokenlab_run.py contract MODEL_ID --operation world-generation`. Take `MODEL_ID` from the Models list above. Send only listed fields.
+1. Read the contract: `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL_ID --operation world-generation`. Take `MODEL_ID` from the Models list above. Send only listed fields.
 2. Estimate with `GET /v1/models/{model}/pricing`. World models charge credits per request, shown as a USD range in `pricing_summary`; `pricing_details.worldLabs` lists credits per input type and the USD price per credit. Example: Marble draft from text or one image = (credits for that input type) × (USD per credit). Use `official_max_price` as the upper bound and tell the user before you start.
 3. Draft first. Run Marble draft with the brief. Show the viewer link and thumbnail. Change the brief until the layout is right.
 4. Make the final world with Marble 1.1 (or Marble 1.1 Plus for large spaces), same brief, after the user agrees to the price.
-5. Call and wait: `python scripts/tokenlab_run.py run /v1/worlds/generations --json @body.json --wait --interval 10`. Save the task `id` and `poll_url` (`/v1/worlds/generations/{id}`) first. A draft took about 40 s in testing; World Labs says a standard world takes about 5 minutes. On a timeout, resume with `poll TASK_ID`.
+5. Call and wait: `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/worlds/generations --json @body.json --wait --interval 10`. Save the task `id` and `poll_url` (`/v1/worlds/generations/{id}`) first. A draft took about 40 s in testing; World Labs says a standard world takes about 5 minutes. On a timeout, resume with `poll TASK_ID`.
 6. Read the result:
    - `world_marble_url`: the world viewer link to open and explore.
    - `assets.splats.spz_urls`: splats at `100k`, `500k`, and `full_res`.

@@ -26,14 +26,14 @@ Turn a product into a short ad clip that keeps the product exact. Start from a g
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `image-to-video` | `veo3.1-fast` | default | Animate one product still |
-| `image-to-video` | `veo3.1` | alternative | Higher tier |
-| `image-to-video` | `kling-v3.0` | alternative | Alternative; sound on or off |
+| `image-to-video` | `veo3.1` | alternative | Higher tier (not live-tested) |
+| `image-to-video` | `kling-v3.0` | alternative | Alternative; sound on or off (not live-tested) |
 | `image-to-video` | `grok-imagine-video` | alternative | Low-cost draft |
 | `reference-to-video` | `seedance-2.0` | default | Keep the product from several photos |
-| `reference-to-video` | `veo3.1-fast` | alternative | References, alternative |
+| `reference-to-video` | `veo3.1-fast` | alternative | References, alternative (not live-tested) |
 | `reference-to-video` | `grok-imagine-video` | alternative | Low-cost references |
 | `text-to-video` | `veo3.1-fast` | default | Brief only, no photo |
-| `text-to-video` | `seedance-2.0` | alternative | Brief only, alternative |
+| `text-to-video` | `seedance-2.0` | alternative | Brief only, alternative (not live-tested) |
 | `text-to-video` | `grok-imagine-video` | alternative | Low-cost draft |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
@@ -52,11 +52,11 @@ All video calls use `POST /v1/videos/generations` with an explicit `operation`. 
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
 1. **Get a clean still.** Use the user's photo if it is sharp and well lit. Otherwise run `tokenlab-product-photography` first and keep its result URL as the anchor.
-2. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation image-to-video` (or `reference-to-video`, `text-to-video`). Use only listed fields and values.
-3. Estimate the cost: `python scripts/tokenlab_run.py price MODEL`, then per-second price × `duration` for each shot. Some models charge more with audio on or at a higher resolution. Use the Official price as the upper bound. Tell the user the total for all shots before you start.
+2. Read the contract: `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL --operation image-to-video` (or `reference-to-video`, `text-to-video`). Use only listed fields and values.
+3. Estimate the cost: `python ../tokenlab-run/scripts/tokenlab_run.py price MODEL`, then per-second price × `duration` for each shot. Some models charge more with audio on or at a higher resolution. Use the Official price as the upper bound. Tell the user the total for all shots before you start.
 4. Build one body per shot:
 
    ```json
@@ -65,8 +65,8 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 
    Take `MODEL_ID` from the Models list above for the shot's operation. Set `duration` and `resolution` to values its contract lists.
 
-5. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @shot1.json --wait`. Save each task ID. Poll every 5-10 s.
-6. If a wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
+5. Call and wait: `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/videos/generations --json @shot1.json --wait`. Save each task ID. Poll every 5-10 s.
+6. If a wait times out, resume with `python ../tokenlab-run/scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
 7. Check each shot against the Quality bar. Re-run only the weak shot, after you tell the user the cost.
 8. Return each video URL with its model, task ID, aspect ratio, and estimate.
 

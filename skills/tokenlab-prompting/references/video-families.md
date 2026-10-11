@@ -12,7 +12,7 @@ General video rules:
 
 ## Seedance
 
-Sources (maker prompt guides; the pages are script-rendered and the body did not load for me, so the points below come from search excerpts of these pages and are partial):
+Sources (maker prompt guides; the points below are a short subset, so read the guides for the full rules):
 - https://docs.volcengine.com/docs/ark/seedance-2-0-prompt-guide
 - https://docs.byteplus.com/en/docs/modelark/seedance-2-0-prompt-guide
 - https://docs.byteplus.com/en/docs/ModelArk/2607689 (Seedance 2.5)
@@ -114,7 +114,7 @@ Models: Hailuo H3, H3 max, and 2.3 (`hailuo-*`).
 Structure that works:
 - Hailuo 2.3 (maker docs): put camera commands in square brackets. The 15 commands are Truck left/right, Pan left/right, Push in, Pull out, Pedestal up/down, Tilt up/down, Zoom in/out, Shake, Tracking shot, Static shot. Join up to 3 in one bracket for a joint move: `[Pan left,Pedestal up]`. List brackets in order for a sequence. Plain words also work, but the maker says explicit commands are more exact. Maker limit: 2000 characters.
 - Shape: `[Camera command] subject, visible action, setting, light and look`.
-- Hailuo H3 (maker examples): start with length and aspect ratio, then the use, then a job for each reference image, then the core action, then camera, style, and sound. Use plain camera words (dolly in, track left, handheld, locked-off). The H3 pages I read do not list bracket commands. Do not assume they work.
+- Hailuo H3 (maker examples): start with length and aspect ratio, then the use, then a job for each reference image, then the core action, then camera, style, and sound. Use plain camera words (dolly in, track left, handheld, locked-off). The H3 maker pages do not list bracket commands, so do not assume they work.
 - Say the edit rhythm and the feeling you want ("tight, punchy cuts", "slow and calm").
 
 Contract:

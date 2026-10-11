@@ -27,16 +27,17 @@ Write each shot like a director: what the camera sees, how it moves, through whi
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `text-to-video` | `veo3.1` | default | Cinematic shot with sound |
-| `text-to-video` | `seedance-2.0` | alternative | Alternative; long clips, 21:9 |
-| `text-to-video` | `kling-v3.0` | alternative | Alternative |
-| `text-to-video` | `hailuo-h3` | alternative | Alternative; negative prompt |
-| `text-to-video` | `wan-3.0` | alternative | Alternative; long clips |
+| `text-to-video` | `seedance-2.0` | alternative | Alternative; long clips, 21:9 (not live-tested) |
+| `text-to-video` | `kling-v3.0` | alternative | Alternative (not live-tested) |
+| `text-to-video` | `hailuo-h3` | alternative | Alternative; negative prompt (not live-tested) |
+| `text-to-video` | `wan-3.0` | alternative | Alternative; long clips (not live-tested) |
 | `text-to-video` | `grok-imagine-video` | alternative | Low-cost draft |
-| `image-to-video` | `veo3.1` | default | Cinematic shot with sound |
-| `image-to-video` | `seedance-2.0` | alternative | Alternative; long clips, 21:9 |
-| `image-to-video` | `kling-v3.0` | alternative | Alternative |
-| `image-to-video` | `hailuo-h3` | alternative | Alternative; negative prompt |
-| `image-to-video` | `wan-3.0` | alternative | Alternative; long clips |
+| `image-to-video` | `veo3.1-fast` | default | Still to shot with sound |
+| `image-to-video` | `veo3.1` | alternative | Higher tier (not live-tested) |
+| `image-to-video` | `seedance-2.0` | alternative | Alternative; long clips, 21:9 (not live-tested) |
+| `image-to-video` | `kling-v3.0` | alternative | Alternative (not live-tested) |
+| `image-to-video` | `hailuo-h3` | alternative | Alternative; negative prompt (not live-tested) |
+| `image-to-video` | `wan-3.0` | alternative | Alternative; long clips (not live-tested) |
 | `image-to-video` | `grok-imagine-video` | alternative | Low-cost draft |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
@@ -46,7 +47,8 @@ This list refreshes daily from the live catalog. Preferred models come first; ot
 
 Exact fields and values come from each model's contract.
 
-- **Veo 3.1:** the default cinematic shot with sound. 4, 6, or 8 s at 720p or 1080p. Audio is always on.
+- **Veo 3.1:** the default text-to-shot model with sound. 4, 6, or 8 s at 720p or 1080p. Audio is always on.
+- **Veo 3.1 Fast:** the default still-to-shot model; same durations and always-on audio, faster and lower cost. Veo 3.1 is the higher tier for a still.
 - **Seedance 2.0:** an alternative for longer clips (4-15 s) and 21:9.
 - **Kling 3.0:** an alternative, 3-15 s.
 - **Hailuo H3:** an alternative that takes `negative_prompt`. 6 or 10 s at 768p.
@@ -57,11 +59,11 @@ All use `POST /v1/videos/generations` with an explicit `operation`. Send `output
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
 1. **Plan the shots.** Write one prompt per shot with the template in Technique. Keep one style line and reuse it word for word in every shot.
-2. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation text-to-video` (or `image-to-video`). Use only listed fields and values.
-3. Estimate the cost: `python scripts/tokenlab_run.py price MODEL`, then per-second price × `duration` for each shot. Veo audio is always on, so use its with-audio price. Use the Official price as the upper bound. Tell the user the total before you start.
+2. Read the contract: `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL --operation text-to-video` (or `image-to-video`). Use only listed fields and values.
+3. Estimate the cost: `python ../tokenlab-run/scripts/tokenlab_run.py price MODEL`, then per-second price × `duration` for each shot. Veo audio is always on, so use its with-audio price. Use the Official price as the upper bound. Tell the user the total before you start.
 4. Make a cheap test of the hardest shot first (short duration, lowest resolution, or a low-cost model). Fix the prompt, then make the final shots.
 5. Build each body:
 
@@ -71,8 +73,8 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 
    Take `MODEL_ID` from the Models list above for the shot's operation. Set `duration` and `resolution` to values its contract lists.
 
-6. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @shot1.json --wait`. Save each task ID. Poll every 5-10 s.
-7. If a wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
+6. Call and wait: `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/videos/generations --json @shot1.json --wait`. Save each task ID. Poll every 5-10 s.
+7. If a wait times out, resume with `python ../tokenlab-run/scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
 8. Return each shot's video URL, model, task ID, and estimate, in shot order.
 
 ## Technique

@@ -26,15 +26,15 @@ Show the same character in new scenes, poses, and clips. The method: lock one an
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `image-to-image` | `nano-banana-2` | default | New scene from the anchor |
-| `image-to-image` | `ideogram-character-remix-v3` | alternative | New scene, alternative |
-| `image-to-image` | `seedream-5.0` | alternative | New scene, alternative |
-| `image-to-image` | `nano-banana-2-lite` | alternative | Low-cost new scene |
+| `image-to-image` | `ideogram-character-remix-v3` | alternative | New scene, alternative (not live-tested) |
+| `image-to-image` | `seedream-5.0` | alternative | New scene, alternative (not live-tested) |
+| `image-to-image` | `nano-banana-2-lite` | alternative | Low-cost new scene (not live-tested) |
 | `text-to-image` | `nano-banana-2` | default | Make the anchor image |
 | `text-to-image` | `flux-2-pro` | alternative | Anchor image, alternative |
-| `text-to-image` | `ideogram-character-v3` | alternative | New image from one face reference |
+| `text-to-image` | `ideogram-character-v3` | alternative | New image from one face reference (not live-tested) |
 | `text-to-image` | `p-image` | alternative | Low-cost anchor |
 | `reference-to-video` | `grok-imagine-video` | default | Short clip with the character |
-| `reference-to-video` | `kling-omni-video` | alternative | Clip, alternative |
+| `reference-to-video` | `kling-omni-video` | alternative | Clip, alternative (not live-tested) |
 | `reference-to-video` | `seedance-2.0` | alternative | Clip with many references |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
@@ -50,7 +50,7 @@ Exact fields and reference limits come from each model's contract. `references/r
 
 ## Workflow
 
-Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
 1. Read the contract for each model and operation. Note the reference field (`image_urls`, `reference_image_urls`, `image_url`, or `reference_images`), its maximum item count, and the size fields.
 2. Estimate the cost: price per image times scenes, plus price per second times clip length for video. Video is priced per second and can add a per-reference-image charge; read the pricing formula. Tell the user the total before a batch or any video.

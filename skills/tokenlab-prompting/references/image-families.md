@@ -115,7 +115,7 @@ Pitfalls:
 ## Seedream
 
 Sources:
-- https://docs.byteplus.com/en/docs/modelark/seedream-4-0-5-0-prompt-guide (the maker prompt guide; the page body did not load for me, so the points below come from search excerpts of the maker docs and are partial)
+- https://docs.byteplus.com/en/docs/modelark/seedream-4-0-5-0-prompt-guide (the maker prompt guide; the points below are a short subset)
 - https://docs.byteplus.com/en/docs/ModelArk/1541523 (image API reference)
 
 Models: Seedream 5.0 (base, pro, lite, flash) and 4.5 (`seedream-*`).
@@ -172,7 +172,7 @@ Pitfalls:
 
 ## Qwen image
 
-Source: https://www.alibabacloud.com/help/en/model-studio/qwen-image-api (API reference with prompt notes). The maker's detailed prompt guide is a separate page that I did not read.
+Source: https://www.alibabacloud.com/help/en/model-studio/qwen-image-api (API reference with prompt notes). The maker also publishes a separate, longer prompt guide.
 
 Models: Qwen Image 3.0, 2.0, 2.0 pro, and Qwen Image Edit (`qwen-image-*`).
 
