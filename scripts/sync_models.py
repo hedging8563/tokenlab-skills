@@ -65,6 +65,10 @@ def load_live(scenes):
     ranked = {}
     for scene in sorted(scenes):
         body = fetch(f'/v1/models?recommended_for={scene}')
+        if body is None:
+            # The API does not offer this scene yet (for example decision before its release):
+            # use the category list, which has no ranking but the same models.
+            body = fetch(f'/v1/models?category={scene}')
         ranked[scene] = [m['id'] for m in body['data']] if body else []
     return {'models': models, 'recommended': ranked}
 

@@ -25,7 +25,7 @@ Install `tokenlab-run` together with any outcome skill. The plugin installs all 
 Skills do not hard-code model IDs in their text. Each skill's `## Models` section holds a block that `scripts/sync_models.py` generates from the live catalog (`GET https://api.tokenlab.sh/v1/models`, no key needed):
 
 1. The skill's `preferredModels` from `catalog.json` that are live and support the operation come first.
-2. If none is live, the top three models that `recommended_for=<scene>` ranks by 24-hour success rate take their place, plus one low-cost option.
+2. If none is live, the top three models that `recommended_for=<scene>` ranks by 24-hour success rate take their place, plus one low-cost option. When the API does not offer a scene yet (for example `decision`), the `category=<scene>` list is used instead.
 
 The script also writes `generated/availability.json`: for each skill, `status` (`available`, or `unavailable` when no live model supports any of its operations), the current `models`, and `checkedAt`. The [Sync model defaults](.github/workflows/sync-models.yml) workflow runs it daily. When a list changes, the workflow raises the patch version, runs the tests, and pushes the update to `main`, so plugin and Skills CLI users get the new defaults on their next update.
 

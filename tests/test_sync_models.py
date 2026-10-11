@@ -105,6 +105,29 @@ class PickTests(unittest.TestCase):
         self.assertEqual(picked['image-to-video'][0]['pick'], 'default')
 
 
+class LoadLiveTests(unittest.TestCase):
+    def test_scene_that_the_api_rejects_falls_back_to_the_category_list(self):
+        calls = []
+        responses = {
+            '/v1/models': {'data': [model('d', ['systemone'])]},
+            '/v1/models?recommended_for=decision': None,
+            '/v1/models?category=decision': {'data': [{'id': 'd'}]},
+            '/v1/models?recommended_for=video': {'data': [{'id': 'v2'}, {'id': 'v1'}]},
+        }
+
+        def fake_fetch(path):
+            calls.append(path)
+            return responses[path]
+
+        original = sync_models.fetch
+        sync_models.fetch = fake_fetch
+        self.addCleanup(setattr, sync_models, 'fetch', original)
+        snapshot = sync_models.load_live({'decision', 'video'})
+        self.assertEqual(snapshot['recommended'], {'decision': ['d'], 'video': ['v2', 'v1']})
+        self.assertIn('/v1/models?category=decision', calls)
+        self.assertNotIn('/v1/models?category=video', calls)
+
+
 class BuildTests(unittest.TestCase):
     def test_operation_with_no_supply_marks_the_skill_unavailable(self):
         repo = FixtureRepo(self, [skill(['motion-control'], ['gone-model'])])
