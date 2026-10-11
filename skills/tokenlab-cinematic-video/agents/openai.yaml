@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Cinematic Video"
+  short_description: "Text or image to cinematic shots with camera language"
+  default_prompt: "Use $tokenlab-cinematic-video to make an 8-second slow dolly-in shot of a lighthouse at dusk in light rain."

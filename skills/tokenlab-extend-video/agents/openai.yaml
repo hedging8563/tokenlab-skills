@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Extend Video"
+  short_description: "Continue a clip past its last frame"
+  default_prompt: "Use $tokenlab-extend-video to add 5 more seconds to this clip where the camera keeps pushing in."

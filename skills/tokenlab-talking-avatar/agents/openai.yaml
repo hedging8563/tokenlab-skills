@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Talking Avatar"
+  short_description: "Portrait plus script or audio to a talking head"
+  default_prompt: "Use $tokenlab-talking-avatar to make this headshot say: \"Hi, I am Mia. Thanks for watching.\""

@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Product Ad Video"
+  short_description: "Product photo or brief to a short ad clip"
+  default_prompt: "Use $tokenlab-product-ad-video to turn this product photo into a 6-second 9:16 ad clip with a slow push-in."

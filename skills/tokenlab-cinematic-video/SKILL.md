@@ -1,0 +1,77 @@
+---
+name: tokenlab-cinematic-video
+description: "Make cinematic shots from text or a still image with TokenLab video models, using film camera language: shot size, camera move, lens, light, and sound. Use when the user says \"make a cinematic shot\", \"film-like video of ...\", \"movie trailer shot\", \"drone shot of ...\", \"slow dolly-in on ...\", \"b-roll for my video\", or \"storyboard these shots into clips\". One call makes one shot; plan a sequence as several shots with a shared look. For a product-focused ad, use tokenlab-product-ad-video. To simply animate a photo, use tokenlab-animate-image. For exact first and last frames, use tokenlab-keyframe-transition."
+license: MIT
+metadata:
+  category: video
+---
+
+# Cinematic Video
+
+Write each shot like a director: what the camera sees, how it moves, through which lens, in which light, and what you hear. Make one clip per shot and keep a shared style line across shots.
+
+## Inputs to collect
+
+- **Shot list:** one line per shot (subject + action + place). Ask for the order if there is more than one.
+- **Look:** genre or film style, color palette, time of day, and era.
+- **Camera:** shot size, angle, and one move per shot.
+- **Sound:** ambience, effects, dialogue, or silence.
+- **Format:** aspect ratio (16:9, 9:16, 21:9), length per shot, and resolution.
+- **Anchor image** (optional): a still that fixes the look or the character. Use it with image-to-video.
+
+## Models
+
+Confirm each pick with `tokenlab-model-picker` or `GET /v1/models/{model}` before you call it. Prices, durations, and supply change.
+
+| Need | Default | Alternatives | Fast / low-cost |
+| --- | --- | --- | --- |
+| Text to shot (`text-to-video`) | `veo3.1` (4, 6, or 8 s; 720p/1080p; 9:16 or 16:9; audio always on) | `seedance-2.0` (4-15 s, 480p-4k, 21:9 too), `kling-v3.0` (3-15 s, 720p/1080p), `hailuo-h3` (6 or 10 s, 768p, `negative_prompt`), `wan-3.0` (2-30 s, 480p-1080p, 21:9 too), `seedance-2.5` (4-30 s, 480p/720p), `veo3.1-fast` | `grok-imagine-video` (1-15 s, 480p/720p), `viduq3-turbo` (540p-1080p), `p-video-2` (`duration`, optional `width`/`height`) |
+| Still to shot (`image-to-video`, `image_url`) | `veo3.1` | `kling-v3.0`, `seedance-2.0`, `wan-3.0`, `hailuo-h3` | `grok-imagine-video` |
+
+All use `POST /v1/videos/generations` with an explicit `operation`. Send `output_audio` or `negative_prompt` only when the operation lists it.
+
+## Workflow
+
+Run each call with `tokenlab-run` (contract → estimate → call → poll → result).
+
+1. **Plan the shots.** Write one prompt per shot with the template in Technique. Keep one style line and reuse it word for word in every shot.
+2. Read the contract: `python scripts/tokenlab_run.py contract MODEL --operation text-to-video` (or `image-to-video`). Use only listed fields and values.
+3. Estimate the cost: `python scripts/tokenlab_run.py price MODEL`, then per-second price × `duration` for each shot. Veo audio is always on, so use its with-audio price. Use the Official price as the upper bound. Tell the user the total before you start.
+4. Make a cheap test of the hardest shot first (short duration, lowest resolution, or a low-cost model). Fix the prompt, then make the final shots.
+5. Build each body:
+
+   ```json
+   {"model": "veo3.1", "operation": "text-to-video", "prompt": "Slow dolly-in, eye level, 35mm lens. A lighthouse keeper in a yellow raincoat climbs wet stone stairs at dusk; waves crash below. Cold blue light with a warm lamp glow from the window. Film noir mood, light rain. Sound: wind, surf, his boots on wet stone.", "duration": 8, "resolution": "720p", "aspect_ratio": "16:9"}
+   ```
+
+6. Call and wait: `python scripts/tokenlab_run.py run /v1/videos/generations --json @shot1.json --wait`. Save each task ID. Poll every 5-10 s.
+7. If a wait times out, resume with `python scripts/tokenlab_run.py poll TASK_ID`. Never create a duplicate task.
+8. Return each shot's video URL, model, task ID, and estimate, in shot order.
+
+## Technique
+
+- **Prompt template** (the parts Google lists for Veo prompts): camera move and position → composition → subject and action → place → lens and focus → light and ambiance → style → sound. Leave out any part you do not need.
+- **One camera move per shot.** "Slow dolly-in" or "pan left", not both. Make a second shot for the next move.
+- **Name the lens and focus.** "35mm, deep focus" for context; "85mm, shallow focus" for faces; "macro lens" for textures; "wide-angle lens" for space.
+- **Light sets the mood.** Name its direction and color: "low warm sun from behind", "cold blue night with neon spill", "single overhead practical".
+- **Sound on Veo.** Veo always makes audio. Describe effects and ambience explicitly. Put dialogue in quotes: `She whispers, "We're late."`
+- **Consistency across shots.** Reuse the same character description and style line. For a fixed character or set, make a still first (see `tokenlab-character-consistency`) and use image-to-video from it.
+- **Exclusions.** Use `negative_prompt` only on models that list it (for example `hailuo-h3`). Elsewhere, describe the result you want instead.
+- **Shot vocabulary:** see `references/shot-language.md`.
+
+## Quality bar
+
+- Each shot shows the requested shot size, camera move, and light.
+- The camera move is smooth and single; no unasked cuts inside a shot.
+- Characters, wardrobe, and the style line stay the same across shots.
+- Sound matches the action (Veo) or the shot is silent when asked (models with `output_audio`).
+- The user saw the total estimate first, and the answer lists every shot's model and task ID.
+
+## Related skills
+
+- `tokenlab-run`: the call, poll, and result mechanics.
+- `tokenlab-product-ad-video`: product-focused shots.
+- `tokenlab-animate-image`: animate a single still.
+- `tokenlab-keyframe-transition`: fix the first and last frame of a shot.
+- `tokenlab-extend-video`: make a shot longer.
+- `tokenlab-prompting`: prompt craft per model family.

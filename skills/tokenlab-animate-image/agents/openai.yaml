@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Animate Image"
+  short_description: "Turn a still image into a short video clip"
+  default_prompt: "Use $tokenlab-animate-image to animate this photo into a 5-second clip with a slow push-in."

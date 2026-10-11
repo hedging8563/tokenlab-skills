@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Motion Control"
+  short_description: "Move a character image with the motion of a video"
+  default_prompt: "Use $tokenlab-motion-control to make the character in this image copy the dance in this video."

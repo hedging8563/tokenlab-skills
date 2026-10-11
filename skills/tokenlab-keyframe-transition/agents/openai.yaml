@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Keyframe Transition"
+  short_description: "Video that moves from a first frame to a last frame"
+  default_prompt: "Use $tokenlab-keyframe-transition to make a 4-second clip that starts on the first image and ends on the second."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenLab Edit Video"
+  short_description: "Restyle or change an existing clip with a prompt"
+  default_prompt: "Use $tokenlab-edit-video to turn this clip into a hand-drawn watercolor animation and keep the motion."
