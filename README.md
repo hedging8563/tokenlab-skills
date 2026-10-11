@@ -18,7 +18,16 @@ Install `tokenlab-run` together with any outcome skill. The plugin installs all 
 
 ## Catalog
 
-`catalog.json` owns the skill list, groups, and order. `skills.sh.json` and this section are generated from it with `python3 scripts/sync_catalog.py`.
+`catalog.json` owns the skill list, groups, order, operations, and preferred models. `skills.sh.json` and this section are generated from it with `python3 scripts/sync_catalog.py`.
+
+## Model defaults refresh daily
+
+Skills do not hard-code model IDs in their text. Each skill's `## Models` section holds a block that `scripts/sync_models.py` generates from the live catalog (`GET https://api.tokenlab.sh/v1/models`, no key needed):
+
+1. The skill's `preferredModels` from `catalog.json` that are live and support the operation come first.
+2. If none is live, the top three models that `recommended_for=<scene>` ranks by 24-hour success rate take their place, plus one low-cost option.
+
+The script also writes `generated/availability.json`: for each skill, `status` (`available`, or `unavailable` when no live model supports any of its operations), the current `models`, and `checkedAt`. The [Sync model defaults](.github/workflows/sync-models.yml) workflow runs it daily. When a list changes, the workflow raises the patch version, runs the tests, and pushes the update to `main`, so plugin and Skills CLI users get the new defaults on their next update.
 
 <!-- catalog:start -->
 
@@ -158,5 +167,5 @@ npx skills update tokenlab-api-integration --global
 
 - Each folder in `skills/` has a `SKILL.md` whose `name` equals the folder name.
 - Outcome skills use the `tokenlab-` prefix so they never replace another vendor's skill with the same name.
-- Skills name exact model IDs as defaults but tell the agent to confirm them live. They state no prices; the agent reads prices from the pricing API.
-- `python3 -m unittest discover -s tests` checks the catalog, generated files, versions, and helper scripts.
+- Exact model IDs appear only in the generated model block. To change a default, edit `preferredModels` in `catalog.json` and run `python3 scripts/sync_models.py`. Skills state no prices; the agent reads prices from the pricing API.
+- `python3 -m unittest discover -s tests` checks the catalog, generated files, model blocks, versions, and helper scripts.
