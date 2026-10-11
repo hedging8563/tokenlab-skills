@@ -11,6 +11,8 @@
   },
   "homepage": "https://tokenlab.sh",
   "documentationUrl": "https://tokenlab.sh/docs",
+  "privacyPolicyUrl": "https://tokenlab.sh/privacy-policy",
+  "termsOfServiceUrl": "https://tokenlab.sh/tos",
   "repository": "https://github.com/hedging8563/tokenlab-skills",
   "license": "MIT",
   "keywords": [
