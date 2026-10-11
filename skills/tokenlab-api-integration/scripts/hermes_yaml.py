@@ -5,10 +5,18 @@ import json
 
 from setup_files import SetupError
 
+# Each tested Hermes release and the YAML parser its official installation ships.
+# 0.21.3 bundles PyYAML; 0.21.6 replaced it with ruamel.yaml (Python 3.14 runtime).
+PARSERS = {"0.21.3": ("PyYAML", "6.0.3"), "0.21.6": ("ruamel.yaml", "0.18.16")}
 
-def insert_provider(content: bytes | None, container: str, name: str, provider: dict) -> bytes:
-    # Use the parser already installed by the pinned official Hermes distribution.
-    # Import lazily so restoration continues to work after Hermes is uninstalled.
+
+def parser_for(version: str) -> str:
+    if version not in PARSERS:
+        raise SetupError("This helper targets Hermes 0.21.3 or 0.21.6. Use the manual guide for other versions.")
+    return PARSERS[version][0]
+
+
+def _pyyaml():
     try:
         import yaml
     except ImportError:
@@ -16,20 +24,88 @@ def insert_provider(content: bytes | None, container: str, name: str, provider: 
     if yaml.__version__ != "6.0.3":
         raise SetupError("Use the PyYAML 6.0.3 environment supplied by Hermes 0.21.3; no packages were installed.")
 
-    class UniqueLoader(yaml.SafeLoader):
-        def construct_mapping(self, node, deep=False):
-            keys = set()
-            for key, _ in node.value:
-                # Merge keys can hide a collision and change an alias consumer.
-                if key.tag != "tag:yaml.org,2002:str" or key.value in keys:
-                    raise ValueError("Ambiguous YAML mapping")
-                keys.add(key.value)
-            return super().construct_mapping(node, deep=deep)
+    def compose(text):
+        return yaml.compose(text, Loader=yaml.SafeLoader)
+
+    def load(text):
+        return yaml.load(text, Loader=yaml.SafeLoader)
+
+    return compose, load, yaml.YAMLError
+
+
+def _ruamel():
+    try:
+        from ruamel.yaml import YAML, __version__
+        from ruamel.yaml.error import YAMLError
+    except ImportError:
+        raise SetupError("ruamel.yaml is unavailable. Run with your installed Hermes Python or use --hermes-python; no packages were installed.") from None
+    if __version__ != "0.18.16":
+        raise SetupError("Use the ruamel.yaml 0.18.16 environment supplied by Hermes 0.21.6; no packages were installed.")
+
+    def parser():
+        # Match Hermes 0.21.6 (hermes_yaml.safe_load): safe schema, YAML 1.1
+        # booleans, pure parser. A fresh instance per operation.
+        instance = YAML(typ="safe", pure=True)
+        instance.version = (1, 1)
+        return instance
+
+    def compose(text):
+        return parser().compose(text)
+
+    def load(text):
+        return parser().load(text)
+
+    return compose, load, YAMLError
+
+
+def _check_unique(node, seen=None):
+    # Merge keys can hide a collision and change an alias consumer. Checked on
+    # the composed node tree so both parsers apply exactly the same rule.
+    seen = set() if seen is None else seen
+    if node is None or id(node) in seen:
+        return
+    seen.add(id(node))
+    if node.tag == "tag:yaml.org,2002:map":
+        keys = set()
+        for key, value in node.value:
+            if key.tag != "tag:yaml.org,2002:str" or not isinstance(key.value, str) or key.value in keys:
+                raise ValueError("Ambiguous YAML mapping")
+            keys.add(key.value)
+            _check_unique(value, seen)
+    elif isinstance(node.value, list):
+        for item in node.value:
+            _check_unique(item, seen)
+
+
+def _backend(parser: str | None):
+    if parser == "PyYAML":
+        return _pyyaml()
+    if parser == "ruamel.yaml":
+        return _ruamel()
+    if parser is not None:
+        raise SetupError("Unsupported YAML parser selection; no settings were changed.")
+    # No Hermes version was given (direct library use): prefer PyYAML 6.0.3,
+    # otherwise the ruamel.yaml 0.18.16 runtime of Hermes 0.21.6.
+    try:
+        return _pyyaml()
+    except SetupError:
+        try:
+            return _ruamel()
+        except SetupError:
+            raise SetupError("Neither PyYAML 6.0.3 (Hermes 0.21.3) nor ruamel.yaml 0.18.16 (Hermes 0.21.6) is available. "
+                             "Run with your installed Hermes Python or use --hermes-python; no packages were installed.") from None
+
+
+def insert_provider(content: bytes | None, container: str, name: str, provider: dict, parser: str | None = None) -> bytes:
+    # Use the parser already installed by the pinned official Hermes distribution.
+    # Import lazily so restoration continues to work after Hermes is uninstalled.
+    compose, load, yaml_error = _backend(parser)
 
     try:
         text = (content or b"").decode("utf-8")
-        document = yaml.load(text, Loader=UniqueLoader)
-        root = yaml.compose(text, Loader=UniqueLoader)
+        root = compose(text)
+        _check_unique(root)
+        document = load(text)
         if root is None:
             document = {}
         if not isinstance(document, dict):
@@ -73,7 +149,8 @@ def insert_provider(content: bytes | None, container: str, name: str, provider: 
                           for key, value in provider.items()]
             fragment = (newline if offset and text[offset - 1] not in "\r\n\ufeff" else "") + newline.join(lines) + newline
         result = text[:offset] + fragment + text[offset:]
-        loaded = yaml.load(result, Loader=UniqueLoader)
+        _check_unique(compose(result))
+        loaded = load(result)
         expected = copy.deepcopy(document)
         # Replace just this mapping in the expected value. Shared YAML aliases
         # elsewhere must not gain a provider as a side effect of insertion.
@@ -83,5 +160,5 @@ def insert_provider(content: bytes | None, container: str, name: str, provider: 
         return result.encode("utf-8")
     except SetupError:
         raise
-    except (yaml.YAMLError, ValueError, TypeError, UnicodeDecodeError, RecursionError, AttributeError, StopIteration):
+    except (yaml_error, ValueError, TypeError, UnicodeDecodeError, RecursionError, AttributeError, StopIteration):
         raise SetupError("Hermes configuration is not an unambiguous supported YAML mapping; use the manual guide. Existing values were not printed or changed.") from None
