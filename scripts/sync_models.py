@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
 """Refresh each skill's model list from the live TokenLab catalog.
 
-catalog.json owns each skill's `operations` and an optional, ordered
-`preferredModels` list. For every operation this script picks:
+catalog.json owns each skill's `operations`, an optional ordered `preferredModels`
+list, and an optional `rankedFallback` (default true). For every operation this
+script picks:
 
 1. the preferred models that are live and support the operation, or else
-2. the top three `recommended_for` models that support it, plus one low-cost option.
+2. if ranked fallback is allowed for that operation, the top three
+   `recommended_for` models that support it, plus one low-cost option.
 
 It rewrites only the block between the model markers in each SKILL.md and writes
 generated/availability.json. A skill is "unavailable" when no live model supports
-any of its operations. `--check` exits non-zero when a file is out of date.
+any of its operations.
+
+Safety limits, checked before any file is written:
+- any failed catalog read, or fewer than MIN_MODELS models, stops with exit 1;
+- a large change (more than MAX_CHANGED_SKILLS skills, or more than MAX_FLIPS
+  skills turning unavailable) stops with exit 3 unless --allow-large is given.
+--summary FILE writes {"route": "none" | "push" | "pr", ...} for the workflow.
+--check exits 1 when a file is out of date.
 
 Standard library only. The public catalog needs no API key.
 """
@@ -30,7 +39,12 @@ AVAILABILITY = ROOT / 'generated' / 'availability.json'
 API_BASE = os.environ.get('TOKENLAB_API_BASE', 'https://api.tokenlab.sh').rstrip('/')
 START, END = '<!-- tokenlab:models:start -->', '<!-- tokenlab:models:end -->'
 BLOCK = re.compile(re.escape(START) + r'.*?' + re.escape(END), re.S)
+MODEL_ID = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$')
 RANKED_LIMIT = 3
+MIN_MODELS = 200
+MAX_CHANGED_SKILLS = 3
+MAX_FLIPS = 2
+LOW_COST_USE = 'Lowest starting price among models with the same pricing unit'
 
 # The recommended_for scene that ranks models for each public operation.
 SCENE = {
@@ -43,6 +57,14 @@ SCENE = {
 }
 
 
+class SyncError(Exception):
+    """The live catalog cannot be trusted for this run; nothing is written."""
+
+
+class SceneNotOffered(Exception):
+    """The API rejected a recommended_for scene with invalid_recommended_for."""
+
+
 def fetch(path):
     request = urllib.request.Request(API_BASE + path, headers={'User-Agent': 'tokenlab-skills/sync-models'})
     for attempt in range(3):
@@ -50,13 +72,18 @@ def fetch(path):
             with urllib.request.urlopen(request, timeout=60) as response:
                 return json.load(response)
         except urllib.error.HTTPError as error:
-            if error.code < 500:
-                return None  # for example invalid_recommended_for: the scene is not offered yet
+            if error.code == 400 and 'recommended_for=' in path:
+                try:
+                    code = json.loads(error.read()).get('error', {}).get('code')
+                except ValueError:
+                    code = None
+                if code == 'invalid_recommended_for':
+                    raise SceneNotOffered(path) from error
+            if error.code < 500 or attempt == 2:
+                raise SyncError(f'GET {path} failed with HTTP {error.code}') from error
+        except (urllib.error.URLError, TimeoutError, ValueError) as error:
             if attempt == 2:
-                raise
-        except urllib.error.URLError:
-            if attempt == 2:
-                raise
+                raise SyncError(f'GET {path} failed: {error}') from error
 
 
 def load_live(scenes):
@@ -64,20 +91,21 @@ def load_live(scenes):
     models = fetch('/v1/models')['data']
     ranked = {}
     for scene in sorted(scenes):
-        body = fetch(f'/v1/models?recommended_for={scene}')
-        if body is None:
-            # The API does not offer this scene yet (for example decision before its release):
-            # use the category list, which has no ranking but the same models.
+        try:
+            body = fetch(f'/v1/models?recommended_for={scene}')
+        except SceneNotOffered:
+            # The scene is not released yet (for example decision): use the category
+            # list, which has the same models but no ranking.
             body = fetch(f'/v1/models?category={scene}')
-        ranked[scene] = [m['id'] for m in body['data']] if body else []
+        ranked[scene] = [m['id'] for m in body['data']]
     return {'models': models, 'recommended': ranked}
 
 
 def supports(model, operation):
-    """True when a live model publishes the operation and has supply for it."""
+    """True when an active model publishes the operation and has supply for it."""
     t = model.get('tokenlab') or {}
-    if (t.get('lifecycle') or {}).get('stage') == 'retired':
-        return False
+    if (t.get('lifecycle') or {}).get('stage', 'active') != 'active':
+        return False  # retired, deprecated, and preview models are not defaults
     if operation == 'chat':
         return t.get('category') == 'chat'
     contract = t.get('public_contract_summary') or t.get('public_contract') or {}
@@ -98,6 +126,11 @@ def low_price(model):
     return min(prices) if prices else None
 
 
+def ranked_fallback(skill, operation):
+    setting = skill.get('rankedFallback', True)
+    return setting.get(operation, True) if isinstance(setting, dict) else bool(setting)
+
+
 def pick(skill, live):
     """Return {operation: [rows]} for one skill. Each row is {id, pick, use}."""
     by_id = {m['id']: m for m in live['models']}
@@ -112,7 +145,7 @@ def pick(skill, live):
             model = by_id.get(entry['id'])
             if model and supports(model, operation):
                 rows.append({'id': entry['id'], 'pick': 'preferred', 'use': entry.get('use', '')})
-        if not rows:
+        if not rows and ranked_fallback(skill, operation):
             rows = ranked_rows(operation, live, by_id)
         for index, row in enumerate(rows):
             row['pick'] = 'default' if index == 0 else ('low-cost' if row['pick'] == 'low-cost' else 'alternative')
@@ -132,7 +165,7 @@ def ranked_rows(operation, live, by_id):
         if priced:
             cheapest = min(priced)[1]
             if cheapest not in {r['id'] for r in rows}:
-                rows.append({'id': cheapest, 'pick': 'low-cost', 'use': 'Lowest listed price for this operation'})
+                rows.append({'id': cheapest, 'pick': 'low-cost', 'use': LOW_COST_USE})
     return rows
 
 
@@ -145,7 +178,10 @@ def render_block(picked):
         if not rows:
             lines.append(f'| `{operation}` | none live | unavailable | No live model supports this operation now. |')
         for row in rows:
-            lines.append(f"| `{operation}` | `{row['id']}` | {row['pick']} | {row['use']} |")
+            if not MODEL_ID.match(row['id']):
+                raise SyncError(f'refusing to render model id {row["id"]!r}')
+            use = row['use'].replace('|', '/').replace('\n', ' ')
+            lines.append(f"| `{operation}` | `{row['id']}` | {row['pick']} | {use} |")
     lines += ['',
               'This list refreshes daily from the live catalog. Preferred models come first; otherwise models '
               'are ranked by their 24-hour success rate. Before a call, confirm the model with '
@@ -172,7 +208,9 @@ def availability(picked, previous, now):
 
 
 def build(catalog, live, root=ROOT, previous=None, now=None):
-    """Return {path: new text} for every generated file."""
+    """Return ({path: new text}, {skill_id: availability entry})."""
+    if len(live['models']) < MIN_MODELS:
+        raise SyncError(f"the catalog lists {len(live['models'])} models; expected at least {MIN_MODELS}")
     now = now or datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
     previous = previous or {}
     outputs, report = {}, {}
@@ -184,34 +222,67 @@ def build(catalog, live, root=ROOT, previous=None, now=None):
         path = root / skill['path'] / 'SKILL.md'
         outputs[path] = replace_block(path.read_text(), render_block(picked), path)
     outputs[root / 'generated' / 'availability.json'] = json.dumps(report, indent=2) + '\n'
-    return outputs
+    return outputs, report
+
+
+def summarize(previous, report):
+    """Count changed skills and available -> unavailable flips, and choose the route."""
+    changed = sorted(k for k, v in report.items()
+                     if {f: (previous.get(k) or {}).get(f) for f in ('status', 'models')}
+                     != {'status': v['status'], 'models': v['models']})
+    flips = sorted(k for k in changed
+                   if (previous.get(k) or {}).get('status') == 'available' and report[k]['status'] == 'unavailable')
+    large = len(changed) > MAX_CHANGED_SKILLS or len(flips) > MAX_FLIPS
+    return {'changed_skills': changed, 'flips': flips, 'large': large}
+
+
+def sync(catalog, live, root=ROOT, check=False, allow_large=False, now=None):
+    """Plan, check the safety limits, then write. Return (exit code, summary, stale paths)."""
+    availability_path = root / 'generated' / 'availability.json'
+    previous = json.loads(availability_path.read_text()) if availability_path.exists() else {}
+    outputs, report = build(catalog, live, root=root, previous=previous, now=now)
+    stale = [p for p, content in outputs.items() if not p.exists() or p.read_text() != content]
+    summary = summarize(previous, report)
+    summary['route'] = 'none' if not stale else ('pr' if summary['large'] else 'push')
+    if check:
+        return (1 if stale else 0), summary, stale
+    if summary['large'] and not allow_large:
+        return 3, summary, stale
+    for path in stale:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(outputs[path])
+    return 0, summary, stale
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--check', action='store_true', help='fail if a generated file is out of date')
+    parser.add_argument('--allow-large', action='store_true', help='write a change above the safety limits')
+    parser.add_argument('--summary', help='write the change summary and route to this JSON file')
     parser.add_argument('--catalog-file', help='read a saved {"models", "recommended"} snapshot instead of the API')
     args = parser.parse_args(argv)
     catalog = json.loads(CATALOG.read_text())
-    if args.catalog_file:
-        live = json.loads(Path(args.catalog_file).read_text())
-    else:
-        live = load_live({SCENE[o] for s in catalog['skills'] for o in s['operations'] if o in SCENE})
-    previous = json.loads(AVAILABILITY.read_text()) if AVAILABILITY.exists() else {}
-    stale = []
-    for path, content in build(catalog, live, previous=previous).items():
-        if path.exists() and path.read_text() == content:
-            continue
-        if args.check:
-            stale.append(str(path.relative_to(ROOT)))
+    try:
+        if args.catalog_file:
+            live = json.loads(Path(args.catalog_file).read_text())
         else:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content)
-            print(f'wrote {path.relative_to(ROOT)}')
-    if stale:
-        print('out of date: ' + ', '.join(stale) + '; run python3 scripts/sync_models.py', file=sys.stderr)
+            live = load_live({SCENE[o] for s in catalog['skills'] for o in s['operations'] if o in SCENE})
+        code, summary, stale = sync(catalog, live, check=args.check, allow_large=args.allow_large)
+    except SyncError as error:
+        print(f'sync stopped, no files written: {error}', file=sys.stderr)
         return 1
-    return 0
+    if args.summary:
+        Path(args.summary).write_text(json.dumps(summary, indent=2) + '\n')
+    names = ', '.join(str(p.relative_to(ROOT)) for p in stale)
+    if code == 1:
+        print(f'out of date: {names}; run python3 scripts/sync_models.py', file=sys.stderr)
+    elif code == 3:
+        print(f"large change refused, no files written: {len(summary['changed_skills'])} skills changed, "
+              f"{len(summary['flips'])} became unavailable; rerun with --allow-large to write it",
+              file=sys.stderr)
+    elif stale:
+        print(f'wrote {names}', file=sys.stderr)
+    return code
 
 
 if __name__ == '__main__':

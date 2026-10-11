@@ -27,7 +27,13 @@ Skills do not hard-code model IDs in their text. Each skill's `## Models` sectio
 1. The skill's `preferredModels` from `catalog.json` that are live and support the operation come first.
 2. If none is live, the top three models that `recommended_for=<scene>` ranks by 24-hour success rate take their place, plus one low-cost option. When the API does not offer a scene yet (for example `decision`), the `category=<scene>` list is used instead.
 
-The script also writes `generated/availability.json`: for each skill, `status` (`available`, or `unavailable` when no live model supports any of its operations), the current `models`, and `checkedAt`. The [Sync model defaults](.github/workflows/sync-models.yml) workflow runs it daily. When a list changes, the workflow raises the patch version, runs the tests, and pushes the update to `main`, so plugin and Skills CLI users get the new defaults on their next update.
+The script also writes `generated/availability.json`: for each skill, `status` (`available`, or `unavailable` when no live model supports any of its operations), the current `models`, and `checkedAt`. Capability-specific operations (for example background removal, vectorizing, avatars, upscaling, motion control) set `rankedFallback` to `false` in `catalog.json`: when their preferred models are gone, the skill shows the operation as unavailable instead of a general model. Deprecated and preview models are never listed.
+
+The [Sync model defaults](.github/workflows/sync-models.yml) workflow runs it daily:
+
+- If a catalog read fails or the catalog lists fewer than 200 models, it stops and writes nothing.
+- A small change (at most 3 skills, and at most 2 that become unavailable) gets a patch version, passes the tests and skill validation, and is pushed to `main`. Plugin and Skills CLI users get it on their next update.
+- A larger change opens a pull request for review instead.
 
 <!-- catalog:start -->
 
