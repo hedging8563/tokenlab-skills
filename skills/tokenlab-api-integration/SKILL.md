@@ -111,7 +111,8 @@ The table does not define model parameters. Image sizes, video durations, refere
 **Errors.** Save the HTTP status, `x-request-id`, and the structured body before you act. Fields can include `error.code`, `did_you_mean`, `suggestions`, `retryable`, `retry_after`, `hint`, and `estimated_cost_usd`.
 - `model_not_found`: re-discover, or use `did_you_mean` only with the user's consent.
 - `invalid_request` / `unsupported_parameter`: fix the field the contract names. Never drop history, tool calls, thinking signatures, or media to get HTTP 200.
-- 429 and retryable 5xx: wait `Retry-After` / `retry_after`, then send the same request.
+- 429: wait `Retry-After` / `retry_after`, then send the same request.
+- 5xx: for reads and chat, retry a bounded number of times when the body says `retryable: true`. For a media create request (image, video, music, 3D, world), retry only when the body says `retryable: true` and no task ID came back. A timeout or broken connection on a create request may already have started a paid task: do not resend; surface it to the user.
 - `all_channels_failed` / `model_unavailable` with `retryable: false`: do not repeat; let the user choose another model.
 - `insufficient_balance`: tell the user. 401/403: fix the key or permission; do not retry or switch models.
 

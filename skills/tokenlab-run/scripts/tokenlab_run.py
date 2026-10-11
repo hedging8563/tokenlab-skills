@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """Run one TokenLab request from the command line: read the contract, check the price, call, wait.
 
-Standard library only. The API key comes from TOKENLAB_API_KEY and is never printed.
+Standard library only. The API key comes from TOKENLAB_API_KEY, is never printed, and is sent
+only to https URLs on the API host.
+
+`run` prints {request_id, task_id, poll_url} to stderr right after a task is created. A create
+request is never sent twice; if its connection breaks, the output says the task may exist.
+`--wait` waits up to 100 s. Exit codes: 0 done, 1 failed or unknown, 2 still running (use `poll`).
 
   tokenlab_run.py contract MODEL [--operation OP]
   tokenlab_run.py price MODEL
@@ -21,6 +26,7 @@ from pathlib import Path
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 
@@ -61,17 +67,24 @@ def request(method, path, body=None, form=None, timeout=300, auth=True, headers=
     for attempt in range(attempts if method == 'GET' else 1):
         try:
             return _request(method, path, body, form, timeout, auth, headers)
-        except urllib.error.URLError as error:
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
             if method != 'GET' or attempt == attempts - 1:
                 raise
             time.sleep(2 * (attempt + 1))
 
 
+def same_api_origin(url):
+    """True for an https URL on the API host. The key is never sent anywhere else."""
+    target, base = urllib.parse.urlsplit(url), urllib.parse.urlsplit(API_BASE)
+    return target.scheme == 'https' and (target.scheme, target.netloc) == (base.scheme, base.netloc)
+
+
 def _request(method, path, body, form, timeout, auth, extra_headers):
-    url = path if path.startswith('http') else API_BASE + path
+    absolute = path.startswith(('http://', 'https://'))
+    url = path if absolute else API_BASE + path
     headers = {'User-Agent': 'tokenlab-skills/tokenlab-run', **(extra_headers or {})}
     key = os.environ.get('TOKENLAB_API_KEY', '')
-    if auth and key:
+    if auth and key and (not absolute or same_api_origin(url)):
         headers['Authorization'] = f'Bearer {key}'
     data = None
     if form is not None:
@@ -220,13 +233,34 @@ def save_inline_images(response, out):
     return saved
 
 
+def record_task(request_id, response):
+    """Print the task identity at once, so a crash or timeout later cannot lose it."""
+    print(json.dumps({'request_id': request_id, 'task_id': response.get('task_id') or response.get('id'),
+                      'poll_url': poll_path(response)}), file=sys.stderr, flush=True)
+
+
+def describe(error):
+    if isinstance(error, ApiError):
+        return {'http_status': error.status, 'request_id': error.request_id, 'error': error.body}
+    return f'{type(error).__name__}: {error}'
+
+
 def run(args):
     started = time.monotonic()
     form = parse_form(args.form, args.file) if (args.form or args.file) else None
     body = load_json(args.json) if args.json else None
     headers = {'X-TokenLab-Delivery-Policy': args.delivery} if args.delivery else None
-    _, request_id, response = request('POST', args.endpoint, body=body, form=form, timeout=args.http_timeout,
-                                      headers=headers)
+    try:
+        _, request_id, response = request('POST', args.endpoint, body=body, form=form, timeout=args.http_timeout,
+                                          headers=headers)
+    except (urllib.error.URLError, TimeoutError, ConnectionError) as error:
+        # The server may have accepted and charged the request before the connection broke.
+        return {'status': 'unknown', 'accepted': 'unknown', 'error': str(error),
+                'warning': 'The create request may have been accepted and charged. Do not send it again. '
+                           'Check Runs or Usage in the TokenLab console, or ask the user before any retry.',
+                'elapsed_s': round(time.monotonic() - started, 1)}
+    if is_task(response):
+        record_task(request_id, response)
     if isinstance(response, bytes):
         out = Path(args.out or 'tokenlab-output.bin')
         out.write_bytes(response)
@@ -237,10 +271,16 @@ def run(args):
     if saved:
         result['saved_to'] = saved
     if args.wait and is_task(response):
-        result['task'] = wait(poll_path(response), args.interval, args.timeout)
+        try:
+            result['task'] = wait(poll_path(response), args.interval, args.timeout)
+        except Exception as error:  # the task exists and is billed; never lose its identity
+            result['task'] = {'status': 'unknown', 'task_id': response.get('task_id') or response.get('id'),
+                              'poll_url': poll_path(response), 'error': describe(error)}
     final = result.get('task', response)
     result['status'] = final.get('status') if isinstance(final, dict) else None
     result['result_urls'] = result_urls(final)
+    if is_task(final) or result['status'] == 'unknown':
+        result['resume'] = f'tokenlab_run.py poll {poll_path(final if final.get("poll_url") else response)}'
     result['elapsed_s'] = round(time.monotonic() - started, 1)
     return result
 
@@ -256,7 +296,8 @@ def main(argv=None):
     p.add_argument('--file', action='append', help='multipart file name=@path')
     p.add_argument('--wait', action='store_true', help='poll an async task until it finishes')
     p.add_argument('--interval', type=float, default=5.0)
-    p.add_argument('--timeout', type=float, default=900.0, help='seconds to wait for a task')
+    p.add_argument('--timeout', type=float, default=100.0,
+                   help='seconds to wait for a task; then resume with the poll command')
     p.add_argument('--http-timeout', type=float, default=300.0)
     p.add_argument('--out', help='file for a binary response (TTS audio) or an inline b64_json image')
     p.add_argument('--delivery', choices=('auto', 'verified', 'official'),
@@ -279,9 +320,14 @@ def main(argv=None):
         elif args.command == 'run':
             out = run(args)
         elif args.command == 'poll':
-            path = args.task if args.task.startswith('/') else f'/v1/tasks/{args.task}'
-            task = wait(path, args.interval, args.timeout)
+            path = args.task if args.task.startswith(('/', 'http://', 'https://')) else f'/v1/tasks/{args.task}'
+            try:
+                task = wait(path, args.interval, args.timeout)
+            except Exception as error:
+                task = {'status': 'unknown', 'poll_url': path, 'error': describe(error)}
             out = {'task': task, 'status': task.get('status'), 'result_urls': result_urls(task)}
+            if out['status'] not in TERMINAL:
+                out['resume'] = f'tokenlab_run.py poll {path}'
         elif args.command == 'cancel':
             out = request('DELETE', f'/v1/tasks/{args.task_id}')[2]
         else:
@@ -291,7 +337,11 @@ def main(argv=None):
         print(json.dumps({'http_status': error.status, 'request_id': error.request_id, 'error': error.body}, indent=2))
         return 1
     print(json.dumps(out, indent=2, ensure_ascii=False))
-    return 1 if isinstance(out, dict) and out.get('status') == 'failed' else 0
+    status = out.get('status') if isinstance(out, dict) else None
+    if status in ('failed', 'unknown'):
+        return 1
+    # 2: the task is still running after --timeout; resume with the poll command.
+    return 2 if args.command in ('run', 'poll') and status in ('pending', 'processing') else 0
 
 
 if __name__ == '__main__':

@@ -86,7 +86,7 @@ class RunTests(unittest.TestCase):
     def test_async_task_is_created_once_and_followed_by_its_poll_url(self):
         fake = Responses({'id': 't', 'status': 'pending', 'poll_url': '/v1/custom-poll/t'},
                          {'status': 'completed', 'video_url': 'https://cdn.example.test/v.mp4'})
-        with patch.object(run_helper, 'request', fake):
+        with patch.object(run_helper, 'request', fake), contextlib.redirect_stderr(io.StringIO()):
             result = run_helper.run(run_args(json='{"model": "m", "operation": "text-to-video"}', delivery='verified'))
         self.assertEqual([(c['method'], c['path']) for c in fake.calls],
                          [('POST', '/v1/videos/generations'), ('GET', '/v1/custom-poll/t')])
@@ -117,6 +117,111 @@ class RunTests(unittest.TestCase):
             result = run_helper.run(run_args(endpoint='/v1/audio/speech', json='{"model": "m"}', out=str(out)))
             self.assertEqual(out.read_bytes(), b'ID3audio')
         self.assertEqual(result['bytes'], 8)
+
+
+class LostTaskTests(unittest.TestCase):
+    """A paid task must never lose its identity, and a create request is never sent twice."""
+
+    def test_task_identity_is_written_to_stderr_right_after_the_create_call(self):
+        fake = Responses({'id': 't1', 'status': 'pending', 'poll_url': '/v1/tasks/t1'},
+                         {'status': 'completed', 'video_url': 'https://cdn.example.test/v.mp4'})
+        err = io.StringIO()
+        with patch.object(run_helper, 'request', fake), contextlib.redirect_stderr(err):
+            run_helper.run(run_args(json='{"model": "m"}'))
+        self.assertEqual(json.loads(err.getvalue().splitlines()[0]),
+                         {'request_id': 'req_fixture', 'task_id': 't1', 'poll_url': '/v1/tasks/t1'})
+
+    def test_any_error_while_waiting_returns_unknown_with_the_task_and_a_failing_exit_code(self):
+        for error in (RuntimeError('parser broke'), run_helper.ApiError(401, {'error': {}}, 'r')):
+            with self.subTest(error=error):
+                fake = Responses({'task_id': 't2', 'status': 'pending', 'poll_url': '/v1/tasks/t2'}, error)
+                out = io.StringIO()
+                env = {'TOKENLAB_API_KEY': 'sk-fixture-only'}
+                with patch.dict(run_helper.os.environ, env), patch.object(run_helper, 'request', fake), \
+                        contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+                    code = run_helper.main(['run', '/v1/videos/generations', '--json', '{}', '--wait'])
+                result = json.loads(out.getvalue())
+                self.assertEqual(code, 1)
+                self.assertEqual(result['status'], 'unknown')
+                self.assertEqual((result['task']['task_id'], result['task']['poll_url']), ('t2', '/v1/tasks/t2'))
+                self.assertEqual(result['resume'], 'tokenlab_run.py poll /v1/tasks/t2')
+                self.assertEqual([c['method'] for c in fake.calls], ['POST', 'GET'])
+
+    def test_broken_create_connection_is_reported_as_maybe_accepted_and_not_resent(self):
+        for error in (urllib.error.URLError('timed out'), TimeoutError('read timed out'), ConnectionResetError()):
+            with self.subTest(error=type(error).__name__):
+                fake = Responses(error)
+                out = io.StringIO()
+                with patch.dict(run_helper.os.environ, {'TOKENLAB_API_KEY': 'sk-fixture-only'}), \
+                        patch.object(run_helper, 'request', fake), contextlib.redirect_stdout(out):
+                    code = run_helper.main(['run', '/v1/videos/generations', '--json', '{}', '--wait'])
+                result = json.loads(out.getvalue())
+                self.assertEqual(code, 1)
+                self.assertEqual((result['status'], result['accepted']), ('unknown', 'unknown'))
+                self.assertIn('Do not send it again', result['warning'])
+                self.assertEqual(len(fake.calls), 1)
+
+    def test_wait_timeout_returns_the_running_task_with_a_resume_command(self):
+        clock = iter([0, 200])
+        fake = Responses({'id': 't3', 'status': 'pending', 'poll_url': '/v1/tasks/t3'},
+                         {'id': 't3', 'status': 'processing', 'poll_url': '/v1/tasks/t3'})
+        original = run_helper.wait
+        timed = lambda path, interval, timeout: original(path, interval, timeout, sleep=lambda _: None,
+                                                          clock=lambda: next(clock))
+        out = io.StringIO()
+        with patch.dict(run_helper.os.environ, {'TOKENLAB_API_KEY': 'sk-fixture-only'}), \
+                patch.object(run_helper, 'request', fake), patch.object(run_helper, 'wait', timed), \
+                contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+            code = run_helper.main(['run', '/v1/videos/generations', '--json', '{}', '--wait'])
+        result = json.loads(out.getvalue())
+        self.assertEqual((code, result['status'], result['resume']), (2, 'processing', 'tokenlab_run.py poll /v1/tasks/t3'))
+
+    def test_default_wait_is_short_enough_for_an_agent_turn(self):
+        parsed = []
+        with patch.object(run_helper, 'run', lambda args: parsed.append(args) or {'status': 'completed'}), \
+                patch.dict(run_helper.os.environ, {'TOKENLAB_API_KEY': 'sk-fixture-only'}), \
+                contextlib.redirect_stdout(io.StringIO()):
+            run_helper.main(['run', '/v1/videos/generations', '--json', '{}', '--wait'])
+        self.assertLessEqual(parsed[0].timeout, 120)
+
+
+class AuthOriginTests(unittest.TestCase):
+    def capture(self, path):
+        seen = []
+
+        class Reply(io.BytesIO):
+            status, headers = 200, {'Content-Type': 'application/json'}
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+        def urlopen(req, timeout):
+            seen.append((req.full_url, req.get_header('Authorization')))
+            return Reply(b'{"status": "completed"}')
+
+        with patch.dict(run_helper.os.environ, {'TOKENLAB_API_KEY': 'sk-fixture-only'}), \
+                patch.object(run_helper, 'API_BASE', 'https://api.example.test'), \
+                patch.object(run_helper.urllib.request, 'urlopen', urlopen):
+            run_helper.request('GET', path)
+        return seen[0]
+
+    def test_key_goes_only_to_the_api_origin_over_https(self):
+        self.assertEqual(self.capture('/v1/tasks/t')[1], 'Bearer sk-fixture-only')
+        self.assertEqual(self.capture('https://api.example.test/v1/tasks/t')[1], 'Bearer sk-fixture-only')
+        for other in ('https://cdn.example.test/v1/tasks/t', 'http://api.example.test/v1/tasks/t',
+                      'https://api.example.test.evil.test/v1/tasks/t'):
+            with self.subTest(url=other):
+                self.assertIsNone(self.capture(other)[1])
+
+    def test_poll_accepts_an_absolute_poll_url(self):
+        fake = Responses({'status': 'completed', 'data': [{'url': 'https://cdn.example.test/a.png'}]})
+        with patch.dict(run_helper.os.environ, {'TOKENLAB_API_KEY': 'sk-fixture-only'}), \
+                patch.object(run_helper, 'request', fake), contextlib.redirect_stdout(io.StringIO()):
+            code = run_helper.main(['poll', 'https://api.tokenlab.sh/v1/tasks/t4'])
+        self.assertEqual((code, fake.calls[0]['path']), (0, 'https://api.tokenlab.sh/v1/tasks/t4'))
 
 
 class RequestRetryTests(unittest.TestCase):

@@ -30,8 +30,12 @@ Helper script, standard library only:
 python scripts/tokenlab_run.py contract MODEL --operation OP   # step 1-2
 python scripts/tokenlab_run.py price MODEL                     # step 3
 python scripts/tokenlab_run.py run /v1/videos/generations --json @body.json --wait   # step 5-7
-python scripts/tokenlab_run.py poll TASK_ID                    # resume a stored task
+python scripts/tokenlab_run.py poll TASK_ID_OR_POLL_URL        # resume a stored task
 ```
+
+The path is relative to this skill's folder. Other TokenLab skills call it as `../tokenlab-run/scripts/tokenlab_run.py`. Without the helper, send the same requests with `curl` (see `references/recipes.md`).
+
+`run` prints the task identity (`request_id`, `task_id`, `poll_url`) to stderr as soon as the create call returns. `--wait` waits up to 100 s by default. Exit code 0 means a terminal success, 1 means failed or unknown, and 2 means the task is still running: continue with the `resume` command in the output.
 
 ## The procedure
 
@@ -65,6 +69,8 @@ python scripts/tokenlab_run.py poll TASK_ID                    # resume a stored
 | `400 model_not_found` + `did_you_mean` | Wrong or retired ID | Re-discover; switch only with user consent |
 | `402 insufficient_balance` | Not enough balance; `estimated_cost_usd` shows the need | Tell the user. Do not switch to a cheaper model without consent |
 | `429` | Rate limit | Wait `Retry-After` / `retry_after`, then retry the same request |
+| Create request timed out or the connection broke | The task may exist and may be charged | Do not resend. Ask the user first, and check Runs or Usage in the console. The helper reports `accepted: unknown` |
+| `5xx` on a create request | The request may or may not have started | Retry only when the body says `retryable: true` and no task ID came back; otherwise ask the user |
 | `503 all_channels_failed` / `delivery_tier_unavailable` with `retryable: false` | No supply for this operation and delivery option | Do not repeat. Pick another model that publishes the operation |
 | Task `failed` with `error_details.retryable: true` | Transient upstream failure | One new task is acceptable; it is a new charge |
 
