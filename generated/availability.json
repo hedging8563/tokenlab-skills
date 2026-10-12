@@ -279,10 +279,9 @@
     "models": [
       "gpt-5.6-sol",
       "claude-sonnet-4-6",
-      "gemini-3.5-flash",
       "jev-1.13"
     ],
-    "checkedAt": "2026-10-11T21:14:40Z"
+    "checkedAt": "2026-10-12T03:43:07Z"
   },
   "tokenlab-cost-routing": {
     "status": "available",

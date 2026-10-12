@@ -32,7 +32,6 @@ Choose the native endpoint that a model declares, and keep that protocol's reque
 | --- | --- | --- | --- |
 | `chat` | `gpt-5.6-sol` | default | Example for Responses |
 | `chat` | `claude-sonnet-4-6` | alternative | Example for Anthropic Messages |
-| `chat` | `gemini-3.5-flash` | alternative | Example for Gemini generateContent |
 | `systemone` | `jev-1.13` | default | Example for System One decisions |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
