@@ -3,11 +3,16 @@
 import argparse
 import base64
 import contextlib
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
+import threading
 import unittest
 from unittest.mock import patch
 import urllib.error
@@ -222,6 +227,56 @@ class AuthOriginTests(unittest.TestCase):
                 patch.object(run_helper, 'request', fake), contextlib.redirect_stdout(io.StringIO()):
             code = run_helper.main(['poll', 'https://api.tokenlab.sh/v1/tasks/t4'])
         self.assertEqual((code, fake.calls[0]['path']), (0, 'https://api.tokenlab.sh/v1/tasks/t4'))
+
+
+class ClientSourceTests(unittest.TestCase):
+    def test_names_the_skill_whose_folder_calls_the_helper(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skills = Path(tmp, 'skills')
+            for name in ('tokenlab-music', 'tokenlab-run'):
+                (skills / name).mkdir(parents=True)
+                (skills / name / 'SKILL.md').write_text('---\n')
+            (skills / 'notes').mkdir()
+            helper = '../tokenlab-run/scripts/tokenlab_run.py'
+            cases = [
+                (helper, skills / 'tokenlab-music', 'skills-tokenlab-music'),
+                (f'{skills}/tokenlab-music/{helper}', '/elsewhere', 'skills-tokenlab-music'),
+                (f'{skills}/tokenlab-run/scripts/tokenlab_run.py', '/elsewhere', 'skills-run'),
+                ('scripts/tokenlab_run.py', skills / 'tokenlab-run', 'skills-run'),
+                (helper, skills / 'notes', 'skills-run'),  # no SKILL.md, so not a skill
+                ('', '/elsewhere', 'skills-run'),
+            ]
+            for script, cwd, expected in cases:
+                with self.subTest(script=script, cwd=cwd):
+                    self.assertEqual(run_helper.client_source(script, cwd), expected)
+
+    def test_a_skill_command_sends_its_name_in_the_request_header(self):
+        seen = []
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                seen.append(self.headers.get('X-TokenLab-Client-Source'))
+                body = b'{"model": "fixture", "pricing_details": {}}'
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *args):
+                pass
+
+        server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        env = {**os.environ, 'TOKENLAB_API_BASE': f'http://127.0.0.1:{server.server_port}'}
+        # The command exactly as an outcome skill's SKILL.md writes it, run from that skill's folder.
+        result = subprocess.run([sys.executable, '../tokenlab-run/scripts/tokenlab_run.py', 'price', 'fixture'],
+                                cwd=ROOT / 'skills/tokenlab-music', env=env, capture_output=True, text=True,
+                                timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(seen, ['skills-tokenlab-music'])
 
 
 class RequestRetryTests(unittest.TestCase):

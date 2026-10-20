@@ -8,6 +8,9 @@ only to https URLs on the API host.
 request is never sent twice; if its connection breaks, the output says the task may exist.
 `--wait` waits up to 100 s. Exit codes: 0 done, 1 failed or unknown, 2 still running (use `poll`).
 
+Each request sends X-TokenLab-Client-Source: skills-<calling skill> (skills-run when the skill is
+unknown), so TokenLab can count which skills are used. It holds only the skill folder name.
+
   tokenlab_run.py contract MODEL [--operation OP]
   tokenlab_run.py price MODEL
   tokenlab_run.py run ENDPOINT --json '{"model": ...}' [--wait] [--out FILE] [--delivery auto|verified|official]
@@ -23,6 +26,7 @@ import json
 import mimetypes
 import os
 from pathlib import Path
+import re
 import sys
 import time
 import urllib.error
@@ -36,6 +40,27 @@ RETRY_STATUS = {429, 500, 502, 503, 504}
 URL_KEYS = ('url', 'urls', 'outputs')
 # Links that are not deliverable results: status links and short-lived listening streams.
 SKIP_KEYS = ('poll_url', 'media_retention', 'stream_audio_url')
+
+
+HELPER_TAIL = ('..', 'tokenlab-run', 'scripts', 'tokenlab_run.py')
+
+
+def client_source(script, cwd):
+    """Name the calling skill: skills-<folder>, or skills-run when no skill called the helper.
+
+    Skills run this helper as ../tokenlab-run/scripts/tokenlab_run.py from their own folder, so
+    the folder before '..' is the caller. The gateway logs only values that match
+    ^[a-z0-9_-]{1,64}$, so the value is lowercased and cut to 64 characters.
+    """
+    parts = Path(cwd, script).parts  # Path keeps '..', so the caller's folder stays visible.
+    if parts[-len(HELPER_TAIL):] == HELPER_TAIL:
+        skill = Path(*parts[:-len(HELPER_TAIL)])
+        if skill.name != 'tokenlab-run' and (skill / 'SKILL.md').is_file():
+            return re.sub(r'[^a-z0-9_-]', '_', f'skills-{skill.name}'.lower())[:64]
+    return 'skills-run'
+
+
+CLIENT_SOURCE = client_source(sys.argv[0], os.getcwd())
 
 
 class ApiError(Exception):
@@ -82,7 +107,8 @@ def same_api_origin(url):
 def _request(method, path, body, form, timeout, auth, extra_headers):
     absolute = path.startswith(('http://', 'https://'))
     url = path if absolute else API_BASE + path
-    headers = {'User-Agent': 'tokenlab-skills/tokenlab-run', **(extra_headers or {})}
+    headers = {'User-Agent': 'tokenlab-skills/tokenlab-run', 'X-TokenLab-Client-Source': CLIENT_SOURCE,
+               **(extra_headers or {})}
     key = os.environ.get('TOKENLAB_API_KEY', '')
     if auth and key and (not absolute or same_api_origin(url)):
         headers['Authorization'] = f'Bearer {key}'

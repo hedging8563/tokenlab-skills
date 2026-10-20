@@ -131,6 +131,8 @@ git clone https://github.com/hedging8563/tokenlab-skills.git
 
 Media, audio, 3D, and decision calls need a TokenLab API key in `TOKENLAB_API_KEY`. Model discovery and pricing work without a key.
 
+The bundled helpers send `X-TokenLab-Client-Source` so TokenLab can count which skills are used. `tokenlab_run.py` sends `skills-<skill folder>` when a skill runs it as `../tokenlab-run/scripts/tokenlab_run.py`, and `skills-run` in other cases. `search_api.py` sends `skills-tokenlab-api-integration`. The header holds only the folder name.
+
 The plugin bundles two optional MCP connections:
 
 - `tokenlab-stdio` runs the published `@tokenlabai/mcp-server` over stdio. It uses the `core` tool profile by default, so outcome skills can call `create_image`, `create_video`, `create_music`, `create_3d_model`, `create_speech`, `evaluate_decisions`, `get_task_status`, and the other credentialed tools. Set `TOKENLAB_API_KEY` for those calls. Set `TOKENLAB_MCP_TOOL_PROFILE=catalog` for read-only model discovery, or `full` for world generation, webhooks, and batch tools. Restart Claude Code after you change it. The profile uses Claude Code's [environment-variable default syntax](https://code.claude.com/docs/en/mcp#environment-variable-expansion-in-mcpjson). Changing the profile does not grant API permissions.

@@ -39,7 +39,10 @@ def api_base() -> str:
 
 def request_json(path: str, query: dict[str, str] | None = None) -> dict[str, Any]:
     suffix = f"?{urlencode(query)}" if query else ""
-    request = Request(f"{api_base()}{path}{suffix}", headers={"Accept": "application/json"})
+    request = Request(
+        f"{api_base()}{path}{suffix}",
+        headers={"Accept": "application/json", "X-TokenLab-Client-Source": "skills-tokenlab-api-integration"},
+    )
     api_key = os.getenv("TOKENLAB_API_KEY")
     if api_key:
         request.add_header("Authorization", f"Bearer {api_key}")
