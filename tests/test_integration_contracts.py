@@ -103,6 +103,26 @@ class DiscoveryContractTests(unittest.TestCase):
         self.assertIsNone(search_api.preferred_endpoint(model, 'harness')[0])
 
 
+class SearchApiRequestTests(unittest.TestCase):
+    def test_names_the_skill_in_the_request_header(self):
+        seen = []
+
+        class Reply(io.BytesIO):
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+        def urlopen(request, timeout):
+            seen.append(request.get_header('X-tokenlab-client-source'))
+            return Reply(b'{"data": []}')
+
+        with patch.object(search_api, 'urlopen', urlopen):
+            search_api.request_json('/v1/models')
+        self.assertEqual(seen, ['skills-tokenlab-api-integration'])
+
+
 class JavaScriptExampleTests(unittest.TestCase):
     def test_exact_decision_example_uses_systemone_and_preserves_typed_questions(self):
         run_js("""
