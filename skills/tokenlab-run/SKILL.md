@@ -53,9 +53,9 @@ The path is relative to this skill's folder. Other TokenLab skills call it as `.
    - Many image and video fields also take a `data:` URL, but media URL fields accept at most 8192 characters. That fits a small thumbnail, not a photo or an audio clip. Host larger private files at a public `https` URL instead.
    - `POST /v1/files` (`purpose=user_data`, optional `model`) returns a `file_id` for `/v1/images/edits` `images[].file_id`. It is not a general media host for video, music, or 3D.
    - Speech-to-text takes a multipart `file` upload (max 25 MB).
-5. **Call the endpoint.** Save the `x-request-id` response header, the returned `id` / `task_id`, `poll_url`, model, and your own job ID before you do anything else.
-6. **Wait for async results.** Video, music, 3D, and worlds are always async. Images and transcriptions can be sync or async; decide from the response, not from the model. A response with `status: "pending"` or `"processing"` and a `poll_url` is a task:
-   - Poll `poll_url` (fall back to `GET /v1/tasks/{id}`) every 5–10 s. Stop at `completed` or `failed`.
+5. **Call the endpoint.** Save the `x-request-id` response header, the returned `id` / `task_id`, model, and your own job ID before you do anything else.
+6. **Wait for async results.** Video, music, 3D, and worlds are always async. Images and transcriptions can be sync or async; decide from the response, not from the model. A response with `status: "pending"` or `"processing"` is a task:
+   - Poll `GET /v1/tasks/{id}` every 5–10 s. It serves every task type. Stop at `completed` or `failed`.
    - A status read returns HTTP 200 even when the task failed. Decide from `status`. On failure read `error_details` (`code`, `param`, `message`, `retryable`). `param` names the field to fix.
    - A timeout on your side is not a failure. Keep the task ID and resume polling. Never create a second task because a poll failed or a page refreshed.
    - Cancel only on user request: `DELETE /v1/tasks/{id}`. Only some queued tasks can be cancelled (`400 unsupported_task_cancel`, `409 task_not_cancellable` otherwise).

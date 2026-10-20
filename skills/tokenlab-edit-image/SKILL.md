@@ -59,7 +59,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 1. Read the contract for the model. Use `request_endpoint_by_operation["image-edit"]` for the endpoint. Many edit models use `/v1/images/generations` with `operation: "image-edit"`; others use `/v1/images/edits`. Note the image field (`image_url`, `image_urls`, or `image`) and the size field.
 2. Estimate the cost from `GET /v1/models/{model}/pricing`: price per image times `n`. For Nano Banana models the price depends on `resolution`.
 3. Write one edit instruction (see Technique). Send the source image URL in the field the contract lists. Send only listed fields.
-4. Read the response. A sync response has `data[].url`. A response with `status: "pending"` and `poll_url` is a task: poll it every 5–10 s until `completed` or `failed`. The same model can answer either way, so handle both.
+4. Read the response. A sync response has `data[].url`. A response with `status: "pending"` is a task: poll `GET /v1/tasks/{id}` every 5–10 s until `completed` or `failed`. The same model can answer either way, so handle both.
 5. Compare the result with the source. If the change is wrong, rewrite the instruction and run again on the **original** source. If the change is right but incomplete, run the next edit on the **result** URL.
 6. Return the result URL, the model, the task ID (if any), and the instruction you sent.
 

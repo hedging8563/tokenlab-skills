@@ -50,7 +50,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 1. Read the contract. Note the size field: `resolution` as `WIDTHxHEIGHT`, `aspect_ratio`, `width` / `height`, or none. Send only listed fields.
 2. Estimate the cost from `GET /v1/models/{model}/pricing`: price per image times the image count.
 3. Write the prompt (see Technique). Set the frame size for the use.
-4. Read the response. A sync response has `data[].url`. A response with `status: "pending"` and `poll_url` is a task: poll it every 5–10 s until `completed` or `failed`. In tests, a FLUX.2 model returned a task without `async: true`.
+4. Read the response. A sync response has `data[].url`. A response with `status: "pending"` is a task: poll `GET /v1/tasks/{id}` every 5–10 s until `completed` or `failed`. In tests, a FLUX.2 model returned a task without `async: true`.
 5. Check the result against the Quality bar. Re-run with a changed prompt, not the same one, when a detail is wrong.
 6. Return the result URLs, the model, the task IDs, and the prompt you sent.
 
