@@ -53,7 +53,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 4. **Upscale.** Send the repaired result URL (or the source) to the upscaler. Take `MODEL_ID` from the Models list above for the upscale operation:
    - `/v1/images/generations` models (for example the P-Image upscaler): `{"model": "MODEL_ID", "operation": "image-edit", "image_url": "SRC"}`.
    - `/v1/images/edits` models (for example the Stability upscalers): `{"model": "MODEL_ID", "image_url": "SRC"}` (JSON `image_url` or multipart `image`).
-5. Read the response. A sync response has `data[].url`. A response with `status: "pending"` and `poll_url` is a task: poll it every 5–10 s until `completed` or `failed`.
+5. Read the response. A sync response has `data[].url`. A response with `status: "pending"` is a task: poll `GET /v1/tasks/{id}` every 5–10 s until `completed` or `failed`.
 6. Download the result and check its pixel size and detail at 100% zoom. If the size is still too small, upscale the result once more, then check again.
 7. Return the result URL, the final pixel size, the model per stage, and the task IDs.
 

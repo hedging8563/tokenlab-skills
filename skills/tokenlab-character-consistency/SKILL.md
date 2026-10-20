@@ -56,7 +56,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 2. Estimate the cost: price per image times scenes, plus price per second times clip length for video. Video is priced per second and can add a per-reference-image charge; read the pricing formula. Tell the user the total before a batch or any video.
 3. **Anchor.** Use the user's image, or generate one from the character sheet. Show it to the user. Every later call depends on it, so get approval before you go on.
 4. **Scenes.** For each scene, call the image-to-image model with the anchor URL in the reference field and a prompt that restates the character sheet plus the new scene. One scene per call.
-5. Read each response. A sync response has `data[].url`. A response with `status: "pending"` and `poll_url` is a task: poll it every 5–10 s until `completed` or `failed`.
+5. Read each response. A sync response has `data[].url`. A response with `status: "pending"` is a task: poll `GET /v1/tasks/{id}` every 5–10 s until `completed` or `failed`.
 6. Compare every result with the anchor (face shape, hair, eyes, clothing, marks). Re-run only the scenes that drift. Do not use a drifted result as a new reference.
 7. **Clip (optional).** Send the anchor plus one or two approved scene images to the reference-to-video model. Video is always async: store the task ID, then poll.
 8. Return each result URL with its scene line, the model, and the task IDs.

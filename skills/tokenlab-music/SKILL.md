@@ -52,7 +52,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 1. Read the contract: `python ../tokenlab-run/scripts/tokenlab_run.py contract MODEL --operation music`. Read `supported_parameters` and `notes`. Each model has its own field names (`tags` vs `negative_prompt`, `full_lyrics`, `duration`). Send only listed fields.
 2. Estimate with `GET /v1/models/{model}/pricing`. Music models price per request. For Suno, the price depends on the action (`music` vs stem separation); read the entry for your action. Tell the user the estimate before a batch.
 3. Write the body (see Technique). Suno needs `mv` for generation; the docs list `chirp-v3-5`, `chirp-v4`, `chirp-v4-5`, `chirp-v4-5plus`, `chirp-v4-5all`, `chirp-v5`, `chirp-v5-5`.
-4. Call and wait: `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/music/generations --json @body.json --wait`. Save the task `id` and `poll_url` first. Poll every 5–10 s. On a timeout, resume with `poll TASK_ID`; do not create a second task.
+4. Call and wait: `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/music/generations --json @body.json --wait`. Save the task `id` first. Poll every 5–10 s. On a timeout, resume with `poll TASK_ID`; do not create a second task.
 5. Read the result: `audio_url` (TokenLab media URL, kept 30 days). Suno can also return `image_url` (cover art), `title`, `audio_id`, and lyrics fields. Keep `audio_id` and the task ID if the user may extend or split the track later.
 6. Download the audio and check its length and that it plays. Return the `audio_url`, model, task ID, and the brief you sent.
 

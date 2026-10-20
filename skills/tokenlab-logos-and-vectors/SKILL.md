@@ -49,7 +49,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 1. Read the contract for each model. Each Recraft V4.1 text-to-image model lists one `size` value and `n` `1` only: `1024x1024` for the base and Flash tiers, `2048x2048` for the Pro tier.
 2. Estimate the cost from `GET /v1/models/{model}/pricing`: marks times the price per image, plus one vectorize call per chosen mark.
 3. **Marks.** Generate 3–4 options, one call each, with different shape ideas (see Technique). Send `operation: "text-to-image"`, the model's one `size` value, and `n: 1`.
-4. Read each response. A sync response has `data[].url`. A response with `status: "pending"` and `poll_url` is a task: poll it every 5–10 s until `completed` or `failed`.
+4. Read each response. A sync response has `data[].url`. A response with `status: "pending"` is a task: poll `GET /v1/tasks/{id}` every 5–10 s until `completed` or `failed`.
 5. Let the user pick one mark. Vectorize only the pick.
 6. **SVG.** Send `{"model": "MODEL_ID", "operation": "image-edit", "image_url": "MARK_URL"}`. Take `MODEL_ID` from the Models list above for the vectorize (`image-edit`) operation. Do not send `output_format: "svg"`; it returns `400` (the field accepts only `png`, `jpeg`, `webp`). Leave `output_format` out.
 7. Download the result and check the file. In tests, both vectorizers returned real SVG (`Content-Type: image/svg+xml`) although the result URL ends in `.png`. Save it with a `.svg` name.

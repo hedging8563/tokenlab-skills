@@ -53,7 +53,7 @@ Exact fields come from each model's contract.
 Run each call with `tokenlab-run` (contract → estimate → call → poll → result). Commands below use its helper, `../tokenlab-run/scripts/tokenlab_run.py`, a path relative to this skill's folder. If you installed this skill without `tokenlab-run`, send the same requests with `curl`. `--wait` stops after 100 s; a longer task keeps running, so continue with the `resume` command it prints.
 
 1. Read the contract for each model you plan to use. Note the endpoint for the operation, the size fields (`aspect_ratio` + `resolution`, `size`, or `width` / `height`), and the image input field (`image_url`, `image_urls`, or `image`).
-2. **Stage 1: a clean subject.** If the user has a good product photo, keep it. Otherwise generate one with a text-to-image model. Brief it like a photographer (see Technique). Image responses can be sync or async; follow `poll_url` when `status` is `pending`.
+2. **Stage 1: a clean subject.** If the user has a good product photo, keep it. Otherwise generate one with a text-to-image model. Brief it like a photographer (see Technique). Image responses can be sync or async; poll `GET /v1/tasks/{id}` when `status` is `pending`.
 3. **Stage 2: the scene.**
    - Studio on white or transparent: send the subject to the Bria background removal model with `operation: "image-edit"` and `image_url`.
    - New background, same product: send the subject URL and a scene prompt to an Ideogram replace-background model, or restage it with a Nano Banana model image-to-image.

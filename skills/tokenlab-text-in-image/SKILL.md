@@ -51,7 +51,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 1. Read the contract for the model and operation. Note the size fields and the allowed values. On Ideogram 4.5, `quality` has different allowed values for text-to-image and image-edit.
 2. Estimate the cost from `GET /v1/models/{model}/pricing`. On Ideogram 4.5 the price changes with `operation` and `quality`. Multiply by `n`.
 3. Write the prompt (see Technique). Put every word to render in double quotes. Send `operation: "text-to-image"`.
-4. Read the response. A sync response has `data[].url`. A response with `status: "pending"` and `poll_url` is a task: poll it every 5–10 s until `completed` or `failed`.
+4. Read the response. A sync response has `data[].url`. A response with `status: "pending"` is a task: poll `GET /v1/tasks/{id}` every 5–10 s until `completed` or `failed`.
 5. **Read every word in the result, letter by letter,** against the user's copy. Look for missing, doubled, or swapped letters and for extra text the user did not ask for.
 6. If a word is wrong: generate again (a new seed often fixes it), shorten or simplify the copy, or fix only that word with an image-edit call on the result URL. Keep an image whose text is right and fix the scene, not the other way round.
 7. Return the result URL, the model, the task ID, and a note that you checked the text.

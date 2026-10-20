@@ -53,7 +53,7 @@ Run each call with `tokenlab-run` (contract → estimate → call → poll → r
 3. Estimate. Speech-to-text prices per second of audio; some models bill a minimum length per request (read `minimumUnitCount` in `GET /v1/models/{model}/pricing`). Example: a 5.5 s clip on a 10 s minimum is billed as 10 s × (price per second). Translation prices per token.
 4. Transcribe with timings. Multipart upload:
    `python ../tokenlab-run/scripts/tokenlab_run.py run /v1/audio/transcriptions --form model=MODEL_ID --form response_format=verbose_json --form 'timestamp_granularities[]=word' --form language=en --file file=@clip.mp3 --wait > transcript.json`
-   The response can be the transcript or a task (`status` + `poll_url`); `--wait` polls a task for you.
+   The response can be the transcript or a task (`status` + `task_id`); `--wait` polls a task for you.
 5. Build subtitles from the timings with this skill's own helper, `scripts/subtitles.py` (relative to this skill's folder; standard library only, no API calls, and it reads the helper's output directly): `python scripts/subtitles.py transcript.json --format srt --max-chars 42 > clip.en.srt` (or `--format vtt`). This works even when a model cannot return SRT or VTT itself. Add each part's start offset if you split the file.
 6. Translate cue by cue, so each cue keeps its time:
    - `python scripts/subtitles.py transcript.json --max-chars 42 --text-only > cues.en.txt`
