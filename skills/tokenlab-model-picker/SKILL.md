@@ -59,7 +59,7 @@ Turn an outcome into a short list of live TokenLab model IDs. Work in three step
 1. For each candidate, read `GET /v1/models/{model}` and confirm:
    - `lifecycle.stage` is `active`;
    - the operation, its endpoint in `request_endpoint_by_operation`, and the inputs the user has (image, video, audio, reference count);
-   - the size, duration, and resolution limits the user needs, from `operation_constraints`.
+   - the size, quality, aspect ratio, duration, and reference image count the user needs. In the selected `operation_constraints` row, read the allowed values, `parameter_options`, `parameter_ranges`, `parameter_defaults`, `input_limits`, `parameter_notes`, `notes`, and `compatibility_only_parameters`. Follow the notes' disabled-field and combination conditions. Use the same model's top-level field only when the operation omits it. Keep explicit `[]`, `null`, `0`, and `false`; do not replace them with top-level or other-operation values. An undeclared numeric upper bound is unknown. An empty allowed-selector list does not allow unlimited values or values from another operation or model.
 2. Read `GET /v1/models/{model}/pricing` and compare cost per output unit (image, second, character, token, or request).
 3. Pick the default for fit and reliability, an alternative with a different strength (quality, speed, or input type), and a fast or low-cost option. Start from the outcome skill's generated Models list (refreshed daily from the live catalog), then confirm it live.
 4. Chat and coding: read `tokenlab.accepted_request_formats` to match the client's protocol (`openai_chat_completions`, `openai_responses`, `anthropic_messages`, `gemini_generate_content`).

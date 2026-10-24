@@ -39,10 +39,12 @@ The path is relative to this skill's folder. Other TokenLab skills call it as `.
 
 ## The procedure
 
-1. **Read the model contract.** `GET /v1/models/{model}`. Confirm `tokenlab.lifecycle.stage` is `active`. Read `tokenlab.public_contract_summary` (or `public_contract`):
+1. **Read the model contract.** `GET /v1/models/{model}` (MCP: `get_model`). Confirm `tokenlab.lifecycle.stage` is `active`. Read `tokenlab.public_contract` (or `public_contract_summary`):
    - `public_operations`: the operations this model sells.
    - `request_endpoint_by_operation`: the endpoint for each operation. It wins over any table in a skill. For example, many image-edit models use `/v1/images/generations` with `operation: "image-edit"`, not `/v1/images/edits`.
-   - `operation_constraints[]`: per operation `supported_parameters`, `allowed_durations`, `allowed_resolutions`, `allowed_aspect_ratios`, `parameter_options`, and `notes`.
+   - `operation_constraints[]`: use the row for the selected operation. Read `supported_parameters`, `allowed_durations`, `allowed_resolutions`, `allowed_aspect_ratios`, `parameter_options`, and `parameter_ranges` for the accepted fields and values.
+   - Read `parameter_defaults`, `input_limits` (including reference image counts), `parameter_notes`, `notes`, and `compatibility_only_parameters` in the same row. Follow disabled-field and combination conditions in the notes even when `supported_parameters` lists the field. A compatibility-only field does not promise control over the result. A note about a field does not add it to `supported_parameters`.
+   - Use the same model's top-level field only when the selected operation omits that field. Keep explicit `[]`, `null`, `0`, and `false` as returned; do not replace them with top-level or other-operation values. An undeclared numeric upper bound is unknown. An empty allowed-selector list does not mean unlimited values or allow values from another operation or model.
    - `recommended_request` / `recommended_request_summary`: a known-good starting body.
    - `tokenlab.deliveryAvailability.operations[op]`: which delivery options (`verified`, `official`) have supply for that operation.
 2. **Pick the operation and build the body.** Send `model` always. Send `operation` explicitly when the endpoint takes it (images, video). Do not send `operation` to `/v1/3d/generations`; it infers text-to-3d or image-to-3d from the inputs. Send only fields in `supported_parameters`, with values from the allowed lists. A field that is not listed returns `400 unsupported_parameter`; remove it or pick another model. Do not guess fields from the model name.
