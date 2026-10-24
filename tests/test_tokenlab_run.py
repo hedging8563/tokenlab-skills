@@ -325,6 +325,97 @@ class ContractTests(unittest.TestCase):
         with patch.object(run_helper, 'request', Responses(self.DETAIL)), self.assertRaises(SystemExit):
             run_helper.contract('m', 'motion-control')
 
+    def test_contract_keeps_model_parameter_details_and_falsey_values(self):
+        details = {
+            'parameter_options': {'quality': ['standard'], 'size': []},
+            'parameter_ranges': {'seed': {'minimum': 0, 'maximum': 4294967295}},
+            'parameter_defaults': {'seed': 0, 'watermark': False, 'quality': None, 'style': ''},
+            'parameter_notes': {'size': 'Custom size bounds are not verified.', 'quality': ''},
+            'input_limits': {'image_urls': {'minItems': 1, 'maxItems': 3}},
+            'compatibility_only_parameters': ['n'],
+        }
+        body = {'id': 'm', 'tokenlab': {'public_contract': {
+            'public_operations': ['image-to-image'], **details}}}
+        with patch.object(run_helper, 'request', side_effect=Responses(body)) as request:
+            out = run_helper.contract('m', 'image-to-image')
+        request.assert_called_once_with('GET', '/v1/models/m', auth=False)
+        for field, value in details.items():
+            self.assertEqual(out[field], value)
+
+    def test_contract_keeps_empty_and_null_parameter_details_without_fallback(self):
+        empty = {'parameter_options': {}, 'parameter_ranges': {}, 'parameter_defaults': {},
+                 'parameter_notes': {}, 'input_limits': {}, 'compatibility_only_parameters': []}
+        populated = {
+            'parameter_options': {'quality': ['standard']},
+            'parameter_ranges': {'seed': {'minimum': 0}}, 'parameter_defaults': {'n': 1},
+            'parameter_notes': {'quality': 'Model-specific selector.'},
+            'input_limits': {'image_urls': {'maxItems': 3}}, 'compatibility_only_parameters': ['n'],
+        }
+        for field in empty:
+            for value in (empty[field], None):
+                with self.subTest(field=field, value=value):
+                    body = {'id': 'm', 'tokenlab': {'public_contract': {
+                        'public_operations': ['image-to-image'], field: value,
+                        'operation_constraints': [{'operation': 'image-to-image', field: populated[field]}]}}}
+                    with patch.object(run_helper, 'request', Responses(body)):
+                        out = run_helper.contract('m', 'image-to-image')
+                    self.assertIn(field, out)
+                    self.assertEqual(out[field], value)
+        with patch.object(run_helper, 'request', Responses(self.DETAIL)):
+            out = run_helper.contract('m')
+        self.assertTrue(set(empty).isdisjoint(out))
+
+    def test_contract_keeps_operation_details_without_merging_other_operations(self):
+        rows = [
+            {'operation': 'text-to-image', 'supported_parameters': ['prompt', 'seed'],
+             'parameter_options': {}, 'parameter_ranges': {'seed': {'minimum': 0}},
+             'parameter_defaults': {'seed': 0}, 'parameter_notes': {'quality': 'Not verified.'},
+             'input_limits': {}, 'compatibility_only_parameters': [], 'notes': []},
+            {'operation': 'image-to-image', 'supported_parameters': ['prompt', 'image_url'],
+             'parameter_options': {'quality': []}, 'parameter_ranges': {},
+             'parameter_defaults': {}, 'parameter_notes': {}, 'input_limits': None,
+             'compatibility_only_parameters': ['n'], 'notes': ['One reference image.']},
+        ]
+        body = {'id': 'm', 'tokenlab': {'public_contract': {
+            'public_operations': ['text-to-image', 'image-to-image'], 'operation_constraints': rows,
+            'parameter_defaults': {'n': 1}}}}
+        for operation, expected in ((None, rows), ('text-to-image', rows[:1]), ('image-to-image', rows[1:])):
+            with self.subTest(operation=operation), patch.object(run_helper, 'request', Responses(body)):
+                out = run_helper.contract('m', operation)
+            self.assertEqual(out['operation_constraints'], expected)
+            self.assertEqual(out['parameter_defaults'], {'n': 1})
+
+    def test_reading_contract_does_not_change_generation_fields_or_auth(self):
+        body = {'model': 'm', 'operation': 'image-to-image', 'image_url': 'https://example.test/input.png',
+                'seed': 0, 'watermark': False, 'quality': None, 'prompt': 'Keep the subject.'}
+        seen = []
+
+        class Reply(io.BytesIO):
+            status, headers = 200, {'Content-Type': 'application/json'}
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+        replies = [self.DETAIL, {'data': [{'url': 'https://example.test/output.png'}]}]
+
+        def urlopen(req, timeout):
+            seen.append((req.get_method(), req.full_url, req.get_header('Authorization'),
+                         json.loads(req.data) if req.data else None))
+            return Reply(json.dumps(replies.pop(0)).encode())
+
+        with patch.dict(run_helper.os.environ, {'TOKENLAB_API_KEY': 'sk-fixture-only'}), \
+                patch.object(run_helper, 'API_BASE', 'https://api.example.test'), \
+                patch.object(run_helper.urllib.request, 'urlopen', urlopen):
+            run_helper.contract('m')
+            run_helper.run(run_args(endpoint='/v1/images/generations', json=json.dumps(body), wait=False))
+        self.assertEqual(seen, [
+            ('GET', 'https://api.example.test/v1/models/m', None, None),
+            ('POST', 'https://api.example.test/v1/images/generations', 'Bearer sk-fixture-only', body),
+        ])
+
     def test_price_keeps_price_structures_and_drops_source_notes(self):
         body = {'model': 'm', 'pricing_unit': 'per_second', 'pricing_details': {
             'unitPriceVariants': [{'officialLockPrice': 0.1}], 'minimumUnitCount': 10, 'provenance': {'notes': 'x'}}}

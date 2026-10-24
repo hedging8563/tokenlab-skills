@@ -7,7 +7,7 @@
   },
   "metadata": {
     "description": "Maintained TokenLab Agent Skills and MCP integrations for Claude Code and Codex.",
-    "version": "0.2.1"
+    "version": "0.2.2"
   },
   "plugins": [
     {

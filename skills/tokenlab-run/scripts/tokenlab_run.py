@@ -207,6 +207,10 @@ def contract(model, operation=None):
         'notes': pc.get('notes') or [],
         # Some models publish only model-level parameters and no per-operation rows.
         'supported_parameters': pc.get('supported_parameters') or [],
+        **{field: pc[field] for field in (
+            'parameter_options', 'parameter_ranges', 'parameter_defaults', 'parameter_notes',
+            'input_limits', 'compatibility_only_parameters',
+        ) if field in pc},
         'operation_constraints': rows,
         'recommended_request': pc.get('recommended_request') or pc.get('recommended_request_summary'),
         'delivery': {op: delivery.get(op) for op in ([operation] if operation else ops)},
