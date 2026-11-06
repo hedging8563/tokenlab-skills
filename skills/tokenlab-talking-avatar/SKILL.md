@@ -30,7 +30,6 @@ TokenLab does not offer lip-sync onto an existing video. Every path starts from 
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `image-to-video` | `omnihuman-1-5` | default | Portrait plus speech audio |
-| `image-to-video` | `veed-fabric-1-0` | alternative | Portrait plus speech, alternative (not live-tested) |
 | `image-to-video` | `p-video-avatar` | alternative | Low-cost portrait plus speech |
 | `image-to-video` | `veo3.1-fast` | alternative | Portrait plus a short quoted line, no audio file |
 | `tts` | `grok-tts` | default | Script to speech audio |
