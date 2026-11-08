@@ -36,7 +36,6 @@ Change one thing in an existing image and keep everything else. Pick the model b
 | `image-edit` | `ideogram-replace-background-v3-turbo` | alternative | New background, same subject (not live-tested) |
 | `image-edit` | `ideogram-reframe-v3-turbo` | alternative | Extend the frame (outpaint) (not live-tested) |
 | `image-to-image` | `nano-banana-2` | default | New image from reference images |
-| `image-to-image` | `seedream-5.0` | alternative | New image from references, alternative (not live-tested) |
 
 This list refreshes daily from the live catalog. Preferred models come first; otherwise models are ranked by their 24-hour success rate. Before a call, confirm the model with `GET /v1/models/{model}` and read its price from `GET /v1/models/{model}/pricing`.
 <!-- tokenlab:models:end -->

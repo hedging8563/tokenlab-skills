@@ -27,7 +27,6 @@ Show the same character in new scenes, poses, and clips. The method: lock one an
 | --- | --- | --- | --- |
 | `image-to-image` | `nano-banana-2` | default | New scene from the anchor |
 | `image-to-image` | `ideogram-character-remix-v3` | alternative | New scene, alternative (not live-tested) |
-| `image-to-image` | `seedream-5.0` | alternative | New scene, alternative (not live-tested) |
 | `image-to-image` | `nano-banana-2-lite` | alternative | Low-cost new scene (not live-tested) |
 | `text-to-image` | `nano-banana-2` | default | Make the anchor image |
 | `text-to-image` | `flux-2-pro` | alternative | Anchor image, alternative |

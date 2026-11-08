@@ -18,7 +18,6 @@
     "status": "available",
     "models": [
       "flux-2-pro",
-      "seedream-5.0",
       "recraft-v4.1-utility",
       "p-image",
       "nano-banana-2",
@@ -27,7 +26,7 @@
       "ideogram-replace-background-v3-turbo",
       "ideogram-replace-background-v3"
     ],
-    "checkedAt": "2026-10-11T21:14:40Z"
+    "checkedAt": "2026-11-08T03:20:31Z"
   },
   "tokenlab-edit-image": {
     "status": "available",
@@ -41,10 +40,9 @@
       "stability-inpaint",
       "bria-rmbg-v2-0",
       "ideogram-replace-background-v3-turbo",
-      "ideogram-reframe-v3-turbo",
-      "seedream-5.0"
+      "ideogram-reframe-v3-turbo"
     ],
-    "checkedAt": "2026-10-11T21:14:40Z"
+    "checkedAt": "2026-11-08T03:20:31Z"
   },
   "tokenlab-restore-and-upscale": {
     "status": "available",
@@ -76,7 +74,6 @@
     "models": [
       "nano-banana-2",
       "ideogram-character-remix-v3",
-      "seedream-5.0",
       "nano-banana-2-lite",
       "flux-2-pro",
       "ideogram-character-v3",
@@ -85,7 +82,7 @@
       "kling-omni-video",
       "seedance-2.0"
     ],
-    "checkedAt": "2026-10-11T21:14:40Z"
+    "checkedAt": "2026-11-08T03:20:31Z"
   },
   "tokenlab-photoreal-stills": {
     "status": "available",

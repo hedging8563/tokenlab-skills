@@ -26,11 +26,9 @@ Make catalog-, ad-, or hero-ready product images from a plain photo or a written
 | Operation | Model | Pick | Use |
 | --- | --- | --- | --- |
 | `text-to-image` | `flux-2-pro` | default | Shot from a written brief |
-| `text-to-image` | `seedream-5.0` | alternative | Shot from a brief, alternative look (not live-tested) |
 | `text-to-image` | `recraft-v4.1-utility` | alternative | Flat catalog mockup (not live-tested) |
 | `text-to-image` | `p-image` | alternative | Low-cost draft |
 | `image-to-image` | `nano-banana-2` | default | Restage an existing product photo |
-| `image-to-image` | `seedream-5.0` | alternative | Restage, alternative look (not live-tested) |
 | `image-to-image` | `nano-banana-2-lite` | alternative | Low-cost restage (not live-tested) |
 | `image-edit` | `bria-rmbg-v2-0` | default | Cut out the background |
 | `image-edit` | `ideogram-replace-background-v3-turbo` | alternative | Replace the background in place (not live-tested) |
